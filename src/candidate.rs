@@ -1,5 +1,10 @@
+//! Minimal Candidate parser
+//! 
+//! read [RFC5245 Section 15.1](https://tools.ietf.org/html/rfc5245#section-15.1)
 use nom::*;
 use nom::types::CompleteStr;
+
+use std::net::IpAddr;
 
 use super::parsers::is_not_space;
 
@@ -12,14 +17,31 @@ use super::parsers::is_not_space;
 /// candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
 /// candidate:3348148302 2 udp 2113937151 192.0.2.1 56501 typ host
 #[derive(Debug)]
-pub struct Candidate<'a> {
+pub struct Candidate {
     foundation: u32,
-    component: u8, // "rtp" (the number 1 is encoded to this string; 2 becomes "rtcp")
-    protocol: &'a str,  // "udp", "tcp" or "dccp"
+    component: CandidateComponent,
+    protocol: CandidateProtocol,
     priority: u32, // 2043278322
-    ip: &'a str,       // "192.168.0.56"
+    addr: IpAddr,       // "192.168.0.56"
     port: u32,     // 44323
-    typ: &'a str// "host"
+    typ: CandidateType, // "host"
+    raddr: Option<IpAddr>,       // "192.168.0.56"
+    rport: Option<u32>,     // 44323
+}
+
+#[derive(Debug)]
+pub enum CandidateComponent{
+    Rtp, Rtcp
+}
+
+#[derive(Debug)]
+pub enum CandidateProtocol {
+    Tcp, Udp, Dccp
+}
+
+#[derive(Debug)]
+pub enum CandidateType {
+    Host, Relay, Srflx, Prflx
 }
 
 named!{
@@ -28,41 +50,79 @@ named!{
     do_parse!(
         tag!("candidate:") >>
         foundation: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
-        component: map_res!(take_while1!(is_not_space), |i: CompleteStr| u8::from_str_radix(&i, 10)) >>
-        protocol: take_while1!(is_not_space) >>
-        priority: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
-        ip: take_while1!(is_not_space) >>
-        port: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
-        tag!("typ") >>
-        typ: alphanumeric >>
 
+        component: alt!(
+            tag!("1") => {|_| CandidateComponent::Rtp } |
+            tag!("2") => {|_| CandidateComponent::Rtcp }
+        ) >>
+
+        protocol: alt!(
+            alt!(tag!("UDP") | tag!("udp")) => { |_| CandidateProtocol::Udp} | 
+            alt!(tag!("TCP") | tag!("tcp")) => { |_| CandidateProtocol::Tcp} | 
+            alt!(tag!("DCCP") | tag!("dccp"))        => { |_| CandidateProtocol::Dccp}
+        ) >>
+
+        priority: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
+
+        addr: map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() ) >>
+
+        port: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
+
+        tag!("typ") >>
+        typ: alt!(
+            tag!("host") => { |_| CandidateType::Host } |
+            tag!("relay") => { |_| CandidateType::Relay} |
+            tag!("srflx") => { |_| CandidateType::Srflx} |
+            tag!("prflx") => { |_| CandidateType::Prflx}
+        ) >>
+
+        raddr: opt!(map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() )) >>
+        rport: opt!(map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10))) >>
 
         (Candidate {
             foundation,
             component,
-            protocol: &protocol,
+            protocol,
             priority,
-            ip: &ip,
-            port,
-            typ: &typ,
+            addr, port,
+            typ,
+            raddr, rport,
         })
         )
     )
 }
 
-pub fn parse_candidate(raw: &str) -> IResult<CompleteStr, Candidate> {
-    raw_parse_candidate(CompleteStr(raw))
+pub fn parse_candidate(raw: &str) -> Option<Candidate> {
+    match raw_parse_candidate(CompleteStr(raw)) {
+        Ok((_, candidate)) => Some(candidate),
+        _ => None
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
-    fn it_works() {
-        let parsed_host = parse_candidate("candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host").unwrap();
-        let parsed_relay = parse_candidate("candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ relay").unwrap();
+    fn parses_basic_candidates() {
+        println!("{:?}", parse_candidate("candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host").unwrap());
+        println!("{:?}", parse_candidate("candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay").unwrap());
+        println!("{:?}", parse_candidate("candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx").unwrap());
+        println!("{:?}", parse_candidate("candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx").unwrap());
+        println!("{:?}", parse_candidate("candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx").unwrap());
+        println!("{:?}", parse_candidate("candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337").unwrap());
+    }
+
+    #[test]
+    fn accepts_breaks() {
+        let parsed_host = parse_candidate("candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host\n").unwrap();
         println!("{:#?}", parsed_host);
-        println!("{:#?}", parsed_relay);
+    }
+
+    #[test]
+    #[should_panic]
+    fn fails_on_bad_ip() {
+        raw_parse_candidate(CompleteStr("candidate:3348148302 1 udp 2113937151 293.0.2.1 56500 typ host\n")).unwrap();
     }
 }
