@@ -23,23 +23,42 @@ named!(alphanumeric<CompleteStr, CompleteStr>, take_while1!(is_alphanumeric));
 named!{
     pub read_number<CompleteStr, u32>,
     do_parse!(
-      n: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
-      (n)
+        n: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
+        (n)
     )
 }
 
 named!{
     pub read_string<CompleteStr, CompleteStr>,
     do_parse!(
-      s: take_while1!(is_not_space) >>
-      (s)
+        s: take_while1!(is_not_space) >>
+        (s)
     )
 }
 
 named!{
     pub read_addr<CompleteStr, IpAddr>,
     do_parse!(
-      addr: map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() ) >>
-      (addr)
+        addr: map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() ) >>
+        (addr)
     )
 }
+
+
+#[derive(Debug)]
+pub enum IpVer {
+    Ip4, Ip6
+}
+
+named!{
+    pub read_ipver<CompleteStr, IpVer>,
+    do_parse!(
+        ip_ver: alt!(
+            tag!("IP4") => {|_| IpVer::Ip4 } |
+            tag!("IP6") => {|_| IpVer::Ip6 }
+        ) >>
+        (ip_ver)
+    )
+}
+
+

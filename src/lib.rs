@@ -4,8 +4,9 @@ use nom::types::CompleteStr;
 mod parsers;
 pub mod candidate;
 pub mod origin;
+pub mod connection;
 
-use parsers::is_numeric;
+use parsers::read_number;
 use candidate::{Candidate, raw_parse_candidate_line};
 
 /// "v=0"
@@ -14,7 +15,7 @@ named!{
     ws!(
         do_parse!(
             tag!("v=") >>
-            version: map_res!(take_while1!(is_numeric), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
+            version: read_number >>
             (version)
         )
     )
