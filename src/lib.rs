@@ -3,6 +3,7 @@ use nom::types::CompleteStr;
 
 mod parsers;
 pub mod candidate;
+pub mod origin;
 
 use parsers::is_numeric;
 use candidate::{Candidate, raw_parse_candidate_line};

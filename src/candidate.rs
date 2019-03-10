@@ -6,7 +6,10 @@ use nom::types::CompleteStr;
 
 use std::net::IpAddr;
 
-use super::parsers::is_not_space;
+use super::parsers::{
+    read_addr,
+    read_number,
+};
 
 /// Candidate
 /// 
@@ -30,7 +33,7 @@ pub struct Candidate {
 }
 
 #[derive(Debug)]
-pub enum CandidateComponent{
+pub enum CandidateComponent {
     Rtp, Rtcp
 }
 
@@ -49,7 +52,7 @@ named!{
     ws!(
         do_parse!(
             tag!("candidate:") >>
-            foundation: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
+            foundation: read_number >>
 
             component: alt!(
                 tag!("1") => {|_| CandidateComponent::Rtp } |
@@ -62,11 +65,9 @@ named!{
                 alt!(tag!("DCCP") | tag!("dccp"))        => { |_| CandidateProtocol::Dccp}
             ) >>
 
-            priority: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
-
-            addr: map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() ) >>
-
-            port: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >>
+            priority: read_number >>
+            addr: read_addr >> 
+            port: read_number >>
 
             tag!("typ") >>
             typ: alt!(
@@ -76,8 +77,8 @@ named!{
                 tag!("prflx") => { |_| CandidateType::Prflx}
             ) >>
 
-            raddr: opt!(map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() )) >>
-            rport: opt!(map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10))) >>
+            raddr: opt!(read_addr) >>
+            rport: opt!(read_number) >>
 
             (Candidate {
                 foundation,
