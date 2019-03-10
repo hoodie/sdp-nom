@@ -1,0 +1,8 @@
+[package]
+name = "sdp-rs"
+version = "0.1.0"
+authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
+edition = "2018"
+
+[dependencies]
+nom = "4.2.1"
