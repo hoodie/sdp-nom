@@ -47,8 +47,7 @@ pub enum CandidateType {
     Host, Relay, Srflx, Prflx
 }
 
-named!{
-    raw_parse_candidate<CompleteStr, Candidate>,
+named!{ pub(crate ) raw_candidate<CompleteStr, Candidate>,
     ws!(
         do_parse!(
             tag!("candidate:") >>
@@ -94,26 +93,25 @@ named!{
 }
 
 pub fn parse_candidate(raw: &str) -> Option<Candidate> {
-    match raw_parse_candidate(CompleteStr(raw)) {
+    match raw_candidate(CompleteStr(raw)) {
         Ok((_, candidate)) => Some(candidate),
         _ => None
     }
 }
 
 /// "a=Candidate"
-named!{
-    pub raw_parse_candidate_line<CompleteStr, Candidate>,
+named!{ pub raw_candidate_line<CompleteStr, Candidate>,
     ws!(
         do_parse!(
             tag!("a=") >>
-            candidate: raw_parse_candidate >>
+            candidate: raw_candidate >>
             (candidate)
         )
     )
 }
 
 pub fn parse_candidate_line(raw: &str) -> Option<Candidate> {
-    match raw_parse_candidate_line(CompleteStr(raw)) {
+    match raw_candidate_line(CompleteStr(raw)) {
         Ok((_, candidate)) => Some(candidate),
         _ => None
     }
@@ -122,7 +120,7 @@ pub fn parse_candidate_line(raw: &str) -> Option<Candidate> {
 
 named!{
     raw_parse_candidate_lines <CompleteStr, Vec<Candidate>>,
-    many0!(terminated!(raw_parse_candidate_line, opt!(multispace)))
+    many0!(terminated!(raw_candidate_line, opt!(multispace)))
 }
 
 #[cfg(test)]
@@ -170,6 +168,6 @@ mod tests {
     #[should_panic]
     #[ignore]
     fn fails_on_bad_ip() {
-        raw_parse_candidate(CompleteStr("candidate:3348148302 1 udp 2113937151 293.0.2.1 56500 typ host\n")).unwrap();
+        raw_candidate(CompleteStr("candidate:3348148302 1 udp 2113937151 293.0.2.1 56500 typ host\n")).unwrap();
     }
 }

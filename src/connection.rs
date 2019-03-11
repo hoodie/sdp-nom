@@ -9,6 +9,7 @@ use super::parsers::{
     IpVer,
 };
 
+#[derive(Debug)]
 pub struct Connection {
     pub ip_ver: IpVer,
     pub addr: IpAddr,

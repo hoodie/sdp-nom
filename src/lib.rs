@@ -2,44 +2,69 @@ use nom::*;
 use nom::types::CompleteStr;
 
 mod parsers;
+pub mod lines;
 pub mod candidate;
 pub mod origin;
 pub mod connection;
 
-use parsers::read_number;
-use candidate::{Candidate, raw_parse_candidate_line};
-
-/// "v=0"
-named!{
-    raw_version_line<CompleteStr, u32>,
-    ws!(
-        do_parse!(
-            tag!("v=") >>
-            version: read_number >>
-            (version)
-        )
-    )
-}
-
-named!(raw_sdp_line<CompleteStr, Vec<SdpLine> >,
-    many0!(terminated!(
-        alt!(
-            raw_version_line => { |v| SdpLine::Version(v) }
-            |
-            raw_parse_candidate_line => { |c| SdpLine::Candidate(c)}
-        )
-    , opt!(multispace)))
-);
+use lines::*;
+use origin::*;
+use candidate::*;
+use connection::*;
 
 #[derive(Debug)]
-pub enum SdpLine {
+pub enum SdpLine<'a> {
     Version(u32),
-    Candidate(Candidate)
+    Name(Name<'a>),
+    Timing(Timing),
+    Origin(Origin<'a>),
+    Connection(Connection),
+    Candidate(Candidate),
+    Mid(Mid<'a>),
+    Direction(Direction),
+    EoC,
+    Aline(Vec<CompleteStr<'a>>)
+}
+
+named!(raw_sdp_line<CompleteStr, SdpLine >,
+    alt!(
+        raw_version_line => { |v| SdpLine::Version(v) } |
+        raw_name_line => { |v| SdpLine::Name(v) } |
+        raw_timing_line => { |t| SdpLine::Timing(t) } |
+        raw_origin_line => { |o| SdpLine::Origin(o)} |
+        raw_connection_line => { |c| SdpLine::Connection(c)} |
+        raw_mid_line=> { |m| SdpLine::Mid(m)} |
+        raw_direction_line => { |d| SdpLine::Direction(d)} |
+        raw_candidate_line => { |c| SdpLine::Candidate(c)} |
+        tag!("a=end-of-candidates") => { |_| SdpLine::EoC}
+        // | raw_a_line => { |v| SdpLine::Aline(v)}
+    )
+);
+
+named!(raw_sdp_lines<CompleteStr, Vec<SdpLine> >,
+    many0!(terminated!(raw_sdp_line, opt!(multispace)))
+);
+
+pub fn sdp_line(raw: &str) -> Option<SdpLine> {
+    match raw_sdp_line(CompleteStr(raw)) {
+        Ok((_, line)) => Some(line),
+        _ => None
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parse_by_line() {
+        let jsep_sdp = include_str!("../sdp-transform/test/jsep.sdp");
+        jsep_sdp
+            .lines()
+            .map(|line| (sdp_line(line), line) )
+            .for_each(|sdp_line| println!("{:?}", sdp_line));
+
+    }
 
     #[test]
     fn test_version() {

@@ -6,6 +6,7 @@ use std::net::IpAddr;
 use super::parsers::{
     read_addr,
     read_ipver,
+    read_big_number,
     read_number,
     read_string,
     IpVer,
@@ -18,7 +19,7 @@ use super::parsers::{
 #[derive(Debug)]
 pub struct Origin<'a> {
     pub user_name: &'a str,
-    pub session_id: u32,
+    pub session_id: u64,
     pub session_version: u32,
     pub net_type: &'a str,
     pub ip_ver: IpVer,
@@ -26,12 +27,11 @@ pub struct Origin<'a> {
 }
 
 named!{
-    pub(crate) raw_parse_origin_line<CompleteStr, Origin>,
+    pub(crate) raw_origin<CompleteStr, Origin>,
     ws!(
         do_parse!(
-            tag!("o=") >>
             user_name: read_string >>
-            session_id: read_number >>
+            session_id: read_big_number >>
             session_version: read_number >>
             net_type: read_string >>
             ip_ver: read_ipver >>
@@ -47,4 +47,28 @@ named!{
             })
         )
     )
+}
+
+named!{
+    pub(crate) raw_origin_line<CompleteStr, Origin>,
+    ws!(
+        do_parse!(
+            tag!("o=") >>
+            origin: raw_origin >>
+
+            (origin)
+        )
+    )
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_candidates() {
+        println!("{:?}", raw_origin_line("o=test 4962303333179871722 1 IN IP4 0.0.0.0".into()).unwrap());
+        println!("{:?}", raw_origin_line("o=- 4962303333179871722 1 IN IP4 0.0.0.0".into()).unwrap());
+    }
 }
