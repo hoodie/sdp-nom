@@ -20,10 +20,15 @@ pub enum SdpLine<'a> {
     Origin(Origin<'a>),
     Connection(Connection),
     Candidate(Candidate),
+    Media(Media<'a>),
     Mid(Mid<'a>),
+    Msid(Msid<'a>),
+    Ssrc(Ssrc<'a>),
+    Fingerprint(Fingerprint<'a>),
     Direction(Direction),
+    BundleOnly,
     EoC,
-    Aline(Vec<CompleteStr<'a>>)
+    Aline(Vec<&'a str>)
 }
 
 named!(raw_sdp_line<CompleteStr, SdpLine >,
@@ -31,12 +36,17 @@ named!(raw_sdp_line<CompleteStr, SdpLine >,
         raw_version_line => { |v| SdpLine::Version(v) } |
         raw_name_line => { |v| SdpLine::Name(v) } |
         raw_timing_line => { |t| SdpLine::Timing(t) } |
-        raw_origin_line => { |o| SdpLine::Origin(o)} |
-        raw_connection_line => { |c| SdpLine::Connection(c)} |
-        raw_mid_line=> { |m| SdpLine::Mid(m)} |
-        raw_direction_line => { |d| SdpLine::Direction(d)} |
-        raw_candidate_line => { |c| SdpLine::Candidate(c)} |
-        tag!("a=end-of-candidates") => { |_| SdpLine::EoC}
+        raw_origin_line => { |o| SdpLine::Origin(o) } |
+        raw_connection_line => { |c| SdpLine::Connection(c) } |
+        raw_media_line => { |m| SdpLine::Media(m) } |
+        raw_mid_line => { |m| SdpLine::Mid(m) } |
+        raw_msid_line => { |m| SdpLine::Msid(m) } |
+        raw_ssrc_line => { |s| SdpLine::Ssrc(s) } |
+        raw_fingerprint_line => { |fp| SdpLine::Fingerprint(fp) } |
+        raw_direction_line => { |d| SdpLine::Direction(d) } |
+        raw_candidate_line => { |c| SdpLine::Candidate(c) } |
+        tag!("a=bundle-only") => { |_| SdpLine::BundleOnly } |
+        tag!("a=end-of-candidates") => { |_| SdpLine::EoC }
         // | raw_a_line => { |v| SdpLine::Aline(v)}
     )
 );
@@ -74,14 +84,14 @@ mod tests {
     
     #[test]
     fn parses_sdp() {
-        println!("{:#?}", raw_sdp_line(CompleteStr(
+        println!("{}", raw_sdp_lines(CompleteStr(
         "v=0
         a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
         a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay
         a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx
         a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx
         a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337")).unwrap())
+        a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337")).unwrap().0)
     }
 
 
