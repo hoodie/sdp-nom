@@ -6,11 +6,13 @@ pub mod lines;
 pub mod candidate;
 pub mod origin;
 pub mod connection;
+pub mod attributes;
 
 use lines::*;
 use origin::*;
 use candidate::*;
 use connection::*;
+use attributes::*;
 
 #[derive(Debug)]
 pub enum SdpLine<'a> {

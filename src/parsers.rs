@@ -22,7 +22,12 @@ named!(alphanumeric<CompleteStr, CompleteStr>, take_while1!(is_alphanumeric));
 
 named!{
     pub(crate) read_number<CompleteStr, u32>,
-    do_parse!(n: map_res!(take_while1!(is_not_space), |i: CompleteStr| u32::from_str_radix(&i, 10)) >> (n))
+    do_parse!(
+        n: map_res!(
+            take_while1!( |c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
+            |i: CompleteStr| u32::from_str_radix(&i, 10)
+        ) >> (n)
+    )
 }
 
 named!{
