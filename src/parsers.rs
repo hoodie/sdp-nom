@@ -62,7 +62,7 @@ named!{
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum IpVer {
     Ip4, Ip6
 }
@@ -77,6 +77,41 @@ named!{
         (ip_ver)
     )
 }
+
+#[derive(Debug, PartialEq)]
+pub enum NetType {
+    IN
+}
+
+named!{
+    pub(crate) read_net_type<CompleteStr, NetType>,
+    do_parse!(
+        typ: alt!(tag!("IN") => {|_| NetType::IN }) >> (typ)
+    )
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Direction {
+    SendOnly,
+    SendRecv,
+    RecvOnly,
+    Inactive
+}
+
+named!{
+    pub(crate) read_direction<CompleteStr, Direction>,
+    do_parse!(
+        direction: alt!(
+            tag!("sendrecv") => { |_| Direction::SendRecv } |
+            tag!("sendonly") => { |_| Direction::SendOnly } |
+            tag!("recvonly") => { |_| Direction::RecvOnly } |
+            tag!("inactive") => { |_| Direction::Inactive}
+        ) >>
+
+        (direction)
+    )
+}
+
 
 named!{
     pub(crate) read_as_strings<CompleteStr, Vec<&str>>,

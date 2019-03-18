@@ -13,6 +13,7 @@ use origin::*;
 use candidate::*;
 use connection::*;
 use attributes::*;
+use parsers::*;
 
 #[derive(Debug)]
 pub enum SdpLine<'a> {

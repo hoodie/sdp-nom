@@ -175,27 +175,9 @@ named!{
 
 
 
-#[derive(Debug)]
-pub enum Direction {
-    SendOnly,
-    SendRecv,
-    RecvOnly,
-    Inactive
-}
-
 named!{
     pub(crate) raw_direction_line<CompleteStr, Direction>,
-    do_parse!(
-        tag!("a=") >>
-        direction: alt!(
-            tag!("sendrecv") => { |_| Direction::SendRecv } |
-            tag!("sendonly") => { |_| Direction::SendOnly } |
-            tag!("recvonly") => { |_| Direction::RecvOnly } |
-            tag!("inactive") => { |_| Direction::Inactive}
-        ) >>
-
-        (direction)
-    )
+    do_parse!(tag!("a=") >> direction: read_direction >> (direction))
 }
 
 
