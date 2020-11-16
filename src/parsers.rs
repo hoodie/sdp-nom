@@ -1,10 +1,24 @@
 #![allow(dead_code)]
 use nom::*;
-use nom::types::CompleteStr;
+use nom::{
+    branch::alt,
+    bytes::complete::{tag, take_while1},
+    character::{
+        complete::{anychar, char, multispace0, none_of, space1},
+        is_digit,
+    },
+    combinator::{map, map_res, opt},
+    error::ParseError,
+    multi::many0,
+    sequence::{delimited, terminated},
+    Parser,
+};
 
 use std::net::IpAddr;
 
-pub(crate) fn is_not_space(c: char) -> bool { c != ' ' }
+pub(crate) fn is_not_space(c: char) -> bool {
+    c != ' '
+}
 
 pub(crate) fn is_alphabetic(chr: u8) -> bool {
     (chr >= 0x41 && chr <= 0x5A) || (chr >= 0x61 && chr <= 0x7A)
@@ -18,76 +32,72 @@ pub(crate) fn is_numeric(chr: char) -> bool {
     is_digit(chr as u8)
 }
 
-named!(alphanumeric<CompleteStr, CompleteStr>, take_while1!(is_alphanumeric));
-
-named!{
-    pub(crate) read_number<CompleteStr, u32>,
-    do_parse!(
-        n: map_res!(
-            take_while1!( |c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
-            |i: CompleteStr| u32::from_str_radix(&i, 10)
-        ) >> (n)
-    )
+pub fn ws<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(f: F) -> impl Parser<&'a str, O, E> {
+    delimited(multispace0, f, multispace0)
 }
 
-named!{
-    pub(crate) read_big_number<CompleteStr, u64>,
-    do_parse!(n: map_res!(take_while1!(is_not_space), |i: CompleteStr| u64::from_str_radix(&i, 10)) >> (n))
+pub fn wsf<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(f: F) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
+    delimited(multispace0, f, multispace0)
 }
 
-named!{
-    pub(crate) read_string<CompleteStr, &str>,
-    do_parse!(s: map!( take_while1!(is_not_space), |cs| &**cs) >> (s))
+// fn alphanumeric<'a, E: ParseError<&'a str>>() -> impl Parser<&'a str, &'a str, E> {
+//     take_while1(is_alphanumeric)
+// }
+
+pub(crate) fn read_number(input: &str) -> IResult<&str, u32> {
+    map_res(
+        take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
+        |i: &str| u32::from_str_radix(&i, 10),
+    )(input)
 }
 
-named!{
-    pub(crate) read_non_colon_string<CompleteStr, &str>,
-    do_parse!(s: map!(take_while1!(|c: char| -> bool { c != ' ' && c != ':' }), |cs| &**cs) >> (s))
+pub(crate) fn read_big_number(input: &str) -> IResult<&str, u64> {
+    map_res(
+        take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
+        |i: &str| u64::from_str_radix(&i, 10),
+    )(input)
 }
 
-named!{
-    pub(crate) read_non_slash_string<CompleteStr, &str>,
-    do_parse!(s: map!(take_while1!(|c: char| -> bool { c != ' ' && c != '/' }), |cs| &**cs) >> (s))
+pub(crate) fn read_string(input: &str) -> IResult<&str, &str> {
+    take_while1(is_not_space)(input)
 }
 
-named!{
-    pub(crate) slash_separated_strings<CompleteStr, Vec<&str>>,
-    many0!(terminated!(read_non_slash_string, opt!(tag!("/"))))
+pub(crate) fn read_non_colon_string(input: &str) -> IResult<&str, &str> {
+    take_while1(|c: char| -> bool { c != ' ' && c != ':' })(input)
 }
 
-
-named!{
-    pub(crate) read_addr<CompleteStr, IpAddr>,
-    do_parse!(addr: map_res!(take_while1!(is_not_space), |i: CompleteStr| i.parse() ) >> (addr))
+pub(crate) fn read_non_slash_string(input: &str) -> IResult<&str, &str> {
+    take_while1(|c: char| -> bool { c != ' ' && c != '/' })(input)
 }
 
+pub(crate) fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
+    many0(terminated(read_non_slash_string, opt(tag("/"))))(input)
+}
+
+pub(crate) fn read_addr(input: &str) -> IResult<&str, IpAddr> {
+    map_res(take_while1(is_not_space), str::parse)(input)
+}
 
 #[derive(Debug, PartialEq)]
 pub enum IpVer {
-    Ip4, Ip6
+    Ip4,
+    Ip6,
 }
 
-named!{
-    pub(crate) read_ipver<CompleteStr, IpVer>,
-    do_parse!(
-        ip_ver: alt!(
-            tag!("IP4") => {|_| IpVer::Ip4 } |
-            tag!("IP6") => {|_| IpVer::Ip6 }
-        ) >>
-        (ip_ver)
-    )
+pub(crate) fn read_ipver(input: &str) -> IResult<&str, IpVer> {
+    alt((
+        map(tag("IP4"), |_| IpVer::Ip4),
+        map(tag("IP6"), |_| IpVer::Ip6),
+    ))(input)
 }
 
 #[derive(Debug, PartialEq)]
 pub enum NetType {
-    IN
+    IN,
 }
 
-named!{
-    pub(crate) read_net_type<CompleteStr, NetType>,
-    do_parse!(
-        typ: alt!(tag!("IN") => {|_| NetType::IN }) >> (typ)
-    )
+pub(crate) fn read_net_type(input: &str) -> IResult<&str, NetType> {
+    map(tag("IN"), |_| NetType::IN)(input)
 }
 
 #[derive(Debug, PartialEq)]
@@ -95,31 +105,22 @@ pub enum Direction {
     SendOnly,
     SendRecv,
     RecvOnly,
-    Inactive
+    Inactive,
 }
 
-named!{
-    pub(crate) read_direction<CompleteStr, Direction>,
-    do_parse!(
-        direction: alt!(
-            tag!("sendrecv") => { |_| Direction::SendRecv } |
-            tag!("sendonly") => { |_| Direction::SendOnly } |
-            tag!("recvonly") => { |_| Direction::RecvOnly } |
-            tag!("inactive") => { |_| Direction::Inactive}
-        ) >>
-
-        (direction)
-    )
+pub(crate) fn read_direction(input: &str) -> IResult<&str, Direction> {
+    alt((
+        map(tag("sendrecv"), |_| Direction::SendRecv),
+        map(tag("sendonly"), |_| Direction::SendOnly),
+        map(tag("recvonly"), |_| Direction::RecvOnly),
+        map(tag("inactive"), |_| Direction::Inactive),
+    ))(input)
 }
 
-
-named!{
-    pub(crate) read_as_strings<CompleteStr, Vec<&str>>,
-    many0!(terminated!(read_string, opt!(space1)))
+pub(crate) fn read_as_strings(input: &str) -> IResult<&str, Vec<&str>> {
+    many0(terminated(read_string, opt(space1)))(input)
 }
 
-named!{
-    pub(crate) read_as_numbers<CompleteStr, Vec<u32>>,
-    many0!(terminated!(read_number, opt!(space1)))
+pub(crate) fn read_as_numbers(input: &str) -> IResult<&str, Vec<u32>> {
+    many0(terminated(read_number, opt(space1)))(input)
 }
-
