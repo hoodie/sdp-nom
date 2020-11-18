@@ -21,28 +21,7 @@ use std::net::IpAddr;
 
 #[cfg(test)]
 use crate::assert_line;
-use crate::parsers::{read_addr, read_number, wsf};
-
-/// Candidate
-///
-/// https://tools.ietf.org/html/rfc5245#section-15.1
-/// https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateInit/candidate
-///
-///
-/// candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
-/// candidate:3348148302 2 udp 2113937151 192.0.2.1 56501 typ host
-#[derive(Debug)]
-pub struct Candidate {
-    foundation: u32,
-    component: CandidateComponent,
-    protocol: CandidateProtocol,
-    priority: u32,         // 2043278322
-    addr: IpAddr,          // "192.168.0.56"
-    port: u32,             // 44323
-    typ: CandidateType,    // "host"
-    raddr: Option<IpAddr>, // "192.168.0.56"
-    rport: Option<u32>,    // 44323
-}
+use crate::parsers::{read_addr, read_number, read_string, wsf};
 
 #[derive(Debug)]
 pub enum CandidateComponent {
@@ -63,6 +42,30 @@ pub enum CandidateType {
     Relay,
     Srflx,
     Prflx,
+}
+
+/// Candidate
+///
+/// https://tools.ietf.org/html/rfc5245#section-15.1
+/// https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateInit/candidate
+///
+///
+/// candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
+/// candidate:3348148302 2 udp 2113937151 192.0.2.1 56501 typ host
+// "candidate:1853887674 2 udp 1518280447 47.61.61.61 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0"
+#[derive(Debug)]
+pub struct Candidate<'a> {
+    foundation: u32,
+    component: CandidateComponent,
+    protocol: CandidateProtocol,
+    priority: u32,         // 2043278322
+    addr: IpAddr,          // "192.168.0.56"
+    port: u32,             // 44323
+    typ: CandidateType,    // "host"
+    raddr: Option<IpAddr>, // "192.168.0.56"
+    rport: Option<u32>,    // 44323
+    tcptype: Option<&'a str>,
+    generation: Option<u32>,
 }
 
 pub(crate) fn raw_candidate(input: &str) -> IResult<&str, Candidate> {
@@ -93,10 +96,28 @@ pub(crate) fn raw_candidate(input: &str) -> IResult<&str, Candidate> {
                     map(tag("srflx"), |_| CandidateType::Srflx),
                     map(tag("prflx"), |_| CandidateType::Prflx),
                 ))),
-                wsf(opt(read_addr)),   // raddr
-                wsf(opt(read_number)), // rport
+                //wsf(opt(read_addr)),                                // raddr
+                opt(preceded(wsf(tag("raddr")), read_addr)), // raddr
+                // wsf(opt(read_number)),                              // rport
+                opt(preceded(wsf(tag("rport")), read_number)), // rport
+
+                opt(preceded(wsf(tag("tcptype")), read_string)), // tcptype
+                opt(preceded(wsf(tag("generation")), read_number)), // generation
             )),
-            |(foundation, component, protocol, priority, addr, port, _, typ, raddr, rport)| {
+            |(
+                foundation,
+                component,
+                protocol,
+                priority,
+                addr,
+                port,
+                _,
+                typ,
+                raddr,
+                rport,
+                tcptype,
+                generation,
+            )| {
                 Candidate {
                     foundation,
                     component,
@@ -107,6 +128,8 @@ pub(crate) fn raw_candidate(input: &str) -> IResult<&str, Candidate> {
                     typ,
                     raddr,
                     rport,
+                    tcptype,
+                    generation,
                 }
             },
         ),
@@ -132,24 +155,10 @@ pub fn parse_candidate_line(raw: &str) -> Option<Candidate> {
     }
 }
 
-// fn raw_parse_candidate_lines(input: &str) -> IResult<&str, Vec<Candidate>> {
-//     many0(terminated(raw_candidate_line, opt(multispace0)))(input)
-// }
-
 #[cfg(test)]
 #[rustfmt::skip]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parses_candidates() {
-        println!("{:?}", parse_candidate("candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host").unwrap());
-        println!("{:?}", parse_candidate("candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay").unwrap());
-        println!("{:?}", parse_candidate("candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx").unwrap());
-        println!("{:?}", parse_candidate("candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx").unwrap());
-        println!("{:?}", parse_candidate("candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx").unwrap());
-        println!("{:?}", parse_candidate("candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337").unwrap());
-    }
 
     #[test]
     fn parses_candidate_line() {
@@ -158,7 +167,26 @@ mod tests {
         assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
         assert_line!("a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
         assert_line!("a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
-        assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", raw_candidate_line);
+        // assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", raw_candidate_line); // FIXME: is this one compliant?
+    }
+
+    #[test]
+    fn audio_lines() {
+
+        let lines =[
+            "a=candidate:1467250027 1 udp 2122260223 192.168.0.196 46243 typ host generation 0",
+            "a=candidate:1467250027 2 udp 2122260222 192.168.0.196 56280 typ host generation 0",
+            "a=candidate:435653019 1 tcp 1845501695 192.168.0.196 0 typ host tcptype active generation 0",
+            "a=candidate:435653019 2 tcp 1845501695 192.168.0.196 0 typ host tcptype active generation 0",
+            "a=candidate:1853887674 1 udp 1518280447 47.61.61.61 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0",
+            "a=candidate:1853887674 2 udp 1518280447 47.61.61.61 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0",
+            "a=candidate:750991856 2 udp 25108222 237.30.30.30 51472 typ relay raddr 47.61.61.61 rport 54763 generation 0",
+            "a=candidate:750991856 1 udp 25108223 237.30.30.30 58779 typ relay raddr 47.61.61.61 rport 54761 generation 0",
+            ];
+        for line in &lines {
+            assert_line!(*line, raw_candidate_line);
+        }
+
     }
 
     #[test]

@@ -7,11 +7,17 @@ pub(crate) fn print_result<T: Debug>(input: &str, rest: &str, result: &T) {
     );
 }
 
+pub(crate) fn print_leftover(input: &str, rest: &str) {
+    println!("INPUT: {:?}\nLEFT:  {:?}", input, rest);
+}
+
 #[macro_export]
 macro_rules! assert_line {
     ($line:expr) => {{
-        let (rest, parsed) = crate::raw_sdp_lines(&$line).unwrap();
-        crate::assert::print_result($line, rest, &parsed[0]);
+        let (rest, _parsed) = crate::raw_sdp_lines(&$line).unwrap();
+        if !rest.is_empty() {
+            crate::assert::print_leftover($line, rest);
+        }
         assert!(rest.is_empty(), "not parsed completely");
     }};
 
@@ -20,8 +26,10 @@ macro_rules! assert_line {
     };
 
     ($line:expr, $parser:ident) => {{
-        let (rest, parsed) = $parser(&$line).unwrap();
-        crate::assert::print_result($line, &rest, &parsed);
+        let (rest, _parsed) = $parser(&$line).unwrap();
+        if !rest.is_empty() {
+            crate::assert::print_leftover($line, rest);
+        }
         assert!(rest.is_empty(), "not parsed completely");
     }};
 
@@ -29,17 +37,6 @@ macro_rules! assert_line {
         let (rest, parsed) = $parser(&$line).unwrap();
         crate::assert::print_result($line, &rest, &parsed);
         pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
-        assert!(rest.is_empty(), "not parsed completely");
-    }};
-}
-
-#[macro_export]
-macro_rules! assert_parse {
-    ($line:expr, $parser:expr) => {{
-        let res: IResult<_, _> = $parser(&$line);
-        let (rest, parsed) = res.unwrap();
-
-        crate::assert::print_result($line, &rest, &parsed);
         assert!(rest.is_empty(), "not parsed completely");
     }};
 }

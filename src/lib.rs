@@ -35,7 +35,7 @@ pub enum SdpLine<'a> {
     Timing(Timing),
     Origin(Origin<'a>),
     BandWidth(BandWidth),
-    Candidate(Candidate),
+    Candidate(Candidate<'a>),
     Connection(Connection),
     Media(Media<'a>),
     Mid(Mid<'a>),
@@ -231,12 +231,8 @@ mod tests {
             "a=ssrc:632943048 cname:4TOk42mSjXCkVIa6",
             "a=ssrc:632943048 msid:lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS daed9400-d0dd-4db3-b949-422499e96e2d",
         ];
-        for line in &anatomy_examples {
-            let (rest, parsed) = raw_sdp_lines(line).unwrap();
-            // assert_eq!(rest, "");
-            if !rest.is_empty() {
-                println!("{}\n{:?}\n{:#?}", line, rest, parsed[0]);
-            }
+        for (i, line) in anatomy_examples.iter().enumerate() {
+            print!("{}.", i);
             assert_line!(line);
         }
     }
