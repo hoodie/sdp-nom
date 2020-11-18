@@ -14,7 +14,7 @@ pub(crate) fn print_leftover(input: &str, rest: &str) {
 #[macro_export]
 macro_rules! assert_line {
     ($line:expr) => {{
-        let (rest, _parsed) = crate::raw_sdp_lines(&$line).unwrap();
+        let (rest, _parsed) = crate::raw_sdp_line(&$line).unwrap();
         if !rest.is_empty() {
             crate::assert::print_leftover($line, rest);
         }

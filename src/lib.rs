@@ -1,15 +1,4 @@
-#![allow(unused_imports)]
-use nom::{
-    branch::{alt, Alt},
-    bytes::complete::{escaped, tag, take_while},
-    character::complete::{alphanumeric1 as alphanumeric, char, one_of},
-    combinator::{cut, map, opt, value},
-    error::{context, convert_error, ContextError, ErrorKind, ParseError, VerboseError},
-    multi::separated_list0,
-    number::complete::double,
-    sequence::{delimited, preceded, separated_pair, terminated},
-    Err, IResult,
-};
+use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 pub mod attributes;
 pub mod candidate;
@@ -17,6 +6,7 @@ pub mod connection;
 pub mod lines;
 pub mod origin;
 mod parsers;
+pub mod ssrc;
 #[cfg(test)]
 #[macro_use]
 mod assert;
@@ -26,26 +16,42 @@ use candidate::*;
 use connection::*;
 use lines::*;
 use origin::*;
-use parsers::*;
+use ssrc::*;
 
 #[derive(Debug)]
 pub enum SdpLine<'a> {
+    /// `v=0`
     Version(u32),
+
+    /// `s=-`
     Name(Name<'a>),
+
+    /// `t=0 0`
     Timing(Timing),
+
+    /// `o=- 20518 0 IN IP4 203.0.113.1`
     Origin(Origin<'a>),
+
+    /// `b=AS:1024`
     BandWidth(BandWidth),
+
+    /// `candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
     Candidate(Candidate<'a>),
+
+    /// `c=IN IP4 10.23.42.137`
     Connection(Connection),
+
+    /// `m=video 51744 RTP/AVP 126 97 98 34 31
     Media(Media<'a>),
     Mid(Mid<'a>),
     Msid(Msid<'a>),
     Ssrc(Ssrc<'a>),
     Fingerprint(Fingerprint<'a>),
+    Description(Description<'a>),
     Direction(Direction),
     BundleOnly,
     EoC,
-    Aline(Vec<&'a str>),
+    // Aline(Vec<&'a str>),
 }
 
 pub fn raw_sdp_line(input: &str) -> IResult<&str, SdpLine> {
@@ -63,15 +69,11 @@ pub fn raw_sdp_line(input: &str) -> IResult<&str, SdpLine> {
         map(raw_ssrc_line, SdpLine::Ssrc),
         map(raw_fingerprint_line, SdpLine::Fingerprint),
         map(raw_direction_line, SdpLine::Direction),
+        map(raw_description_line, SdpLine::Description),
         map(tag("a=bundle-only"), |_| SdpLine::BundleOnly),
-        map(raw_a_line, SdpLine::Aline),
+        // map(raw_a_line, SdpLine::Aline),
         map(tag("a=end-of-candidates"), |_| SdpLine::EoC),
     ))(input)
-}
-
-pub fn raw_sdp_lines(input: &str) -> IResult<&str, Vec<SdpLine>> {
-    use nom::{character::complete::multispace0, multi::many0, sequence::terminated};
-    many0(terminated(raw_sdp_line, multispace0))(input)
 }
 
 pub fn sdp_line(raw: &str) -> Option<SdpLine> {
@@ -98,24 +100,6 @@ mod tests {
     fn test_version() {
         assert_eq!(raw_version_line("v=0"), Ok(("", 0)));
         assert_eq!(raw_version_line("v=1"), Ok(("", 1)))
-    }
-
-    #[test]
-    fn parses_sdp() {
-        println!(
-            "{}",
-            raw_sdp_lines(
-                "v=0
-        a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
-        a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay
-        a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337"
-            )
-            .unwrap()
-            .0
-        )
     }
 
     #[test]

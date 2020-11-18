@@ -4,7 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take_while, take_while1},
     character::{
-        complete::{anychar, char, multispace0, none_of, space1},
+        complete::{multispace0, space1},
         is_digit,
     },
     combinator::{map, map_res, opt},
@@ -106,23 +106,6 @@ pub enum NetType {
 
 pub(crate) fn read_net_type(input: &str) -> IResult<&str, NetType> {
     map(tag("IN"), |_| NetType::IN)(input)
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Direction {
-    SendOnly,
-    SendRecv,
-    RecvOnly,
-    Inactive,
-}
-
-pub(crate) fn read_direction(input: &str) -> IResult<&str, Direction> {
-    alt((
-        map(tag("sendrecv"), |_| Direction::SendRecv),
-        map(tag("sendonly"), |_| Direction::SendOnly),
-        map(tag("recvonly"), |_| Direction::RecvOnly),
-        map(tag("inactive"), |_| Direction::Inactive),
-    ))(input)
 }
 
 pub(crate) fn read_as_strings(input: &str) -> IResult<&str, Vec<&str>> {

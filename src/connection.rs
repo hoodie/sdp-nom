@@ -1,25 +1,20 @@
 use nom::*;
 use nom::{
-    branch::alt,
-    bytes::complete::{escaped, tag, take_while, take_while1},
-    character::{
-        complete::{anychar, char, multispace0, none_of, space1},
-        is_digit,
-    },
-    combinator::{map, map_res, opt},
-    error::ParseError,
-    multi::many0,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Parser,
+    bytes::complete::tag,
+    combinator::{map, opt},
+    sequence::{preceded, tuple},
 };
-use pretty_assertions::assert_eq;
 
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
+
+#[cfg(test)]
+use std::net::Ipv4Addr;
 
 #[cfg(test)]
 use crate::assert_line;
 use crate::parsers::{read_addr, read_ipver, read_number, wsf, IpVer};
 
+/// Connection "c=IN IP4 10.23.42.137"
 #[derive(Debug, PartialEq)]
 pub struct Connection {
     pub ip_ver: IpVer,

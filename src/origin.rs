@@ -1,16 +1,8 @@
 use nom::*;
 use nom::{
-    branch::alt,
-    bytes::complete::{escaped, tag, take_while, take_while1},
-    character::{
-        complete::{anychar, char, multispace0, none_of, space1},
-        is_digit,
-    },
-    combinator::{map, map_res, opt},
-    error::ParseError,
-    multi::many0,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Parser,
+    bytes::complete::tag,
+    combinator::map,
+    sequence::{preceded, tuple},
 };
 
 use std::net::IpAddr;

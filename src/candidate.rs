@@ -5,16 +5,9 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::{escaped, tag, take_while, take_while1},
-    character::{
-        complete::{anychar, char, multispace0, none_of, space1},
-        is_digit,
-    },
-    combinator::{map, map_res, opt},
-    error::ParseError,
-    multi::many0,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Parser,
+    bytes::complete::tag,
+    combinator::{map, opt},
+    sequence::{preceded, tuple},
 };
 
 use std::net::IpAddr;
@@ -100,7 +93,6 @@ pub(crate) fn raw_candidate(input: &str) -> IResult<&str, Candidate> {
                 opt(preceded(wsf(tag("raddr")), read_addr)), // raddr
                 // wsf(opt(read_number)),                              // rport
                 opt(preceded(wsf(tag("rport")), read_number)), // rport
-
                 opt(preceded(wsf(tag("tcptype")), read_string)), // tcptype
                 opt(preceded(wsf(tag("generation")), read_number)), // generation
             )),

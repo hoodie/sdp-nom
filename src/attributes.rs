@@ -2,16 +2,9 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::{escaped, tag, take_while, take_while1},
-    character::{
-        complete::{anychar, char, multispace0, none_of, space1},
-        is_digit,
-    },
-    combinator::{map, map_res, opt},
-    error::ParseError,
-    multi::many0,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Parser,
+    bytes::complete::tag,
+    combinator::{map, opt},
+    sequence::{preceded, tuple},
 };
 
 use std::net::IpAddr;
@@ -305,4 +298,34 @@ fn test_raw_ext_line() {
             extended: Some("short")
         }
     )
+}
+
+#[derive(Debug, PartialEq)]
+pub enum NetType {
+    IN,
+}
+
+pub(crate) fn read_net_type(input: &str) -> IResult<&str, NetType> {
+    map(tag("IN"), |_| NetType::IN)(input)
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Direction {
+    SendOnly,
+    SendRecv,
+    RecvOnly,
+    Inactive,
+}
+
+pub(crate) fn read_direction(input: &str) -> IResult<&str, Direction> {
+    alt((
+        map(tag("sendrecv"), |_| Direction::SendRecv),
+        map(tag("sendonly"), |_| Direction::SendOnly),
+        map(tag("recvonly"), |_| Direction::RecvOnly),
+        map(tag("inactive"), |_| Direction::Inactive),
+    ))(input)
+}
+
+pub(crate) fn raw_direction_line(input: &str) -> IResult<&str, Direction> {
+    preceded(tag("a="), wsf(read_direction))(input)
 }
