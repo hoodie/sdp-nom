@@ -15,6 +15,8 @@ use nom::{
     Parser,
 };
 
+#[cfg(test)]
+use crate::assert_line;
 use crate::parsers::*;
 
 /// "v=0"
@@ -24,8 +26,8 @@ pub(crate) fn raw_version_line(input: &str) -> IResult<&str, u32> {
 
 #[test]
 fn test_raw_version_line() {
-    assert_eq!(raw_version_line("v=0").unwrap().1, 0);
-    assert_eq!(raw_version_line("v= 0").unwrap().1, 0);
+    assert_line!(raw_version_line, "v=0");
+    assert_line!(raw_version_line, "v= 0");
 }
 
 #[derive(Debug, PartialEq)]
@@ -33,14 +35,15 @@ pub struct Name<'a>(pub &'a str);
 
 /// "s=somename"
 pub(crate) fn raw_name_line(input: &str) -> IResult<&str, Name> {
-    preceded(tag("s="), map(wsf(read_string), Name))(input)
+    preceded(tag("s="), map(wsf(read_string0), Name))(input)
 }
 
 #[test]
 fn test_raw_name_line() {
-    assert_eq!(raw_name_line("s=testname").unwrap().1, Name("testname"));
-    assert_eq!(raw_name_line("s= testname").unwrap().1, Name("testname"));
-    assert_eq!(raw_name_line("s=testname ").unwrap().1, Name("testname"));
+    assert_line!(raw_name_line, "s=", Name(""));
+    assert_line!(raw_name_line, "s=testname", Name("testname"));
+    assert_line!(raw_name_line, "s= testname", Name("testname"));
+    assert_line!(raw_name_line, "s=testname ", Name("testname"));
 }
 
 #[derive(Debug, PartialEq)]
@@ -56,9 +59,12 @@ pub(crate) fn raw_description_line(input: &str) -> IResult<&str, Description> {
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_description_line() {
-    assert_eq!(raw_description_line("i=testdescription").unwrap().1, Description("testdescription"));
+    assert_line!(
+        raw_description_line,
+        "i=testdescription",
+        Description("testdescription")
+    );
 }
 
 #[derive(Debug, PartialEq)]
@@ -80,9 +86,9 @@ pub(crate) fn raw_timing_line(input: &str) -> IResult<&str, Timing> {
 #[test]
 #[rustfmt::skip]
 fn test_raw_timing_line() {
-    assert_eq!(raw_timing_line("t=0 1").unwrap().1, Timing { start: 0, stop: 1 });
-    assert_eq!(raw_timing_line("t=  2 3 ").unwrap().1, Timing { start: 2, stop: 3 });
-    assert_eq!(raw_timing_line("t=23 42").unwrap().1, Timing { start: 23, stop: 42 });
+    assert_line!(raw_timing_line,"t=0 1", Timing { start: 0, stop: 1 });
+    assert_line!(raw_timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
+    assert_line!(raw_timing_line,"t=23 42", Timing { start: 23, stop: 42 });
 }
 
 #[derive(Debug, PartialEq)]
@@ -124,12 +130,12 @@ pub(crate) fn raw_bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
 #[test]
 #[rustfmt::skip]
 fn test_raw_bandwidth_line() {
-    assert_eq!(
-        raw_bandwidth_line("b=AS:30").unwrap().1,
+    assert_line!(
+        raw_bandwidth_line,"b=AS:30",
         BandWidth { r#type: BandWidthType::AS, limit: 30 }
     );
-    assert_eq!(
-        raw_bandwidth_line("b=RR:1024").unwrap().1,
+    assert_line!(
+        raw_bandwidth_line,"b=RR:1024",
         BandWidth { r#type: BandWidthType::RR, limit: 1024 }
     );
 }
@@ -164,15 +170,16 @@ pub(crate) fn raw_media_line(input: &str) -> IResult<&str, Media> {
 
 #[test]
 fn test_raw_mline() {
-    let parsed = raw_media_line("m=video 51744 RTP/AVP 126 97 98 34 31").unwrap();
-    let expected = Media {
-        r#type: "video",
-        port: 51744,
-        protocol: vec!["RTP", "AVP"],
-        payloads: vec![126, 97, 98, 34, 31],
-    };
-
-    assert_eq!(parsed.1, expected);
+    assert_line!(
+        raw_media_line,
+        "m=video 51744 RTP/AVP 126 97 98 34 31",
+        Media {
+            r#type: "video",
+            port: 51744,
+            protocol: vec!["RTP", "AVP"],
+            payloads: vec![126, 97, 98, 34, 31],
+        }
+    );
 }
 
 #[derive(Debug)]
@@ -224,12 +231,14 @@ pub(crate) fn raw_ssrc_line(input: &str) -> IResult<&str, Ssrc> {
 #[test]
 #[rustfmt::skip]
 fn parse_ssrc_line() {
-    assert_eq!(
-        raw_ssrc_line("a=ssrc:1366781084 cname:EocUG1f0fcg/yvY7").unwrap().1,
+    assert_line!(
+        raw_ssrc_line,
+        "a=ssrc:1366781084 cname:EocUG1f0fcg/yvY7",
         Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" }
     );
-    assert_eq!(
-        raw_ssrc_line("a=ssrc: 1366781084 cname: EocUG1f0fcg/yvY7").unwrap().1,
+    assert_line!(
+        raw_ssrc_line,
+        "a=ssrc: 1366781084 cname: EocUG1f0fcg/yvY7",
         Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" }
     );
 }
@@ -273,9 +282,9 @@ mod tests {
 
     #[test]
     fn parse_mid_line() {
-        println!("{:?}", raw_mid_line("a=mid:1").unwrap());
-        println!("{:?}", raw_mid_line("a=mid:a1").unwrap());
-        println!("{:?}", raw_mid_line("a=mid:0").unwrap());
-        println!("{:?}", raw_mid_line("a=mid:audio").unwrap());
+        assert_line!(raw_mid_line, "a=mid:1");
+        assert_line!(raw_mid_line, "a=mid:a1");
+        assert_line!(raw_mid_line, "a=mid:0");
+        assert_line!(raw_mid_line, "a=mid:audio")
     }
 }

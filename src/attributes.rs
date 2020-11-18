@@ -16,6 +16,8 @@ use nom::{
 
 use std::net::IpAddr;
 
+#[cfg(test)]
+use crate::assert_line;
 use crate::parsers::*;
 
 pub enum Attribute {
@@ -94,9 +96,8 @@ fn raw_rtp_attribute_line(input: &str) -> IResult<&str, Rtp> {
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_rtp_attribute_line() {
-    println!("{:#?}", raw_rtp_attribute_line("a=rtpmap:110 opus/48000/2").unwrap().1);
+    assert_line!("a=rtpmap:110 opus/48000/2", raw_rtp_attribute_line);
 }
 
 // a=fmtp:108 profile-level-id=24;object=23;bitrate=64000
@@ -120,9 +121,12 @@ fn raw_fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_fmtp_attribute_line() {
-    println!("{:#?}", raw_fmtp_attribute_line("a=fmtp:108 profile-level-id=24;object=23;bitrate=64000").unwrap().1); }
+    assert_line!(
+        "a=fmtp:108 profile-level-id=24;object=23;bitrate=64000",
+        raw_fmtp_attribute_line
+    )
+}
 
 // a=control:streamid=0
 #[derive(Debug, PartialEq)]
@@ -133,9 +137,8 @@ fn raw_control_attribute_line(input: &str) -> IResult<&str, Control> {
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_control_attribute_line() {
-    println!("{:?}", raw_control_attribute_line("a=control:streamid=0").unwrap().1);
+    assert_line!(raw_control_attribute_line, "a=control:streamid=0");
 }
 
 /// Rtcp
@@ -171,10 +174,9 @@ fn raw_rtcp_attribute_line(input: &str) -> IResult<&str, Rtcp> {
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_rtcp_attribute_line() {
-    println!("{:?}", raw_rtcp_attribute_line("a=rtcp:65179 IN IP4 10.23.34.255").unwrap().1);
-    println!("{:?}", raw_rtcp_attribute_line("a=rtcp:65179 IN IP4 ::1").unwrap().1);
+    assert_line!(raw_rtcp_attribute_line, "a=rtcp:65179 IN IP4 10.23.34.255");
+    assert_line!(raw_rtcp_attribute_line, "a=rtcp:65179 IN IP4 ::1");
 }
 
 /// RtcpFeedback
@@ -205,59 +207,42 @@ pub enum RtcpFbSubType {
 }
 
 fn raw_rtcpfb_attribute_line(input: &str) -> IResult<&str, RtcpFb> {
-    alt((
-        preceded(
-            tag("a=rtcp-fb:"),
-            map(
-                tuple((
-                    read_number, // payload
-                    //r#type:
-                    wsf(alt((
-                        map(tag("ack"), |_| RtcpFbType::Ack),
-                        map(tag("nack"), |_| RtcpFbType::Nack), // | tag!("trr-int") => { |_| RtcpFbType::TrrInt }
-                    ))),
-                    // subtype:
-                    opt(wsf(alt((
-                        map(tag("rpsi"), |_| RtcpFbSubType::Rpsi),
-                        map(tag("app"), |_| RtcpFbSubType::App),
-                        map(tag("pli"), |_| RtcpFbSubType::Pli),
-                        map(tag("sli"), |_| RtcpFbSubType::Sli),
-                    )))),
-                )),
-                |(payload, r#type, subtype)| RtcpFb {
-                    payload,
-                    r#type,
-                    subtype,
-                    value: None,
-                },
-            ),
+    preceded(
+        tag("a=rtcp-fb:"),
+        map(
+            tuple((
+                read_number, // payload
+                //r#type:
+                wsf(alt((
+                    map(tag("ack"), |_| RtcpFbType::Ack),
+                    map(tag("nack"), |_| RtcpFbType::Nack), // | tag!("trr-int") => { |_| RtcpFbType::TrrInt }
+                    map(tag("trr-int"), |_| RtcpFbType::TrrInt),
+                ))),
+                // subtype:
+                opt(wsf(alt((
+                    map(tag("rpsi"), |_| RtcpFbSubType::Rpsi),
+                    map(tag("app"), |_| RtcpFbSubType::App),
+                    map(tag("pli"), |_| RtcpFbSubType::Pli),
+                    map(tag("sli"), |_| RtcpFbSubType::Sli),
+                )))),
+                opt(read_number), // value
+            )),
+            |(payload, r#type, subtype, value)| RtcpFb {
+                payload,
+                r#type,
+                subtype,
+                value,
+            },
         ),
-        preceded(
-            tag("a=rtcp-fb:"),
-            map(
-                tuple((
-                    read_number, // payload
-                    wsf(tag("trr-int")),
-                    read_number, // value
-                )),
-                |(payload, _subtype, value)| RtcpFb {
-                    payload,
-                    r#type: RtcpFbType::TrrInt,
-                    subtype: None,
-                    value: Some(value),
-                },
-            ),
-        ),
-    ))(input)
+    )(input)
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_rtcpfb_line() {
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 trr-int 100").unwrap().1);
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 ack sli").unwrap().1);
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 ack sli 5432").unwrap().1);
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 nack rpsi").unwrap().1);
+    assert_line!(raw_rtcpfb_attribute_line, "a=rtcp-fb:98 trr-int 100");
+    assert_line!(raw_rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli");
+    assert_line!(raw_rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli 5432");
+    assert_line!(raw_rtcpfb_attribute_line, "a=rtcp-fb:98 nack rpsi");
 }
 
 // a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
@@ -291,12 +276,18 @@ pub fn raw_ext_attribute_line(input: &str) -> IResult<&str, Ext> {
 }
 
 #[test]
-#[rustfmt::skip]
 fn test_raw_ext_line() {
-    println!("{:?}", raw_ext_attribute_line("a=extmap:2 urn:ietf:params:rtp-hdrext:toffset").unwrap().1);
-    println!("{:?}", raw_ext_attribute_line("a=extmap:1 http://example.com/082005/ext.htm#ttime").unwrap().1);
-    assert_eq!(
-        raw_ext_attribute_line("a=extmap:1 http://example.com/082005/ext.htm#ttime").unwrap().1,
+    assert_line!(
+        raw_ext_attribute_line,
+        "a=extmap:2 urn:ietf:params:rtp-hdrext:toffset"
+    );
+    assert_line!(
+        raw_ext_attribute_line,
+        "a=extmap:1 http://example.com/082005/ext.htm#ttime"
+    );
+    assert_line!(
+        raw_ext_attribute_line,
+        "a=extmap:1 http://example.com/082005/ext.htm#ttime",
         Ext {
             value: 1,
             direction: None,
@@ -304,8 +295,9 @@ fn test_raw_ext_line() {
             extended: None,
         }
     );
-    assert_eq!(
-        raw_ext_attribute_line("a=extmap:2/sendrecv http://example.com/082005/ext.htm#xmeta short").unwrap().1,
+    assert_line!(
+        raw_ext_attribute_line,
+        "a=extmap:2/sendrecv http://example.com/082005/ext.htm#xmeta short",
         Ext {
             value: 2,
             direction: Some(Direction::SendRecv),

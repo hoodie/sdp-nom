@@ -15,7 +15,9 @@ use nom::{
 
 use std::net::IpAddr;
 
-use super::parsers::{
+#[cfg(test)]
+use crate::assert_line;
+use crate::parsers::{
     read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
 };
 
@@ -64,13 +66,10 @@ mod tests {
 
     #[test]
     fn parses_candidates() {
-        println!(
-            "{:?}",
-            raw_origin_line("o=test 4962303333179871722 1 IN IP4 0.0.0.0").unwrap()
+        assert_line!(
+            raw_origin_line,
+            "o=test 4962303333179871722 1 IN IP4 0.0.0.0"
         );
-        println!(
-            "{:?}",
-            raw_origin_line("o=- 4962303333179871722 1 IN IP4 0.0.0.0").unwrap()
-        );
+        assert_line!(raw_origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
     }
 }

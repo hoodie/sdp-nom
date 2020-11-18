@@ -19,7 +19,9 @@ use nom::{
 
 use std::net::IpAddr;
 
-use super::parsers::{read_addr, read_number, wsf};
+#[cfg(test)]
+use crate::assert_line;
+use crate::parsers::{read_addr, read_number, wsf};
 
 /// Candidate
 ///
@@ -130,9 +132,9 @@ pub fn parse_candidate_line(raw: &str) -> Option<Candidate> {
     }
 }
 
-fn raw_parse_candidate_lines(input: &str) -> IResult<&str, Vec<Candidate>> {
-    many0(terminated(raw_candidate_line, opt(multispace0)))(input)
-}
+// fn raw_parse_candidate_lines(input: &str) -> IResult<&str, Vec<Candidate>> {
+//     many0(terminated(raw_candidate_line, opt(multispace0)))(input)
+// }
 
 #[cfg(test)]
 #[rustfmt::skip]
@@ -151,27 +153,12 @@ mod tests {
 
     #[test]
     fn parses_candidate_line() {
-        println!("{:?}", parse_candidate_line( "a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host").unwrap());
-        println!("{:?}", parse_candidate_line( "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay").unwrap());
-        println!("{:?}", parse_candidate_line( "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx").unwrap());
-        println!("{:?}", parse_candidate_line( "a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx").unwrap());
-        println!("{:?}", parse_candidate_line( "a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx").unwrap());
-        println!("{:?}", parse_candidate_line( "a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337").unwrap());
-    }
-
-    #[test]
-    fn parses_candidate_lines() {
-        println!(
-            "{:#?}",
-            raw_parse_candidate_lines(
-                "a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
-        a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay
-        a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx
-        a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337"
-            )
-        )
+        assert_line!("a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host", raw_candidate_line);
+        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay", raw_candidate_line);
+        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
+        assert_line!("a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
+        assert_line!("a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
+        assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", raw_candidate_line);
     }
 
     #[test]

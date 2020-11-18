@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 nom = "6.0.0"
+pretty_assertions = "0.6.1"

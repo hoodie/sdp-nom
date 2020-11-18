@@ -2,7 +2,7 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_while1},
+    bytes::complete::{tag, take_while, take_while1},
     character::{
         complete::{anychar, char, multispace0, none_of, space1},
         is_digit,
@@ -32,11 +32,15 @@ pub(crate) fn is_numeric(chr: char) -> bool {
     is_digit(chr as u8)
 }
 
-pub fn ws<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(f: F) -> impl Parser<&'a str, O, E> {
+pub fn ws<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
+    f: F,
+) -> impl Parser<&'a str, O, E> {
     delimited(multispace0, f, multispace0)
 }
 
-pub fn wsf<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(f: F) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
+pub fn wsf<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
     delimited(multispace0, f, multispace0)
 }
 
@@ -58,6 +62,10 @@ pub(crate) fn read_big_number(input: &str) -> IResult<&str, u64> {
     )(input)
 }
 
+pub(crate) fn read_string0(input: &str) -> IResult<&str, &str> {
+    take_while(is_not_space)(input)
+}
+
 pub(crate) fn read_string(input: &str) -> IResult<&str, &str> {
     take_while1(is_not_space)(input)
 }
@@ -75,7 +83,7 @@ pub(crate) fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
 }
 
 pub(crate) fn read_addr(input: &str) -> IResult<&str, IpAddr> {
-    map_res(take_while1(is_not_space), str::parse)(input)
+    map_res(take_while1(|c| c != ' ' && c != '/'), str::parse)(input)
 }
 
 #[derive(Debug, PartialEq)]
