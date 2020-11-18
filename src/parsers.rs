@@ -82,6 +82,10 @@ pub(crate) fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_non_slash_string, opt(tag("/"))))(input)
 }
 
+pub(crate) fn space_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
+    many0(terminated(read_string, opt(tag(" "))))(input)
+}
+
 pub(crate) fn read_addr(input: &str) -> IResult<&str, IpAddr> {
     map_res(take_while1(|c| c != ' ' && c != '/'), str::parse)(input)
 }

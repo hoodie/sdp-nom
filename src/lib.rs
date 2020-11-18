@@ -41,38 +41,57 @@ pub enum SdpLine<'a> {
     /// `c=IN IP4 10.23.42.137`
     Connection(Connection),
 
+    BundleGroup(BundleGroup<'a>),
+
     /// `m=video 51744 RTP/AVP 126 97 98 34 31
     Media(Media<'a>),
     Mid(Mid<'a>),
+    MsidSemantic(MsidSemantic<'a>),
     Msid(Msid<'a>),
     Ssrc(Ssrc<'a>),
     Fingerprint(Fingerprint<'a>),
     Description(Description<'a>),
     Direction(Direction),
+    Rtp(Rtp<'a>),
+    Rtcp(Rtcp),
+    Fmtp(Fmtp<'a>),
+    RtcpFb(RtcpFb),
+    Control(Control<'a>),
     BundleOnly,
     EoC,
-    // Aline(Vec<&'a str>),
+    // Aline(Vec<&'a str>), // catch all, don't use
 }
 
 pub fn raw_sdp_line(input: &str) -> IResult<&str, SdpLine> {
     alt((
-        map(raw_version_line, SdpLine::Version),
-        map(raw_bandwidth_line, SdpLine::BandWidth),
-        map(raw_name_line, SdpLine::Name),
-        map(raw_timing_line, SdpLine::Timing),
-        map(raw_origin_line, SdpLine::Origin),
-        map(raw_candidate_line, SdpLine::Candidate),
-        map(raw_connection_line, SdpLine::Connection),
-        map(raw_mid_line, SdpLine::Mid),
-        map(raw_msid_line, SdpLine::Msid),
-        map(raw_media_line, SdpLine::Media),
-        map(raw_ssrc_line, SdpLine::Ssrc),
-        map(raw_fingerprint_line, SdpLine::Fingerprint),
-        map(raw_direction_line, SdpLine::Direction),
-        map(raw_description_line, SdpLine::Description),
-        map(tag("a=bundle-only"), |_| SdpLine::BundleOnly),
-        // map(raw_a_line, SdpLine::Aline),
-        map(tag("a=end-of-candidates"), |_| SdpLine::EoC),
+        alt(( // two levels of `alt` because it's not implemented for such large tuples
+            map(raw_version_line, SdpLine::Version),
+            map(raw_bandwidth_line, SdpLine::BandWidth),
+            map(raw_name_line, SdpLine::Name),
+            map(raw_timing_line, SdpLine::Timing),
+            map(raw_origin_line, SdpLine::Origin),
+            map(raw_bundle_group_line, SdpLine::BundleGroup),
+            map(raw_candidate_line, SdpLine::Candidate),
+            map(raw_connection_line, SdpLine::Connection),
+            map(raw_mid_line, SdpLine::Mid),
+            map(raw_msid_semantic_line, SdpLine::MsidSemantic),
+            map(raw_msid_line, SdpLine::Msid),
+            map(raw_media_line, SdpLine::Media),
+            map(raw_ssrc_line, SdpLine::Ssrc),
+            map(raw_fingerprint_line, SdpLine::Fingerprint),
+            map(raw_direction_line, SdpLine::Direction),
+            map(raw_description_line, SdpLine::Description),
+        )),
+        alt((
+            map(raw_rtp_attribute_line, SdpLine::Rtp),
+            map(raw_rtcp_attribute_line, SdpLine::Rtcp),
+            map(raw_fmtp_attribute_line, SdpLine::Fmtp),
+            map(raw_control_attribute_line, SdpLine::Control),
+            map(raw_rtcpfb_attribute_line, SdpLine::RtcpFb),
+            map(tag("a=bundle-only"), |_| SdpLine::BundleOnly),
+            map(tag("a=end-of-candidates"), |_| SdpLine::EoC),
+            // map(raw_a_line, SdpLine::Aline),
+        )),
     ))(input)
 }
 

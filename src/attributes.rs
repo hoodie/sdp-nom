@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use nom::*;
 use nom::{
     branch::alt,
@@ -57,6 +56,35 @@ pub enum Attribute {
     Invalid,
 }
 
+#[derive(Debug, PartialEq)]
+pub struct BundleGroup<'a>(pub Vec<&'a str>);
+
+pub(crate) fn raw_bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
+    preceded(
+        tag("a=group:BUNDLE"),
+        map(wsf(space_separated_strings), BundleGroup),
+    )(input)
+}
+
+#[test]
+fn test_raw_bundle_group_line() {
+    assert_line!(
+        raw_bundle_group_line,
+        "a=group:BUNDLE 0 1",
+        BundleGroup(vec!["0", "1"])
+    );
+    assert_line!(
+        raw_bundle_group_line,
+        "a=group:BUNDLE video",
+        BundleGroup(vec!["video"])
+    );
+    assert_line!(
+        raw_bundle_group_line,
+        "a=group:BUNDLE sdparta_0 sdparta_1 sdparta_2",
+        BundleGroup(vec!["sdparta_0", "sdparta_1", "sdparta_2"])
+    );
+}
+
 // a=rtpmap:110 opus/48000/2
 #[derive(Debug, PartialEq)]
 pub struct Rtp<'a> {
@@ -66,7 +94,7 @@ pub struct Rtp<'a> {
     encoding: u32,
 }
 
-fn raw_rtp_attribute_line(input: &str) -> IResult<&str, Rtp> {
+pub(crate) fn raw_rtp_attribute_line(input: &str) -> IResult<&str, Rtp> {
     preceded(
         tag("a=rtpmap:"),
         map(
@@ -100,7 +128,7 @@ pub struct Fmtp<'a> {
     config: &'a str,
 }
 
-fn raw_fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
+pub(crate) fn raw_fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
     preceded(
         tag("a=fmtp:"),
         map(
@@ -116,8 +144,12 @@ fn raw_fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
 #[test]
 fn test_raw_fmtp_attribute_line() {
     assert_line!(
+        raw_fmtp_attribute_line,
         "a=fmtp:108 profile-level-id=24;object=23;bitrate=64000",
-        raw_fmtp_attribute_line
+        Fmtp {
+            payload: 108,
+            config: "profile-level-id=24;object=23;bitrate=64000",
+        }
     )
 }
 
@@ -125,7 +157,7 @@ fn test_raw_fmtp_attribute_line() {
 #[derive(Debug, PartialEq)]
 pub struct Control<'a>(&'a str);
 
-fn raw_control_attribute_line(input: &str) -> IResult<&str, Control> {
+pub(crate) fn raw_control_attribute_line(input: &str) -> IResult<&str, Control> {
     preceded(tag("a=control:"), map(read_string, Control))(input)
 }
 
@@ -146,7 +178,7 @@ pub struct Rtcp {
     addr: IpAddr,
 }
 
-fn raw_rtcp_attribute_line(input: &str) -> IResult<&str, Rtcp> {
+pub(crate) fn raw_rtcp_attribute_line(input: &str) -> IResult<&str, Rtcp> {
     preceded(
         tag("a=rtcp:"),
         map(
@@ -199,7 +231,7 @@ pub enum RtcpFbSubType {
     Sli,
 }
 
-fn raw_rtcpfb_attribute_line(input: &str) -> IResult<&str, RtcpFb> {
+pub(crate) fn raw_rtcpfb_attribute_line(input: &str) -> IResult<&str, RtcpFb> {
     preceded(
         tag("a=rtcp-fb:"),
         map(

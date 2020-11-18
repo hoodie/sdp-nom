@@ -2,8 +2,8 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag},
-    combinator::{map},
+    bytes::complete::tag,
+    combinator::map,
     sequence::{preceded, separated_pair, tuple},
 };
 
@@ -185,10 +185,28 @@ pub(crate) fn raw_mid_line(input: &str) -> IResult<&str, Mid> {
 }
 
 #[derive(Debug)]
+pub struct MsidSemantic<'a>(pub Vec<&'a str>);
+
+pub(crate) fn raw_msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
+    preceded(
+        tag("a=msid-semantic:"),
+        wsf(map(space_separated_strings, MsidSemantic)),
+    )(input)
+}
+
+#[test]
+fn test_raw_msid_semantic_line() {
+    assert_line!(
+        raw_msid_semantic_line,
+        "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
+    );
+}
+
+#[derive(Debug)]
 pub struct Msid<'a>(pub Vec<&'a str>);
 
 pub(crate) fn raw_msid_line(input: &str) -> IResult<&str, Msid> {
-    preceded(tag("a=msid:"), map(read_as_strings, Msid))(input)
+    preceded(tag("a=msid:"), wsf(map(space_separated_strings, Msid)))(input)
 }
 
 #[derive(Debug)]
