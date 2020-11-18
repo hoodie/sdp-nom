@@ -62,44 +62,38 @@ pub enum SdpLine<'a> {
     // Aline(Vec<&'a str>), // catch all, don't use
 }
 
-pub fn raw_sdp_line(input: &str) -> IResult<&str, SdpLine> {
+pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
     alt((
-        alt(( // two levels of `alt` because it's not implemented for such large tuples
-            map(raw_version_line, SdpLine::Version),
-            map(raw_bandwidth_line, SdpLine::BandWidth),
-            map(raw_name_line, SdpLine::Name),
-            map(raw_timing_line, SdpLine::Timing),
-            map(raw_origin_line, SdpLine::Origin),
-            map(raw_bundle_group_line, SdpLine::BundleGroup),
-            map(raw_candidate_line, SdpLine::Candidate),
-            map(raw_connection_line, SdpLine::Connection),
-            map(raw_mid_line, SdpLine::Mid),
-            map(raw_msid_semantic_line, SdpLine::MsidSemantic),
-            map(raw_msid_line, SdpLine::Msid),
-            map(raw_media_line, SdpLine::Media),
-            map(raw_ssrc_line, SdpLine::Ssrc),
-            map(raw_fingerprint_line, SdpLine::Fingerprint),
-            map(raw_direction_line, SdpLine::Direction),
-            map(raw_description_line, SdpLine::Description),
+        alt((
+            // two levels of `alt` because it's not implemented for such large tuples
+            map(version_line, SdpLine::Version),
+            map(bandwidth_line, SdpLine::BandWidth),
+            map(name_line, SdpLine::Name),
+            map(timing_line, SdpLine::Timing),
+            map(origin_line, SdpLine::Origin),
+            map(bundle_group_line, SdpLine::BundleGroup),
+            map(candidate_line, SdpLine::Candidate),
+            map(connection_line, SdpLine::Connection),
+            map(mid_line, SdpLine::Mid),
+            map(msid_semantic_line, SdpLine::MsidSemantic),
+            map(msid_line, SdpLine::Msid),
+            map(media_line, SdpLine::Media),
+            map(ssrc_line, SdpLine::Ssrc),
+            map(fingerprint_line, SdpLine::Fingerprint),
+            map(direction_line, SdpLine::Direction),
+            map(description_line, SdpLine::Description),
         )),
         alt((
-            map(raw_rtp_attribute_line, SdpLine::Rtp),
-            map(raw_rtcp_attribute_line, SdpLine::Rtcp),
-            map(raw_fmtp_attribute_line, SdpLine::Fmtp),
-            map(raw_control_attribute_line, SdpLine::Control),
-            map(raw_rtcpfb_attribute_line, SdpLine::RtcpFb),
+            map(rtp_attribute_line, SdpLine::Rtp),
+            map(rtcp_attribute_line, SdpLine::Rtcp),
+            map(fmtp_attribute_line, SdpLine::Fmtp),
+            map(control_attribute_line, SdpLine::Control),
+            map(rtcpfb_attribute_line, SdpLine::RtcpFb),
             map(tag("a=bundle-only"), |_| SdpLine::BundleOnly),
             map(tag("a=end-of-candidates"), |_| SdpLine::EoC),
-            // map(raw_a_line, SdpLine::Aline),
+            // map(a_line, SdpLine::Aline),
         )),
     ))(input)
-}
-
-pub fn sdp_line(raw: &str) -> Option<SdpLine> {
-    match raw_sdp_line(raw) {
-        Ok((_, line)) => Some(line),
-        _ => None,
-    }
 }
 
 #[cfg(test)]
@@ -117,8 +111,8 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert_eq!(raw_version_line("v=0"), Ok(("", 0)));
-        assert_eq!(raw_version_line("v=1"), Ok(("", 1)))
+        assert_eq!(version_line("v=0"), Ok(("", 0)));
+        assert_eq!(version_line("v=1"), Ok(("", 1)))
     }
 
     #[test]

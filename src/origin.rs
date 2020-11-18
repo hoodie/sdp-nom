@@ -26,7 +26,7 @@ pub struct Origin<'a> {
     pub addr: IpAddr,
 }
 
-pub(crate) fn raw_origin(input: &str) -> IResult<&str, Origin> {
+pub(crate) fn origin(input: &str) -> IResult<&str, Origin> {
     map(
         tuple((
             wsf(read_string),     // user_name
@@ -47,9 +47,9 @@ pub(crate) fn raw_origin(input: &str) -> IResult<&str, Origin> {
     )(input)
 }
 
-pub(crate) fn raw_origin_line(input: &str) -> IResult<&str, Origin> {
-    // ws!(do_parse!(tag!("o=") >> origin: raw_origin >> (origin)))
-    preceded(tag("o="), wsf(raw_origin))(input)
+pub(crate) fn origin_line(input: &str) -> IResult<&str, Origin> {
+    // ws!(do_parse!(tag!("o=") >> origin: origin >> (origin)))
+    preceded(tag("o="), wsf(origin))(input)
 }
 
 #[cfg(test)]
@@ -58,10 +58,7 @@ mod tests {
 
     #[test]
     fn parses_candidates() {
-        assert_line!(
-            raw_origin_line,
-            "o=test 4962303333179871722 1 IN IP4 0.0.0.0"
-        );
-        assert_line!(raw_origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
+        assert_line!(origin_line, "o=test 4962303333179871722 1 IN IP4 0.0.0.0");
+        assert_line!(origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
     }
 }

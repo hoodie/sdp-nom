@@ -61,7 +61,7 @@ pub struct Candidate<'a> {
     generation: Option<u32>,
 }
 
-pub(crate) fn raw_candidate(input: &str) -> IResult<&str, Candidate> {
+pub(crate) fn candidate(input: &str) -> IResult<&str, Candidate> {
     preceded(
         tag("candidate:"),
         map(
@@ -129,19 +129,19 @@ pub(crate) fn raw_candidate(input: &str) -> IResult<&str, Candidate> {
 }
 
 pub fn parse_candidate(raw: &str) -> Option<Candidate> {
-    match raw_candidate(raw) {
+    match candidate(raw) {
         Ok((_, candidate)) => Some(candidate),
         _ => None,
     }
 }
 
 /// "a=Candidate"
-pub fn raw_candidate_line(input: &str) -> IResult<&str, Candidate> {
-    preceded(tag("a="), raw_candidate)(input)
+pub fn candidate_line(input: &str) -> IResult<&str, Candidate> {
+    preceded(tag("a="), candidate)(input)
 }
 
 pub fn parse_candidate_line(raw: &str) -> Option<Candidate> {
-    match raw_candidate_line(raw) {
+    match candidate_line(raw) {
         Ok((_, candidate)) => Some(candidate),
         _ => None,
     }
@@ -154,12 +154,12 @@ mod tests {
 
     #[test]
     fn parses_candidate_line() {
-        assert_line!("a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host", raw_candidate_line);
-        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay", raw_candidate_line);
-        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
-        assert_line!("a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
-        assert_line!("a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx", raw_candidate_line);
-        // assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", raw_candidate_line); // FIXME: is this one compliant?
+        assert_line!("a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host", candidate_line);
+        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay", candidate_line);
+        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx", candidate_line);
+        assert_line!("a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx", candidate_line);
+        assert_line!("a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx", candidate_line);
+        // assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", candidate_line); // FIXME: is this one compliant?
     }
 
     #[test]
@@ -176,7 +176,7 @@ mod tests {
             "a=candidate:750991856 1 udp 25108223 237.30.30.30 58779 typ relay raddr 47.61.61.61 rport 54761 generation 0",
             ];
         for line in &lines {
-            assert_line!(*line, raw_candidate_line);
+            assert_line!(*line, candidate_line);
         }
 
     }
@@ -191,6 +191,6 @@ mod tests {
     #[should_panic]
     #[ignore]
     fn fails_on_bad_ip() {
-        raw_candidate("candidate:3348148302 1 udp 2113937151 293.0.2.1 56500 typ host\n").unwrap();
+        candidate("candidate:3348148302 1 udp 2113937151 293.0.2.1 56500 typ host\n").unwrap();
     }
 }

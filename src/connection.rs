@@ -24,7 +24,7 @@ pub struct Connection {
 
 /// Connection "c=IN IP4 10.23.42.137"
 ///
-pub(crate) fn raw_connection_line(input: &str) -> IResult<&str, Connection> {
+pub(crate) fn connection_line(input: &str) -> IResult<&str, Connection> {
     preceded(
         tag("c="),
         preceded(
@@ -44,9 +44,9 @@ pub(crate) fn raw_connection_line(input: &str) -> IResult<&str, Connection> {
 
 #[test]
 #[rustfmt::skip]
-fn test_raw_connection_line() {
+fn test_connection_line() {
     assert_line!(
-        raw_connection_line,
+        connection_line,
         "c=IN IP6 fe80::5a55:caff:fe1a:e187",
         Connection {
             ip_ver: IpVer::Ip6,
@@ -55,7 +55,7 @@ fn test_raw_connection_line() {
         }
     );
     assert_line!(
-        raw_connection_line,
+        connection_line,
         "c=IN IP4 10.23.42.137/32",
         Connection {
             ip_ver: IpVer::Ip4,
@@ -64,7 +64,7 @@ fn test_raw_connection_line() {
         }
     );
     assert_line!(
-        raw_connection_line,
+        connection_line,
         "c=IN IP4 10.23.42.137",
         Connection {
             ip_ver: IpVer::Ip4,

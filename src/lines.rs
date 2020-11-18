@@ -12,14 +12,14 @@ use crate::assert_line;
 use crate::parsers::*;
 
 /// "v=0"
-pub(crate) fn raw_version_line(input: &str) -> IResult<&str, u32> {
+pub(crate) fn version_line(input: &str) -> IResult<&str, u32> {
     preceded(tag("v="), wsf(read_number))(input)
 }
 
 #[test]
-fn test_raw_version_line() {
-    assert_line!(raw_version_line, "v=0");
-    assert_line!(raw_version_line, "v= 0");
+fn test_version_line() {
+    assert_line!(version_line, "v=0");
+    assert_line!(version_line, "v= 0");
 }
 
 /// `s=somename`
@@ -27,23 +27,23 @@ fn test_raw_version_line() {
 pub struct Name<'a>(pub &'a str);
 
 /// "s=somename"
-pub(crate) fn raw_name_line(input: &str) -> IResult<&str, Name> {
+pub(crate) fn name_line(input: &str) -> IResult<&str, Name> {
     preceded(tag("s="), map(wsf(read_string0), Name))(input)
 }
 
 #[test]
-fn test_raw_name_line() {
-    assert_line!(raw_name_line, "s=", Name(""));
-    assert_line!(raw_name_line, "s=testname", Name("testname"));
-    assert_line!(raw_name_line, "s= testname", Name("testname"));
-    assert_line!(raw_name_line, "s=testname ", Name("testname"));
+fn test_name_line() {
+    assert_line!(name_line, "s=", Name(""));
+    assert_line!(name_line, "s=testname", Name("testname"));
+    assert_line!(name_line, "s= testname", Name("testname"));
+    assert_line!(name_line, "s=testname ", Name("testname"));
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Description<'a>(pub &'a str);
 
 /// "i=description"
-pub(crate) fn raw_description_line(input: &str) -> IResult<&str, Description> {
+pub(crate) fn description_line(input: &str) -> IResult<&str, Description> {
     // do_parse!(tag!("i=") >> description: read_string >> (Description(&description)))
     let (i, _) = tag("i=")(input)?;
     let (i, desc) = read_string(i)?;
@@ -52,9 +52,9 @@ pub(crate) fn raw_description_line(input: &str) -> IResult<&str, Description> {
 }
 
 #[test]
-fn test_raw_description_line() {
+fn test_description_line() {
     assert_line!(
-        raw_description_line,
+        description_line,
         "i=testdescription",
         Description("testdescription")
     );
@@ -68,7 +68,7 @@ pub struct Timing {
 }
 
 /// "t=0 0"
-pub(crate) fn raw_timing_line(input: &str) -> IResult<&str, Timing> {
+pub(crate) fn timing_line(input: &str) -> IResult<&str, Timing> {
     wsf(|input| {
         let (input, _) = tag("t=")(input)?;
         let (input, start) = wsf(read_number)(input)?;
@@ -79,10 +79,10 @@ pub(crate) fn raw_timing_line(input: &str) -> IResult<&str, Timing> {
 
 #[test]
 #[rustfmt::skip]
-fn test_raw_timing_line() {
-    assert_line!(raw_timing_line,"t=0 1", Timing { start: 0, stop: 1 });
-    assert_line!(raw_timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
-    assert_line!(raw_timing_line,"t=23 42", Timing { start: 23, stop: 42 });
+fn test_timing_line() {
+    assert_line!(timing_line,"t=0 1", Timing { start: 0, stop: 1 });
+    assert_line!(timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
+    assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 });
 }
 
 #[derive(Debug, PartialEq)]
@@ -94,7 +94,7 @@ pub enum BandWidthType {
     RS,
 }
 // TIAS|AS|CT|RR|RS
-pub(crate) fn raw_bandwidth_type(input: &str) -> IResult<&str, BandWidthType> {
+pub(crate) fn bandwidth_type(input: &str) -> IResult<&str, BandWidthType> {
     alt((
         map(tag("TIAS"), |_| BandWidthType::TIAS),
         map(tag("AS"), |_| BandWidthType::AS),
@@ -112,11 +112,11 @@ pub struct BandWidth {
 }
 
 /// "b=AS:1024"
-pub(crate) fn raw_bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
+pub(crate) fn bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
     preceded(
         tag("b="),
         map(
-            separated_pair(raw_bandwidth_type, tag(":"), read_number),
+            separated_pair(bandwidth_type, tag(":"), read_number),
             |(r#type, limit)| (BandWidth { r#type, limit }),
         ),
     )(input)
@@ -124,13 +124,13 @@ pub(crate) fn raw_bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
 
 #[test]
 #[rustfmt::skip]
-fn test_raw_bandwidth_line() {
+fn test_bandwidth_line() {
     assert_line!(
-        raw_bandwidth_line,"b=AS:30",
+        bandwidth_line,"b=AS:30",
         BandWidth { r#type: BandWidthType::AS, limit: 30 }
     );
     assert_line!(
-        raw_bandwidth_line,"b=RR:1024",
+        bandwidth_line,"b=RR:1024",
         BandWidth { r#type: BandWidthType::RR, limit: 1024 }
     );
 }
@@ -143,7 +143,7 @@ pub struct Media<'a> {
     payloads: Vec<u32>,
 }
 
-pub(crate) fn raw_media_line(input: &str) -> IResult<&str, Media> {
+pub(crate) fn media_line(input: &str) -> IResult<&str, Media> {
     preceded(
         tag("m="),
         wsf(map(
@@ -164,9 +164,9 @@ pub(crate) fn raw_media_line(input: &str) -> IResult<&str, Media> {
 }
 
 #[test]
-fn test_raw_mline() {
+fn test_mline() {
     assert_line!(
-        raw_media_line,
+        media_line,
         "m=video 51744 RTP/AVP 126 97 98 34 31",
         Media {
             r#type: "video",
@@ -180,14 +180,14 @@ fn test_raw_mline() {
 #[derive(Debug)]
 pub struct Mid<'a>(pub &'a str);
 
-pub(crate) fn raw_mid_line(input: &str) -> IResult<&str, Mid> {
+pub(crate) fn mid_line(input: &str) -> IResult<&str, Mid> {
     preceded(tag("a=mid:"), map(read_string, Mid))(input)
 }
 
 #[derive(Debug)]
 pub struct MsidSemantic<'a>(pub Vec<&'a str>);
 
-pub(crate) fn raw_msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
+pub(crate) fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
     preceded(
         tag("a=msid-semantic:"),
         wsf(map(space_separated_strings, MsidSemantic)),
@@ -195,9 +195,9 @@ pub(crate) fn raw_msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic>
 }
 
 #[test]
-fn test_raw_msid_semantic_line() {
+fn test_msid_semantic_line() {
     assert_line!(
-        raw_msid_semantic_line,
+        msid_semantic_line,
         "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
     );
 }
@@ -205,7 +205,7 @@ fn test_raw_msid_semantic_line() {
 #[derive(Debug)]
 pub struct Msid<'a>(pub Vec<&'a str>);
 
-pub(crate) fn raw_msid_line(input: &str) -> IResult<&str, Msid> {
+pub(crate) fn msid_line(input: &str) -> IResult<&str, Msid> {
     preceded(tag("a=msid:"), wsf(map(space_separated_strings, Msid)))(input)
 }
 
@@ -216,7 +216,7 @@ pub struct Fingerprint<'a> {
 }
 
 /// fingerprint
-pub(crate) fn raw_fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
+pub(crate) fn fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
     preceded(
         tag("a=fingerprint:"),
         map(
@@ -230,14 +230,14 @@ pub(crate) fn raw_fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
 }
 
 #[test]
-fn parse_fingerprint_line() {
+fn test_fingerprint_line() {
     println!("{:?}",
-        raw_fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
+        fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
     );
 }
 
 /// generic a line
-pub(crate) fn raw_a_line(input: &str) -> IResult<&str, Vec<&str>> {
+pub(crate) fn a_line(input: &str) -> IResult<&str, Vec<&str>> {
     //do_parse!(tag!("a=") >> line: read_as_strings >> (line))
     preceded(tag("a="), read_as_strings)(input)
 }
@@ -248,9 +248,9 @@ mod tests {
 
     #[test]
     fn parse_mid_line() {
-        assert_line!(raw_mid_line, "a=mid:1");
-        assert_line!(raw_mid_line, "a=mid:a1");
-        assert_line!(raw_mid_line, "a=mid:0");
-        assert_line!(raw_mid_line, "a=mid:audio")
+        assert_line!(mid_line, "a=mid:1");
+        assert_line!(mid_line, "a=mid:a1");
+        assert_line!(mid_line, "a=mid:0");
+        assert_line!(mid_line, "a=mid:audio")
     }
 }

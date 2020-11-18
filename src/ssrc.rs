@@ -1,17 +1,9 @@
-#![allow(unused_imports)]
 use nom::*;
 use nom::{
-    branch::alt,
-    bytes::complete::{escaped, tag, take_while, take_while1},
-    character::{
-        complete::{anychar, char, multispace0, none_of, space1},
-        is_digit,
-    },
-    combinator::{map, map_res, opt},
-    error::ParseError,
-    multi::many0,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Parser,
+    bytes::complete::tag,
+    character::complete::multispace0,
+    combinator::map,
+    sequence::{preceded, tuple},
 };
 
 #[cfg(test)]
@@ -26,7 +18,7 @@ pub struct Ssrc<'a> {
 }
 
 /// ssrc
-pub(crate) fn raw_ssrc_line(input: &str) -> IResult<&str, Ssrc> {
+pub(crate) fn ssrc_line(input: &str) -> IResult<&str, Ssrc> {
     preceded(
         tag("a=ssrc:"),
         map(
@@ -48,14 +40,14 @@ pub(crate) fn raw_ssrc_line(input: &str) -> IResult<&str, Ssrc> {
 
 #[test]
 #[rustfmt::skip]
-fn parse_ssrc_line() {
+fn test_ssrc_line() {
     assert_line!(
-        raw_ssrc_line,
+        ssrc_line,
         "a=ssrc:1366781084 cname:EocUG1f0fcg/yvY7",
         Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" }
     );
     assert_line!(
-        raw_ssrc_line,
+        ssrc_line,
         "a=ssrc: 1366781084 cname: EocUG1f0fcg/yvY7",
         Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" }
     );
