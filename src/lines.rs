@@ -47,11 +47,7 @@ pub struct SessionInformation<'a>(pub &'a str);
 
 /// "i=description"
 pub(crate) fn description_line(input: &str) -> IResult<&str, SessionInformation> {
-    // do_parse!(tag!("i=") >> description: read_string >> (Description(&description)))
-    let (i, _) = tag("i=")(input)?;
-    let (i, desc) = read_string(i)?;
-
-    Ok((i, SessionInformation(desc)))
+    line("i=", map(read_string, SessionInformation))(input)
 }
 
 #[test]
@@ -72,12 +68,13 @@ pub struct Timing {
 
 /// "t=0 0"
 pub(crate) fn timing_line(input: &str) -> IResult<&str, Timing> {
-    wsf(|input| {
-        let (input, _) = tag("t=")(input)?;
-        let (input, start) = wsf(read_number)(input)?;
-        let (input, stop) = wsf(read_number)(input)?;
-        Ok((input, Timing { start, stop }))
-    })(input)
+    line(
+        "t=",
+        wsf(map(
+            tuple((wsf(read_number), wsf(read_number))),
+            |(start, stop)| Timing { start, stop },
+        )),
+    )(input)
 }
 
 #[test]
@@ -85,6 +82,7 @@ pub(crate) fn timing_line(input: &str) -> IResult<&str, Timing> {
 fn test_timing_line() {
     assert_line!(timing_line,"t=0 1", Timing { start: 0, stop: 1 });
     assert_line!(timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
+    assert_line!(timing_line,"t=  2  3 ", Timing { start: 2, stop: 3 });
     assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 });
 }
 

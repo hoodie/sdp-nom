@@ -5,12 +5,12 @@
 //! * ☒️ [Protocol Version](https://tools.ietf.org/html/rfc4566#section-5.1) (`"v="`) 
 //! * ☒️ [Origin](https://tools.ietf.org/html/rfc4566#section-5.2) (`"o="`) [`Origin`]
 //! * ☒ [Session Name](https://tools.ietf.org/html/rfc4566#section-5.3) (`"s="`) [`SessionName`]
-//! * ☐ [Session Information](https://tools.ietf.org/html/rfc4566#section-5.4) (`"i="`) [`SessionInformation`]
+//! * ☒ [Session Information](https://tools.ietf.org/html/rfc4566#section-5.4) (`"i="`) [`SessionInformation`]
 //! * ☐ [URI](https://tools.ietf.org/html/rfc4566#section-5.5) (`"u="`) 
-//! * ☐ [Email Address and Phone Number](https://tools.ietf.org/html/rfc4566#section-5.6) (`"e=" and "p="`) 
+//! * ☐ [Email Address and Phone Number](https://tools.ietf.org/html/rfc4566#section-5.6) (`"e="` and `"p="`) 
 //! * ☐ [Connection Data](https://tools.ietf.org/html/rfc4566#section-5.7) (`"c="`) 
 //! * ☐ [Bandwidth](https://tools.ietf.org/html/rfc4566#section-5.8) (`"b="`) 
-//! * ☐ [Timing](https://tools.ietf.org/html/rfc4566#section-5.9) (`"t="`) 
+//! * ☒ [Timing](https://tools.ietf.org/html/rfc4566#section-5.9) (`"t="`) [`Timing`]
 //! * ☐ [Repeat Times](https://tools.ietf.org/html/rfc4566#section-5.10) (`"r="`) 
 //! * ☐ [Time Zones](https://tools.ietf.org/html/rfc4566#section-5.11) (`"z="`) 
 //! * ☐ [Encryption Keys](https://tools.ietf.org/html/rfc4566#section-5.12) (`"k="`) 
