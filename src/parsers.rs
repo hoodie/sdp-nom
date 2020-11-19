@@ -10,7 +10,7 @@ use nom::{
     combinator::{map, map_res, opt},
     error::ParseError,
     multi::many0,
-    sequence::{delimited, terminated},
+    sequence::{delimited, preceded, terminated, tuple},
     Parser,
 };
 
@@ -44,9 +44,18 @@ pub fn wsf<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
     delimited(multispace0, f, multispace0)
 }
 
-// fn alphanumeric<'a, E: ParseError<&'a str>>() -> impl Parser<&'a str, &'a str, E> {
-//     take_while1(is_alphanumeric)
-// }
+pub fn a_line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
+    line("a=", f)
+}
+
+pub fn line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
+    prefix: &'a str,
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
+    preceded(tag(prefix), f)
+}
 
 pub(crate) fn read_number(input: &str) -> IResult<&str, u32> {
     map_res(

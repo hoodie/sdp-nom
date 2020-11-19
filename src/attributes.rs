@@ -85,6 +85,8 @@ fn test_bundle_group_line() {
     );
 }
 
+// ///////////////////////
+
 // a=rtpmap:110 opus/48000/2
 #[derive(Debug, PartialEq)]
 pub struct Rtp<'a> {
@@ -153,6 +155,8 @@ fn test_fmtp_attribute_line() {
     )
 }
 
+// ///////////////////////
+
 // a=control:streamid=0
 #[derive(Debug, PartialEq)]
 pub struct Control<'a>(&'a str);
@@ -165,6 +169,8 @@ pub(crate) fn control_attribute_line(input: &str) -> IResult<&str, Control> {
 fn test_control_attribute_line() {
     assert_line!(control_attribute_line, "a=control:streamid=0");
 }
+
+// ///////////////////////
 
 /// Rtcp
 ///
@@ -203,6 +209,8 @@ fn test_rtcp_attribute_line() {
     assert_line!(rtcp_attribute_line, "a=rtcp:65179 IN IP4 10.23.34.255");
     assert_line!(rtcp_attribute_line, "a=rtcp:65179 IN IP4 ::1");
 }
+
+// ///////////////////////
 
 /// RtcpFeedback
 ///
@@ -270,6 +278,8 @@ fn test_rtcpfb_line() {
     assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 nack rpsi");
 }
 
+// ///////////////////////
+
 // a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
 #[derive(Debug, PartialEq)]
 pub struct Ext<'a> {
@@ -332,6 +342,8 @@ fn test_ext_line() {
     )
 }
 
+// ///////////////////////
+
 #[derive(Debug, PartialEq)]
 pub enum NetType {
     IN,
@@ -341,6 +353,12 @@ pub(crate) fn read_net_type(input: &str) -> IResult<&str, NetType> {
     map(tag("IN"), |_| NetType::IN)(input)
 }
 
+/// Direction
+///
+/// `a=sendrecv`
+/// `a=sendonly`
+/// `a=recvonly`
+/// `a=inactive`
 #[derive(Debug, PartialEq)]
 pub enum Direction {
     SendOnly,
@@ -360,4 +378,18 @@ pub(crate) fn read_direction(input: &str) -> IResult<&str, Direction> {
 
 pub(crate) fn direction_line(input: &str) -> IResult<&str, Direction> {
     preceded(tag("a="), wsf(read_direction))(input)
+}
+#[test]
+fn test_direction_line() {
+    assert_line!(read_direction, "sendrecv", Direction::SendRecv);
+    assert_line!(direction_line, "a=sendrecv", Direction::SendRecv);
+
+    assert_line!(read_direction, "sendonly", Direction::SendOnly);
+    assert_line!(direction_line, "a=sendonly", Direction::SendOnly);
+
+    assert_line!(read_direction, "recvonly", Direction::RecvOnly);
+    assert_line!(direction_line, "a=recvonly", Direction::RecvOnly);
+
+    assert_line!(read_direction, "inactive", Direction::Inactive);
+    assert_line!(direction_line, "a=inactive", Direction::Inactive);
 }

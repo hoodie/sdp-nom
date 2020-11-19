@@ -1,7 +1,9 @@
+#![allow(unused_imports)]
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 pub mod attributes;
 pub mod candidate;
+pub mod ice;
 pub mod connection;
 pub mod lines;
 pub mod origin;
@@ -13,6 +15,7 @@ mod assert;
 
 use attributes::*;
 use candidate::*;
+use ice::*;
 use connection::*;
 use lines::*;
 use origin::*;
@@ -34,6 +37,8 @@ pub enum SdpLine<'a> {
 
     /// `b=AS:1024`
     BandWidth(BandWidth),
+
+    Ice(IceParameter<'a>),
 
     /// `candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
     Candidate(Candidate<'a>),
@@ -72,6 +77,7 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
             map(timing_line, SdpLine::Timing),
             map(origin_line, SdpLine::Origin),
             map(bundle_group_line, SdpLine::BundleGroup),
+            map(ice_parameter_line, SdpLine::Ice),
             map(candidate_line, SdpLine::Candidate),
             map(connection_line, SdpLine::Connection),
             map(mid_line, SdpLine::Mid),
