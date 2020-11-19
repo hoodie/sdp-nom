@@ -23,32 +23,35 @@ fn test_version_line() {
 }
 
 /// `s=somename`
+///
+/// https://tools.ietf.org/html/rfc4566#section-5.3
 #[derive(Debug, PartialEq)]
-pub struct Name<'a>(pub &'a str);
+pub struct SessionName<'a>(pub &'a str);
 
 /// "s=somename"
-pub(crate) fn name_line(input: &str) -> IResult<&str, Name> {
-    preceded(tag("s="), map(wsf(read_string0), Name))(input)
+pub(crate) fn name_line(input: &str) -> IResult<&str, SessionName> {
+    preceded(tag("s="), map(wsf(read_string0), SessionName))(input)
 }
 
 #[test]
 fn test_name_line() {
-    assert_line!(name_line, "s=", Name(""));
-    assert_line!(name_line, "s=testname", Name("testname"));
-    assert_line!(name_line, "s= testname", Name("testname"));
-    assert_line!(name_line, "s=testname ", Name("testname"));
+    assert_line!(name_line, "s=", SessionName(""));
+    assert_line!(name_line, "s=testname", SessionName("testname"));
+    assert_line!(name_line, "s= testname", SessionName("testname"));
+    assert_line!(name_line, "s=testname ", SessionName("testname"));
 }
 
+/// `i=<session description>`
 #[derive(Debug, PartialEq)]
-pub struct Description<'a>(pub &'a str);
+pub struct SessionInformation<'a>(pub &'a str);
 
 /// "i=description"
-pub(crate) fn description_line(input: &str) -> IResult<&str, Description> {
+pub(crate) fn description_line(input: &str) -> IResult<&str, SessionInformation> {
     // do_parse!(tag!("i=") >> description: read_string >> (Description(&description)))
     let (i, _) = tag("i=")(input)?;
     let (i, desc) = read_string(i)?;
 
-    Ok((i, Description(desc)))
+    Ok((i, SessionInformation(desc)))
 }
 
 #[test]
@@ -56,7 +59,7 @@ fn test_description_line() {
     assert_line!(
         description_line,
         "i=testdescription",
-        Description("testdescription")
+        SessionInformation("testdescription")
     );
 }
 
