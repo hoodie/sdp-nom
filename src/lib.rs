@@ -1,3 +1,25 @@
+//! # Nom based SDP parser
+//! 
+//! 
+//! ## SDP Specification (TODO)
+//! * ☒️ [Protocol Version](https://tools.ietf.org/html/rfc4566#section-5.1) (`"v="`) 
+//! * ☒️ [Origin](https://tools.ietf.org/html/rfc4566#section-5.2) (`"o="`) 
+//! * ☒ [Session Name](https://tools.ietf.org/html/rfc4566#section-5.3) (`"s="`) 
+//! * ☐ [Session Information](https://tools.ietf.org/html/rfc4566#section-5.4) (`"i="`) 
+//! * ☐ [URI](https://tools.ietf.org/html/rfc4566#section-5.5) (`"u="`) 
+//! * ☐ [Email Address and Phone Number](https://tools.ietf.org/html/rfc4566#section-5.6) (`"e=" and "p="`) 
+//! * ☐ [Connection Data](https://tools.ietf.org/html/rfc4566#section-5.7) (`"c="`) 
+//! * ☐ [Bandwidth](https://tools.ietf.org/html/rfc4566#section-5.8) (`"b="`) 
+//! * ☐ [Timing](https://tools.ietf.org/html/rfc4566#section-5.9) (`"t="`) 
+//! * ☐ [Repeat Times](https://tools.ietf.org/html/rfc4566#section-5.10) (`"r="`) 
+//! * ☐ [Time Zones](https://tools.ietf.org/html/rfc4566#section-5.11) (`"z="`) 
+//! * ☐ [Encryption Keys](https://tools.ietf.org/html/rfc4566#section-5.12) (`"k="`) 
+//! * ☐ [Attributes](https://tools.ietf.org/html/rfc4566#section-5.13) (`"a="`) 
+//! * ☐ [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) 
+//! * ☐ [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
+
+
+
 #![allow(unused_imports)]
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
@@ -27,7 +49,7 @@ pub enum SdpLine<'a> {
     Version(u32),
 
     /// `s=-`
-    Name(Name<'a>),
+    Name(SessionName<'a>),
 
     /// `t=0 0`
     Timing(Timing),
