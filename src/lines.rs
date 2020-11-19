@@ -226,9 +226,3 @@ fn test_fingerprint_line() {
         fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
     );
 }
-
-/// generic a line
-pub(crate) fn a_line(input: &str) -> IResult<&str, Vec<&str>> {
-    //do_parse!(tag!("a=") >> line: read_as_strings >> (line))
-    preceded(tag("a="), read_as_strings)(input)
-}

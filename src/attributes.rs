@@ -1,13 +1,12 @@
-/// 
+///
 
 /// [6. SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6)
-
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::tag,
-    combinator::{map, opt},
-    sequence::{preceded, tuple},
+    bytes::complete::{tag, take_till1},
+    combinator::{eof, map, opt},
+    sequence::{preceded, separated_pair, tuple},
 };
 
 use std::net::IpAddr;
@@ -16,7 +15,14 @@ use std::net::IpAddr;
 use crate::assert_line;
 use crate::parsers::*;
 
-pub enum Attribute {
+#[derive(Debug, PartialEq)]
+pub struct Attribute<'a> {
+    kind: AttributeKind<'a>,
+    value: &'a str,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum AttributeKind<'a> {
     Rtp,
     Fmtp,
     Control,
@@ -57,8 +63,47 @@ pub enum Attribute {
     Label,
     SctpPort,
     MaxMessageSize,
-    Invalid,
+    Other(&'a str),
 }
+
+fn attribute_kind(input: &str) -> IResult<&str, AttributeKind> {
+    alt((
+        map(tag("setup"), |_| AttributeKind::Setup),
+        map(take_till1(|i| i == ':'), AttributeKind::Other),
+    ))(input)
+}
+
+pub(crate) fn generic_attribute_line(input: &str) -> IResult<&str, Attribute> {
+    line(
+        "a=",
+        map(
+            separated_pair(attribute_kind, tag(":"), read_string),
+            |(kind, value)| Attribute { kind, value },
+        ),
+    )(input)
+}
+
+#[test]
+fn test_generic_attribute_line() {
+    assert_line!(
+        generic_attribute_line,
+        "a=foo:bar",
+        Attribute {
+            kind: AttributeKind::Other("foo"),
+            value: "bar"
+        }
+    );
+    assert_line!(
+        generic_attribute_line,
+        "a=setup:actpass",
+        Attribute {
+            kind: AttributeKind::Setup,
+            value: "actpass"
+        }
+    );
+}
+
+// ///////////////////////
 
 #[derive(Debug, PartialEq)]
 pub struct BundleGroup<'a>(pub Vec<&'a str>);
