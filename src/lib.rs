@@ -123,6 +123,11 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
         )),
     ))(input)
 }
+#[cfg(test)]
+#[ctor::ctor]
+fn init_color_backtrace() {
+    color_backtrace::install();
+}
 
 #[cfg(test)]
 mod tests {
