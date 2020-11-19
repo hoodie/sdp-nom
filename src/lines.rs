@@ -2,7 +2,7 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::tag,
+    bytes::complete::{tag, take_until, take_while},
     combinator::map,
     sequence::{preceded, separated_pair, tuple},
 };
@@ -41,11 +41,13 @@ fn test_name_line() {
     assert_line!(name_line, "s=testname ", SessionName("testname"));
 }
 
+// ////////////////////////
+
 /// `i=<session description>`
 #[derive(Debug, PartialEq)]
 pub struct SessionInformation<'a>(pub &'a str);
 
-/// "i=description"
+/// SessionInformation "i=description"
 pub(crate) fn description_line(input: &str) -> IResult<&str, SessionInformation> {
     line("i=", map(read_string, SessionInformation))(input)
 }
@@ -58,6 +60,68 @@ fn test_description_line() {
         SessionInformation("testdescription")
     );
 }
+
+// ////////////////////////
+
+/// Uri `u=<uri>`
+#[derive(Debug, PartialEq)]
+pub struct Uri<'a>(pub &'a str);
+
+/// "i=description"
+pub(crate) fn uri_line(input: &str) -> IResult<&str, Uri> {
+    line("u=", map(read_string, Uri))(input)
+}
+
+#[test]
+fn test_uri_line() {
+    assert_line!(
+        uri_line,
+        "u=https://parse-my.sdp",
+        Uri("https://parse-my.sdp")
+    );
+}
+
+// ////////////////////////
+
+/// Email `e=<email-address>`
+#[derive(Debug, PartialEq)]
+pub struct EmailAddress<'a>(pub &'a str);
+
+/// "i=description"
+pub(crate) fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
+    line("e=", map(read_string, EmailAddress))(input)
+}
+
+#[test]
+fn test_email_address_line() {
+    assert_line!(
+        email_address_line,
+        "e=test@example.com",
+        EmailAddress("test@example.com")
+    );
+}
+
+// ////////////////////////
+
+/// Email `p=<phone-number>`
+#[derive(Debug, PartialEq)]
+pub struct PhoneNumber<'a>(pub &'a str);
+
+/// "i=description"
+pub(crate) fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
+    line("p=", map(take_while(|_| true), PhoneNumber))(input)
+}
+
+#[test]
+fn test_phone_number_line() {
+    assert_line!(
+        phone_number_line,
+        "p=0118 999 881 999 119 7253",
+        PhoneNumber("0118 999 881 999 119 7253",)
+    );
+}
+
+// ////////////////////////
 
 /// `t=0 0`
 #[derive(Debug, PartialEq)]

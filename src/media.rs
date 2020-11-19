@@ -60,6 +60,7 @@ pub(crate) fn mid_line(input: &str) -> IResult<&str, Mid> {
     preceded(tag("a=mid:"), map(read_string, Mid))(input)
 }
 
+/// TODO: type this more strictly, if possible without `Vec`
 #[derive(Debug)]
 pub struct MsidSemantic<'a>(pub Vec<&'a str>);
 
