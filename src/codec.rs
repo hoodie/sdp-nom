@@ -10,8 +10,27 @@ use nom::{
 use crate::assert_line;
 use crate::parsers::*;
 
-#[allow(dead_code)]
-struct MaxPTime(u32);
+#[derive(Debug, PartialEq)]
+pub enum PTime {
+    MaxPTime(u32),
+    MinPTime(u32),
+    PTime(u32),
+}
+
+pub(crate) fn read_p_time(input: &str) -> IResult<&str, PTime> {
+    a_line(alt((
+        preceded(tag("ptime:"), map(read_number, PTime::PTime)),
+        preceded(tag("minptime:"), map(read_number, PTime::MinPTime)),
+        preceded(tag("maxptime:"), map(read_number, PTime::MaxPTime)),
+    )))(input)
+}
+
+#[test]
+fn test_read_p_time() {
+    assert_line!(read_p_time, "a=ptime:1", PTime::PTime(1));
+    assert_line!(read_p_time, "a=minptime:20", PTime::MinPTime(20));
+    assert_line!(read_p_time, "a=maxptime:120", PTime::MaxPTime(120));
+}
 
 /// RtpMap
 /// `a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding` parameters>]
@@ -71,15 +90,16 @@ fn test_rtpmap_line() {
             encoding: None,
         }
     );
-    assert_line!(rtpmap_line, "a=rtpmap:111 opus/48000/2",
-
+    assert_line!(
+        rtpmap_line,
+        "a=rtpmap:111 opus/48000/2",
         RtpMap {
             payload_type: 111,
             encoding_name: "opus",
             clock_rate: 48000,
             encoding: Some(2),
         }
-);
+    );
     assert_line!(rtpmap_line, "a=rtpmap:98 VP9/90000");
     assert_line!(rtpmap_line, "a=rtpmap:99 rtx/90000");
     assert_line!(rtpmap_line, "a=rtpmap:100 H264/90000");
