@@ -198,7 +198,7 @@ pub(crate) fn fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
         tag("a=fmtp:"),
         map(
             tuple((
-                read_number,      // payload
+                read_number,       // payload
                 wsf(is_not("\n")), // config
             )),
             |(payload, config)| (Fmtp { payload, config }),
@@ -396,12 +396,24 @@ fn test_direction_line() {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct RtcpMux;
+pub enum RtcpOption {
+    RtcpMux,
+    RtcpMuxOnly,
+    RtcpRsize,
+}
 
-pub(crate) fn read_rtp_mux(input: &str) -> IResult<&str, RtcpMux> {
-    a_line(map(tag("rtcp-mux"), |_| RtcpMux))(input)
+pub(crate) fn read_rtp_option(input: &str) -> IResult<&str, RtcpOption> {
+    a_line(
+        alt((
+        map(tag("rtcp-rsize"), |_| RtcpOption::RtcpRsize),
+        map(tag("rtcp-mux-only"), |_| RtcpOption::RtcpMuxOnly),
+        map(tag("rtcp-mux"), |_| RtcpOption::RtcpMux),
+        ))
+    )(input)
 }
 #[test]
-fn test_read_rtp_mux() {
-    assert_line!(read_rtp_mux, "a=rtcp-mux", RtcpMux);
+fn test_read_rtp_option() {
+    assert_line!(read_rtp_option, "a=rtcp-mux", RtcpOption::RtcpMux);
+    assert_line!(read_rtp_option, "a=rtcp-mux-only", RtcpOption::RtcpMuxOnly);
+    assert_line!(read_rtp_option, "a=rtcp-rsize", RtcpOption::RtcpRsize);
 }
