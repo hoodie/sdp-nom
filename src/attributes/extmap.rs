@@ -91,7 +91,6 @@ fn test_extmap() {
     );
 }
 #[test]
-#[ignore]
 fn test_extmap_line() {
     assert_line!(extmap_line, "a=extmap:1/sendonly URI-toffset");
     assert_line!(extmap_line, "a=extmap:2 urn:ietf:params:rtp-hdrext:toffset");

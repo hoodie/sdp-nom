@@ -77,6 +77,7 @@ pub enum SdpLine<'a> {
     MsidSemantic(MsidSemantic<'a>),
     Msid(Msid<'a>),
     Ssrc(Ssrc<'a>),
+    SsrcGroup(SsrcGroup),
     Fingerprint(Fingerprint<'a>),
     Description(SessionInformation<'a>),
     Direction(Direction),
@@ -113,15 +114,16 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
             map(msid_line, SdpLine::Msid),
             map(media_line, SdpLine::Media),
             map(ssrc_line, SdpLine::Ssrc),
+            map(ssrc_group_line, SdpLine::SsrcGroup),
             map(codec::rtpmap_line, SdpLine::RtpMap),
             map(codec::read_p_time, SdpLine::PTime),
             map(fingerprint_line, SdpLine::Fingerprint),
             map(direction_line, SdpLine::Direction),
             map(description_line, SdpLine::Description),
-            map(extmap::extmap_line, SdpLine::Extmap),
-            map(dtls_parameters::setup_role_line, SdpLine::SetupRole),
         )),
         alt((
+            map(extmap::extmap_line, SdpLine::Extmap),
+            map(dtls_parameters::setup_role_line, SdpLine::SetupRole),
             map(rtp_attribute_line, SdpLine::Rtp),
             map(rtcp_attribute_line, SdpLine::Rtcp),
             map(fmtp_attribute_line, SdpLine::Fmtp),
@@ -160,7 +162,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "still red"]
     fn anatomy() {
         //! every exaple from https://webrtchacks.com/sdp-anatomy/
 

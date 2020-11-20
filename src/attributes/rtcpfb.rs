@@ -39,7 +39,7 @@ pub enum RtcpFbVal<'a> {
 #[derive(Debug, PartialEq)]
 pub enum RtcpFbParam<'a> {
     App(&'a str),
-    Str(&'a str),
+    Single(&'a str),
     Pair(&'a str, &'a str),
 }
 
@@ -50,7 +50,7 @@ fn read_param(input: &str) -> IResult<&str, RtcpFbParam> {
             tuple((wsf(read_string), wsf(read_string))),
             |(token, value)| RtcpFbParam::Pair(token, value),
         ),
-        map(wsf(read_string), |value| RtcpFbParam::Str(value)),
+        map(wsf(read_string), |value| RtcpFbParam::Single(value)),
     ))(input)
 }
 
@@ -131,7 +131,7 @@ fn test_read_val() {
     assert_line!(read_val, "nack rpsi", RtcpFbVal::Nack(RtcpFbNackParam::Rpsi));
     assert_line!(read_val, "goog-remb", RtcpFbVal:: RtcpFbId{id: "goog-remb", param: None});
     assert_line!(read_val,  "ccm", RtcpFbVal:: RtcpFbId{id: "ccm", param: None});
-    assert_line!(read_val,  "ccm fir", RtcpFbVal:: RtcpFbId{id: "ccm", param: Some(RtcpFbParam::Str("fir"))});
+    assert_line!(read_val,  "ccm fir", RtcpFbVal:: RtcpFbId{id: "ccm", param: Some(RtcpFbParam::Single("fir"))});
     assert_line!(read_val,  "fb foo bar", RtcpFbVal:: RtcpFbId{id: "fb", param: Some(RtcpFbParam::Pair("foo", "bar"))});
 }
 
@@ -166,7 +166,7 @@ fn test_rtcpfb_line() {
             payload: 96,
             val: RtcpFbVal::RtcpFbId{
                 id: "ccm",
-                param: Some(RtcpFbParam::Str("fir"))
+                param: Some(RtcpFbParam::Single("fir"))
             }
         }
     );
