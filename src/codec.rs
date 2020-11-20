@@ -48,17 +48,15 @@ pub(crate) fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
         tag("rtpmap:"),
         map(
             tuple((
-                read_number, // payload_typ
-                tag(" "),
-                read_non_slash_string, // encoding_name
-                tag("/"),
-                read_number, // clock_rate
+                read_number,                               // payload_typ
+                preceded(tag(" "), read_non_slash_string), // encoding_name
+                preceded(tag("/"), read_number),           // clock_rate
                 opt(preceded(
                     tag("/"),
                     read_number, // encoding
                 )),
             )),
-            |(payload_type, _, encoding_name, _, clock_rate, encoding)| RtpMap {
+            |(payload_type, encoding_name, clock_rate, encoding)| RtpMap {
                 payload_type,
                 encoding_name,
                 clock_rate,

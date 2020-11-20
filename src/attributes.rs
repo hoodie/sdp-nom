@@ -166,12 +166,10 @@ pub(crate) fn rtp_attribute_line(input: &str) -> IResult<&str, Rtp> {
             tuple((
                 wsf(read_number),           // payload
                 wsf(read_non_slash_string), // codec
-                tag("/"),
-                read_number, // rate
-                tag("/"),
-                read_number, // encoding
+                preceded(tag("/"), read_number), // rate
+                preceded(tag("/"), read_number), // encoding
             )),
-            |(payload, codec, _, rate, _, encoding)| Rtp {
+            |(payload, codec, rate, encoding)| Rtp {
                 payload,
                 codec,
                 rate,
@@ -297,7 +295,7 @@ pub fn ext_attribute_line(input: &str) -> IResult<&str, Ext> {
             tuple((
                 read_number, // value: >>
                 //direction:
-                opt(map(tuple((tag("/"), read_direction)), |(_, d)| d)),
+                opt(preceded(tag("/"), read_direction)),
                 wsf(opt(read_string)), //uri
                 wsf(opt(read_string)), // extended
             )),
@@ -403,13 +401,11 @@ pub enum RtcpOption {
 }
 
 pub(crate) fn read_rtp_option(input: &str) -> IResult<&str, RtcpOption> {
-    a_line(
-        alt((
+    a_line(alt((
         map(tag("rtcp-rsize"), |_| RtcpOption::RtcpRsize),
         map(tag("rtcp-mux-only"), |_| RtcpOption::RtcpMuxOnly),
         map(tag("rtcp-mux"), |_| RtcpOption::RtcpMux),
-        ))
-    )(input)
+    )))(input)
 }
 #[test]
 fn test_read_rtp_option() {

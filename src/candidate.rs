@@ -81,17 +81,17 @@ pub(crate) fn candidate(input: &str) -> IResult<&str, Candidate> {
                 wsf(read_number), // priority
                 wsf(read_addr),   // addr
                 wsf(read_number), // port
-                tag("typ"),
-                // typ:
-                wsf(alt((
-                    map(tag("host"), |_| CandidateType::Host),
-                    map(tag("relay"), |_| CandidateType::Relay),
-                    map(tag("srflx"), |_| CandidateType::Srflx),
-                    map(tag("prflx"), |_| CandidateType::Prflx),
-                ))),
-                //wsf(opt(read_addr)),                                // raddr
+                preceded(
+                    tag("typ"),
+                    // typ:
+                    wsf(alt((
+                        map(tag("host"), |_| CandidateType::Host),
+                        map(tag("relay"), |_| CandidateType::Relay),
+                        map(tag("srflx"), |_| CandidateType::Srflx),
+                        map(tag("prflx"), |_| CandidateType::Prflx),
+                    ))),
+                ),
                 opt(preceded(wsf(tag("raddr")), read_addr)), // raddr
-                // wsf(opt(read_number)),                              // rport
                 opt(preceded(wsf(tag("rport")), read_number)), // rport
                 opt(preceded(wsf(tag("tcptype")), read_string)), // tcptype
                 opt(preceded(wsf(tag("generation")), read_number)), // generation
@@ -103,7 +103,6 @@ pub(crate) fn candidate(input: &str) -> IResult<&str, Candidate> {
                 priority,
                 addr,
                 port,
-                _,
                 typ,
                 raddr,
                 rport,
@@ -128,23 +127,9 @@ pub(crate) fn candidate(input: &str) -> IResult<&str, Candidate> {
     )(input)
 }
 
-pub fn parse_candidate(raw: &str) -> Option<Candidate> {
-    match candidate(raw) {
-        Ok((_, candidate)) => Some(candidate),
-        _ => None,
-    }
-}
-
 /// "a=Candidate"
 pub fn candidate_line(input: &str) -> IResult<&str, Candidate> {
     preceded(tag("a="), candidate)(input)
-}
-
-pub fn parse_candidate_line(raw: &str) -> Option<Candidate> {
-    match candidate_line(raw) {
-        Ok((_, candidate)) => Some(candidate),
-        _ => None,
-    }
 }
 
 #[cfg(test)]
@@ -179,12 +164,6 @@ mod tests {
             assert_line!(*line, candidate_line);
         }
 
-    }
-
-    #[test]
-    fn accepts_breaks() {
-        let parsed_host = parse_candidate("candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host\n").unwrap();
-        println!("{:#?}", parsed_host);
     }
 
     #[test]

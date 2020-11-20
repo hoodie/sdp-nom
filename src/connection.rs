@@ -33,10 +33,9 @@ pub(crate) fn connection_line(input: &str) -> IResult<&str, Connection> {
                 tuple((
                     wsf(read_ipver), // ip_ver
                     read_addr,       // addr
-                    opt(tag("/")),
-                    opt(read_number),
+                    opt(preceded(tag("/"), read_number)),
                 )),
-                |(ip_ver, addr, _, mask)| (Connection { ip_ver, addr, mask }),
+                |(ip_ver, addr, mask)| (Connection { ip_ver, addr, mask }),
             ),
         ),
     )(input)
