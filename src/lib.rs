@@ -23,6 +23,7 @@ use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 pub mod attributes;
 pub mod candidate;
+pub mod codec;
 pub mod connection;
 pub mod ice;
 pub mod lines;
@@ -81,9 +82,13 @@ pub enum SdpLine<'a> {
     Direction(Direction),
     Rtp(Rtp<'a>),
     Rtcp(Rtcp),
+    RtpMap(codec::RtpMap<'a>),
     Fmtp(Fmtp<'a>),
-    RtcpFb(RtcpFb),
+    RtcpFb(attributes::rtcpfb::RtcpFb<'a>),
+    RtcpMux(attributes::RtcpMux),
     Control(Control<'a>),
+    SetupRole(attributes::dtls_parameters::SetupRole),
+    Extmap(attributes::extmap::ExtmapValue<'a>),
     BundleOnly,
     EoC,
     // Aline(Vec<&'a str>), // catch all, don't use
@@ -107,16 +112,20 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
             map(msid_line, SdpLine::Msid),
             map(media_line, SdpLine::Media),
             map(ssrc_line, SdpLine::Ssrc),
+            map(codec::rtpmap_line, SdpLine::RtpMap),
             map(fingerprint_line, SdpLine::Fingerprint),
             map(direction_line, SdpLine::Direction),
             map(description_line, SdpLine::Description),
+            map(extmap::extmap_line, SdpLine::Extmap),
+            map(dtls_parameters::setup_role_line, SdpLine::SetupRole),
         )),
         alt((
             map(rtp_attribute_line, SdpLine::Rtp),
             map(rtcp_attribute_line, SdpLine::Rtcp),
             map(fmtp_attribute_line, SdpLine::Fmtp),
             map(control_attribute_line, SdpLine::Control),
-            map(rtcpfb_attribute_line, SdpLine::RtcpFb),
+            map(attributes::rtcpfb::rtcpfb_attribute_line, SdpLine::RtcpFb),
+            map(attributes::read_rtp_mux, SdpLine::RtcpMux),
             map(tag("a=bundle-only"), |_| SdpLine::BundleOnly),
             map(tag("a=end-of-candidates"), |_| SdpLine::EoC),
             // map(a_line, SdpLine::Aline),

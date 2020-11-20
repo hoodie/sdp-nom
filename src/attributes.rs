@@ -4,10 +4,14 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_till1},
-    combinator::{eof, map, opt},
+    bytes::complete::{is_not, tag, take_till1},
+    combinator::{map, opt},
     sequence::{preceded, separated_pair, tuple},
 };
+
+pub mod dtls_parameters;
+pub mod extmap;
+pub mod rtcpfb;
 
 use std::net::IpAddr;
 
@@ -66,6 +70,7 @@ pub enum AttributeKind<'a> {
     Other(&'a str),
 }
 
+#[allow(dead_code)]
 fn attribute_kind(input: &str) -> IResult<&str, AttributeKind> {
     alt((
         map(tag("setup"), |_| AttributeKind::Setup),
@@ -73,11 +78,12 @@ fn attribute_kind(input: &str) -> IResult<&str, AttributeKind> {
     ))(input)
 }
 
+#[allow(dead_code)]
 pub(crate) fn generic_attribute_line(input: &str) -> IResult<&str, Attribute> {
     line(
         "a=",
         map(
-            separated_pair(attribute_kind, tag(":"), read_string),
+            separated_pair(attribute_kind, tag(":"), is_not("\n")),
             |(kind, value)| Attribute { kind, value },
         ),
     )(input)
@@ -91,6 +97,14 @@ fn test_generic_attribute_line() {
         Attribute {
             kind: AttributeKind::Other("foo"),
             value: "bar"
+        }
+    );
+    assert_line!(
+        generic_attribute_line,
+        "a=fmtp:111 minptime=10; useinbandfec=1",
+        Attribute {
+            kind: AttributeKind::Other("fmtp"),
+            value: "111 minptime=10; useinbandfec=1"
         }
     );
     assert_line!(
@@ -185,7 +199,7 @@ pub(crate) fn fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
         map(
             tuple((
                 read_number,      // payload
-                wsf(read_string), // config
+                wsf(is_not("\n")), // config
             )),
             |(payload, config)| (Fmtp { payload, config }),
         ),
@@ -201,7 +215,11 @@ fn test_fmtp_attribute_line() {
             payload: 108,
             config: "profile-level-id=24;object=23;bitrate=64000",
         }
-    )
+    );
+    assert_line!(
+        fmtp_attribute_line,
+        "a=fmtp:111 minptime=10; useinbandfec=1"
+    );
 }
 
 // ///////////////////////
@@ -260,72 +278,6 @@ fn test_rtcp_attribute_line() {
 }
 
 // ///////////////////////
-
-/// RtcpFeedback
-///
-/// https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1
-/// eg `a=rtcp-fb:98 trr-int 100`
-#[derive(Debug, PartialEq)]
-pub struct RtcpFb {
-    payload: u32,
-    r#type: RtcpFbType,
-    subtype: Option<RtcpFbSubType>,
-    value: Option<u32>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RtcpFbType {
-    Ack,
-    Nack,
-    TrrInt,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RtcpFbSubType {
-    Rpsi,
-    App,
-    Pli,
-    Sli,
-}
-
-pub(crate) fn rtcpfb_attribute_line(input: &str) -> IResult<&str, RtcpFb> {
-    preceded(
-        tag("a=rtcp-fb:"),
-        map(
-            tuple((
-                read_number, // payload
-                //r#type:
-                wsf(alt((
-                    map(tag("ack"), |_| RtcpFbType::Ack),
-                    map(tag("nack"), |_| RtcpFbType::Nack), // | tag!("trr-int") => { |_| RtcpFbType::TrrInt }
-                    map(tag("trr-int"), |_| RtcpFbType::TrrInt),
-                ))),
-                // subtype:
-                opt(wsf(alt((
-                    map(tag("rpsi"), |_| RtcpFbSubType::Rpsi),
-                    map(tag("app"), |_| RtcpFbSubType::App),
-                    map(tag("pli"), |_| RtcpFbSubType::Pli),
-                    map(tag("sli"), |_| RtcpFbSubType::Sli),
-                )))),
-                opt(read_number), // value
-            )),
-            |(payload, r#type, subtype, value)| RtcpFb {
-                payload,
-                r#type,
-                subtype,
-                value,
-            },
-        ),
-    )(input)
-}
-
-#[test]
-fn test_rtcpfb_line() {
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 trr-int 100");
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli");
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli 5432");
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 nack rpsi");
-}
 
 // ///////////////////////
 
@@ -441,4 +393,15 @@ fn test_direction_line() {
 
     assert_line!(read_direction, "inactive", Direction::Inactive);
     assert_line!(direction_line, "a=inactive", Direction::Inactive);
+}
+
+#[derive(Debug, PartialEq)]
+pub struct RtcpMux;
+
+pub(crate) fn read_rtp_mux(input: &str) -> IResult<&str, RtcpMux> {
+    a_line(map(tag("rtcp-mux"), |_| RtcpMux))(input)
+}
+#[test]
+fn test_read_rtp_mux() {
+    assert_line!(read_rtp_mux, "a=rtcp-mux", RtcpMux);
 }
