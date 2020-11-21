@@ -137,3 +137,57 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
 fn init_color_backtrace() {
     color_backtrace::install();
 }
+
+#[derive(Debug, Default)]
+pub struct MediaSection<'a> {
+    pub lines: Vec<SdpLine<'a>>,
+}
+#[derive(Debug, Default)]
+pub struct EagerSession<'a> {
+    pub lines: Vec<SdpLine<'a>>,
+    pub media: Vec<MediaSection<'a>>,
+}
+
+#[derive(Debug, Default)]
+struct ParserState<'a> {
+    current_msecion: Option<MediaSection<'a>>,
+    lines: Vec<SdpLine<'a>>,
+    media: Vec<MediaSection<'a>>,
+}
+
+impl<'a> EagerSession<'a> {
+    #[allow(clippy::should_implement_trait)]
+    pub fn from_str(sdp: &'a str) -> EagerSession<'a> {
+        let mut state = {
+            sdp.lines().fold(ParserState::default(), |mut state, line| {
+                match sdp_line(&line) {
+                    Ok((_, parsed)) => {
+                        if matches!(parsed, SdpLine::Media(_)) {
+                            if let Some(m) = state.current_msecion.take() {
+                                state.media.push(m);
+                            }
+                            let mut new_m_section = MediaSection::default();
+                            new_m_section.lines.push(parsed);
+                            state.current_msecion = Some(new_m_section);
+                        } else if let Some(ref mut msection) = state.current_msecion {
+                            msection.lines.push(parsed);
+                        } else {
+                            state.lines.push(parsed);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("{}", e);
+                    }
+                }
+                state
+            })
+        };
+        if let Some(m) = state.current_msecion.take() {
+            state.media.push(m);
+        }
+        EagerSession {
+            media: state.media,
+            lines: state.lines,
+        }
+    }
+}
