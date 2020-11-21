@@ -1,20 +1,20 @@
 use nom::*;
-use nom::types::CompleteStr;
+use nom::{
+    bytes::complete::tag,
+    combinator::map,
+    sequence::{preceded, tuple},
+};
 
 use std::net::IpAddr;
 
-use super::parsers::{
-    read_addr,
-    read_ipver,
-    read_big_number,
-    read_number,
-    read_string,
-    IpVer,
+#[cfg(test)]
+use crate::assert_line;
+use crate::parsers::{
+    line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
 };
 
-
 /// Origin
-/// 
+///
 /// o=- 20518 0 IN IP4 203.0.113.1
 #[derive(Debug)]
 pub struct Origin<'a> {
@@ -23,44 +23,33 @@ pub struct Origin<'a> {
     pub session_version: u32,
     pub net_type: &'a str,
     pub ip_ver: IpVer,
-    pub addr: IpAddr
+    pub addr: IpAddr,
 }
 
-named!{
-    pub(crate) raw_origin<CompleteStr, Origin>,
-    ws!(
-        do_parse!(
-            user_name: read_string >>
-            session_id: read_big_number >>
-            session_version: read_number >>
-            net_type: read_string >>
-            ip_ver: read_ipver >>
-            addr: read_addr >>
-
-            (Origin {
-                user_name: &user_name,
-                session_id,
-                session_version,
-                net_type: &net_type,
-                ip_ver,
-                addr
-            })
-        )
-    )
+pub fn origin(input: &str) -> IResult<&str, Origin> {
+    map(
+        tuple((
+            wsf(read_string),     // user_name
+            wsf(read_big_number), // session_id
+            wsf(read_number),     // session_version
+            wsf(read_string),     // net_type
+            wsf(read_ipver),      // ip_ver
+            wsf(read_addr),       // addr
+        )),
+        |(user_name, session_id, session_version, net_type, ip_ver, addr)| Origin {
+            user_name,
+            session_id,
+            session_version,
+            net_type,
+            ip_ver,
+            addr,
+        },
+    )(input)
 }
 
-named!{
-    pub(crate) raw_origin_line<CompleteStr, Origin>,
-    ws!(
-        do_parse!(
-            tag!("o=") >>
-            origin: raw_origin >>
-
-            (origin)
-        )
-    )
+pub fn origin_line(input: &str) -> IResult<&str, Origin> {
+    line("o=", origin)(input)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -68,7 +57,7 @@ mod tests {
 
     #[test]
     fn parses_candidates() {
-        println!("{:?}", raw_origin_line("o=test 4962303333179871722 1 IN IP4 0.0.0.0".into()).unwrap());
-        println!("{:?}", raw_origin_line("o=- 4962303333179871722 1 IN IP4 0.0.0.0".into()).unwrap());
+        assert_line!(origin_line, "o=test 4962303333179871722 1 IN IP4 0.0.0.0");
+        assert_line!(origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
     }
 }

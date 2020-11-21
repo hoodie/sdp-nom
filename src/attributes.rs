@@ -1,11 +1,39 @@
+///
+
+/// [6. SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6)
 use nom::*;
-use nom::types::CompleteStr;
+use nom::{
+    branch::alt,
+    bytes::complete::{is_not, tag, take_till1},
+    combinator::{map, opt},
+    sequence::{preceded, separated_pair, tuple},
+};
 
-use std::net::IpAddr;
+pub mod candidate;
+pub mod codec;
+pub mod dtls_parameters;
+pub mod extmap;
+pub mod ice;
+pub mod rtcp;
+pub mod ssrc;
 
+pub use candidate::*;
+pub use ice::*;
+pub use ssrc::*;
+
+#[cfg(test)]
+use crate::assert_line;
 use crate::parsers::*;
 
-pub enum Attribute {
+#[derive(Debug, PartialEq)]
+pub struct Attribute<'a> {
+    kind: AttributeKind<'a>,
+    value: &'a str,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, PartialEq)]
+enum AttributeKind<'a> {
     Rtp,
     Fmtp,
     Control,
@@ -46,11 +74,90 @@ pub enum Attribute {
     Label,
     SctpPort,
     MaxMessageSize,
-    Invalid,
+    Other(&'a str),
 }
 
+#[allow(dead_code)]
+fn attribute_kind(input: &str) -> IResult<&str, AttributeKind> {
+    alt((
+        map(tag("setup"), |_| AttributeKind::Setup),
+        map(take_till1(|i| i == ':'), AttributeKind::Other),
+    ))(input)
+}
 
+#[allow(dead_code)]
+pub fn generic_attribute_line(input: &str) -> IResult<&str, Attribute> {
+    a_line(map(
+        separated_pair(attribute_kind, tag(":"), is_not("\n")),
+        |(kind, value)| Attribute { kind, value },
+    ))(input)
+}
 
+#[test]
+fn test_generic_attribute_line() {
+    assert_line!(
+        generic_attribute_line,
+        "a=foo:bar",
+        Attribute {
+            kind: AttributeKind::Other("foo"),
+            value: "bar"
+        }
+    );
+    assert_line!(
+        generic_attribute_line,
+        "a=fmtp:111 minptime=10; useinbandfec=1",
+        Attribute {
+            kind: AttributeKind::Other("fmtp"),
+            value: "111 minptime=10; useinbandfec=1"
+        }
+    );
+    assert_line!(
+        generic_attribute_line,
+        "a=setup:actpass",
+        Attribute {
+            kind: AttributeKind::Setup,
+            value: "actpass"
+        }
+    );
+}
+
+// ///////////////////////
+
+/// `a=group:BUNDLE 0 1`
+#[derive(Debug, PartialEq)]
+pub struct BundleGroup<'a>(pub Vec<&'a str>);
+
+pub fn bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
+    attribute("group", bundle_group)(input)
+}
+
+fn bundle_group(input: &str) -> IResult<&str, BundleGroup> {
+    preceded(
+        tag("BUNDLE"),
+        map(wsf(space_separated_strings), BundleGroup),
+    )(input)
+}
+
+#[test]
+fn test_bundle_group_line() {
+    assert_line!(
+        bundle_group_line,
+        "a=group:BUNDLE 0 1",
+        BundleGroup(vec!["0", "1"])
+    );
+    assert_line!(
+        bundle_group_line,
+        "a=group:BUNDLE video",
+        BundleGroup(vec!["video"])
+    );
+    assert_line!(
+        bundle_group_line,
+        "a=group:BUNDLE sdparta_0 sdparta_1 sdparta_2",
+        BundleGroup(vec!["sdparta_0", "sdparta_1", "sdparta_2"])
+    );
+}
+
+// ///////////////////////
 
 // a=rtpmap:110 opus/48000/2
 #[derive(Debug, PartialEq)]
@@ -61,221 +168,191 @@ pub struct Rtp<'a> {
     encoding: u32,
 }
 
-named!{
-    raw_rtp_attribute_line<CompleteStr, Rtp>,
-    do_parse!(
-        tag!("a=") >> tag!("rtpmap:") >> 
-        payload: read_number >> tag!(" ") >> 
-        codec: read_non_slash_string >> tag!("/") >> 
-        rate: read_number >> tag!("/") >> 
-        encoding: read_number >> 
-        (Rtp { payload, codec, rate, encoding })
-    )
+pub fn rtp_attribute_line(input: &str) -> IResult<&str, Rtp> {
+    attribute("rtpmap", rtp_attribute)(input)
+}
+
+fn rtp_attribute(input: &str) -> IResult<&str, Rtp> {
+    map(
+        tuple((
+            wsf(read_number),                // payload
+            wsf(read_non_slash_string),      // codec
+            preceded(tag("/"), read_number), // rate
+            preceded(tag("/"), read_number), // encoding
+        )),
+        |(payload, codec, rate, encoding)| Rtp {
+            payload,
+            codec,
+            rate,
+            encoding,
+        },
+    )(input)
 }
 
 #[test]
-fn test_raw_rtp_attribute_line() {
-    println!("{:?}", raw_rtp_attribute_line("a=rtpmap:110 opus/48000/2".into()).unwrap().1);
+fn test_rtp_attribute_line() {
+    assert_line!("a=rtpmap:110 opus/48000/2", rtp_attribute_line);
 }
 
-
-
-
-
-// a=fmtp:108 profile-level-id=24;object=23;bitrate=64000
+/// https://tools.ietf.org/html/rfc4588#section-8.1
+/// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
 #[derive(Debug, PartialEq)]
 pub struct Fmtp<'a> {
     payload: u32,
     config: &'a str,
 }
 
-named!{
-    raw_fmtp_attribute_line<CompleteStr, Fmtp>,
-    ws!(
-        do_parse!(
-            tag!("a=") >> tag!("fmtp:") >> 
-            payload: read_number >>
-            config: read_string >>
-            (Fmtp { payload, config, })
-        )
-    )
+pub fn fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
+    attribute("fmtp", fmtp_attribute)(input)
+}
+
+fn fmtp_attribute(input: &str) -> IResult<&str, Fmtp> {
+    map(
+        tuple((
+            read_number,       // payload
+            wsf(is_not("\n")), // config
+        )),
+        |(payload, config)| (Fmtp { payload, config }),
+    )(input)
 }
 
 #[test]
-fn test_raw_fmtp_attribute_line() {
-    println!("{:?}", raw_fmtp_attribute_line("a=fmtp:108 profile-level-id=24;object=23;bitrate=64000".into()).unwrap().1);
+fn test_fmtp_attribute_line() {
+    assert_line!(
+        fmtp_attribute_line,
+        "a=fmtp:108 profile-level-id=24;object=23;bitrate=64000",
+        Fmtp {
+            payload: 108,
+            config: "profile-level-id=24;object=23;bitrate=64000",
+        }
+    );
+    assert_line!(
+        fmtp_attribute_line,
+        "a=fmtp:111 minptime=10; useinbandfec=1"
+    );
 }
 
+// ///////////////////////
 
-
-
-
-
-
-// a=control:streamid=0
+/// `a=control:streamid=0`
 #[derive(Debug, PartialEq)]
-pub struct Control<'a> (&'a str);
+pub struct Control<'a>(&'a str);
 
-named!{
-    raw_control_attribute_line<CompleteStr, Control>,
-    do_parse!(tag!("a=") >> tag!("control:") >> control: read_string >> ( Control(control) ))
+pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
+    attribute("control", control_attribute)(input)
+}
+
+fn control_attribute(input: &str) -> IResult<&str, Control> {
+    map(read_string, Control)(input)
 }
 
 #[test]
-fn test_raw_control_attribute_line() {
-    println!("{:?}", raw_control_attribute_line("a=control:streamid=0".into()).unwrap().1);
+fn test_control_attribute_line() {
+    assert_line!(control_attribute_line, "a=control:streamid=0");
 }
 
+// ///////////////////////
 
-
-
-
-
-/// Rtcp
-/// 
-/// https://tools.ietf.org/html/rfc3605
-/// `a=rtcp:65179 IN IP4 10.23.34.567`
+/// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
 #[derive(Debug, PartialEq)]
-pub struct Rtcp {
-    port: u32,
-    net_type: NetType,
-    ip_ver: IpVer,
-    addr: IpAddr,
-}
-
-named!{
-    raw_rtcp_attribute_line<CompleteStr, Rtcp>,
-    ws!(
-        do_parse!(
-            tag!("a=") >> tag!("rtcp:") >>
-            port: read_number >>
-            net_type: read_net_type >>
-            ip_ver: read_ipver >>
-            addr: read_addr >>
-            ( Rtcp { port, net_type, ip_ver, addr } )
-        )
-    )
-}
-
-#[test]
-fn test_raw_rtcp_attribute_line() {
-    println!("{:?}", raw_rtcp_attribute_line("a=rtcp:65179 IN IP4 10.23.34.255".into()).unwrap().1);
-    println!("{:?}", raw_rtcp_attribute_line("a=rtcp:65179 IN IP4 ::1".into()).unwrap().1);
-}
-
-
-
-
-
-
-/// RtcpFeedback
-/// 
-/// https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1
-/// eg `a=rtcp-fb:98 trr-int 100`
-#[derive(Debug, PartialEq)]
-pub struct RtcpFb {
-    payload: u32,
-    r#type: RtcpFbType,
-    subtype: Option<RtcpFbSubType>,
-    value: Option<u32>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RtcpFbType {
-    Ack,
-    Nack,
-    TrrInt
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RtcpFbSubType {
-    Rpsi,
-    App,
-    Pli,
-    Sli,
-}
-
-named!{
-    raw_rtcpfb_attribute_line<CompleteStr, RtcpFb>,
-    alt!(
-    ws!(
-        do_parse!(
-            tag!("a=") >> tag!("rtcp-fb:") >>
-            payload: read_number >>
-            r#type: alt!(
-                tag!("ack")  => { |_| RtcpFbType::Ack} |
-                tag!("nack") => { |_| RtcpFbType::Nack}
-                // | tag!("trr-int") => { |_| RtcpFbType::TrrInt }
-            ) >>
-            subtype: opt!(alt!(
-                tag!("rpsi")  => { |_| RtcpFbSubType::Rpsi} |
-                tag!("app") => { |_| RtcpFbSubType::App} |
-                tag!("pli") => { |_| RtcpFbSubType::Pli} |
-                tag!("sli") => { |_| RtcpFbSubType::Sli}
-            )) >>
-            ( RtcpFb {
-                payload, r#type, subtype, value: None
-            } )
-        )
-    ) | ws!(
-        do_parse!(
-            tag!("a=") >> tag!("rtcp-fb:") >>
-            payload: read_number >>
-            tag!("trr-int") >>
-            value: read_number >>
-
-            ( RtcpFb {
-                payload, r#type: RtcpFbType::TrrInt,
-                subtype: None,
-                value: Some(value),
-            } )
-        )
-    )
-    )
-}
-
-#[test]
-fn test_raw_rtcpfb_line() {
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 trr-int 100".into()).unwrap().1);
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 ack sli".into()).unwrap().1);
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 ack sli 5432".into()).unwrap().1);
-    println!("{:?}", raw_rtcpfb_attribute_line("a=rtcp-fb:98 nack rpsi".into()).unwrap().1);
-}
-
-
-
-
-
-
-
-// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
-#[derive(Debug, PartialEq)]
-pub struct Ext<'a> {
+pub struct Extmap<'a> {
     value: u32,
     direction: Option<Direction>,
     uri: Option<&'a str>,
     extended: Option<&'a str>,
 }
 
-named!{
-    pub raw_ext_attribute_line<CompleteStr, Ext>,
-    ws!(
-        do_parse!(
-            tag!("a=") >> tag!("extmap:") >>
-            value: read_number >>
-            direction: opt!(map!(tuple!(tag!("/"), read_direction), |(_, d)| d) ) >>
-            uri: opt!(read_string) >>
-            extended: opt!(read_string) >>
-
-            ( Ext{ value, direction, uri, extended, } )
-        )
-    )
+/// Direction
+///
+/// `a=sendrecv`
+/// `a=sendonly`
+/// `a=recvonly`
+/// `a=inactive`
+#[derive(Debug, PartialEq)]
+pub enum Direction {
+    SendOnly,
+    SendRecv,
+    RecvOnly,
+    Inactive,
 }
 
+pub fn read_direction(input: &str) -> IResult<&str, Direction> {
+    alt((
+        map(tag("sendrecv"), |_| Direction::SendRecv),
+        map(tag("sendonly"), |_| Direction::SendOnly),
+        map(tag("recvonly"), |_| Direction::RecvOnly),
+        map(tag("inactive"), |_| Direction::Inactive),
+    ))(input)
+}
+
+/// `a=sendrecv`
+pub fn direction_line(input: &str) -> IResult<&str, Direction> {
+    a_line(wsf(read_direction))(input)
+}
+#[test]
+fn test_direction_line() {
+    assert_line!(read_direction, "sendrecv", Direction::SendRecv);
+    assert_line!(direction_line, "a=sendrecv", Direction::SendRecv);
+
+    assert_line!(read_direction, "sendonly", Direction::SendOnly);
+    assert_line!(direction_line, "a=sendonly", Direction::SendOnly);
+
+    assert_line!(read_direction, "recvonly", Direction::RecvOnly);
+    assert_line!(direction_line, "a=recvonly", Direction::RecvOnly);
+
+    assert_line!(read_direction, "inactive", Direction::Inactive);
+    assert_line!(direction_line, "a=inactive", Direction::Inactive);
+}
+
+#[derive(Debug, PartialEq)]
+pub enum RtcpOption {
+    RtcpMux,
+    RtcpMuxOnly,
+    RtcpRsize,
+}
+
+pub fn rtp_option(input: &str) -> IResult<&str, RtcpOption> {
+    alt((
+        map(tag("rtcp-rsize"), |_| RtcpOption::RtcpRsize),
+        map(tag("rtcp-mux-only"), |_| RtcpOption::RtcpMuxOnly),
+        map(tag("rtcp-mux"), |_| RtcpOption::RtcpMux),
+    ))(input)
+}
+pub fn rtp_option_line(input: &str) -> IResult<&str, RtcpOption> {
+    a_line(rtp_option)(input)
+}
+#[test]
+fn test_read_rtp_option() {
+    assert_line!(rtp_option_line, "a=rtcp-mux", RtcpOption::RtcpMux);
+    assert_line!(rtp_option_line, "a=rtcp-mux-only", RtcpOption::RtcpMuxOnly);
+    assert_line!(rtp_option_line, "a=rtcp-rsize", RtcpOption::RtcpRsize);
+}
+
+#[derive(Debug)]
+pub struct Fingerprint<'a> {
+    r#type: &'a str,
+    hash: &'a str,
+}
+
+/// fingerprint
+pub fn fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
+    attribute("fingerprint", fingerprint)(input)
+}
+
+/// fingerprint
+pub fn fingerprint(input: &str) -> IResult<&str, Fingerprint> {
+    map(
+        tuple((
+            wsf(read_string), // type
+            wsf(read_string), // hash
+        )),
+        |(r#type, hash)| Fingerprint { r#type, hash },
+    )(input)
+}
 
 #[test]
-fn test_raw_ext_line() {
-    println!("{:?}", raw_ext_attribute_line("a=extmap:2 urn:ietf:params:rtp-hdrext:toffset".into()).unwrap().1);
-    println!("{:?}", raw_ext_attribute_line("a=extmap:1 http://example.com/082005/ext.htm#ttime".into()).unwrap().1);
-    println!("{:?}", raw_ext_attribute_line("a=extmap:2/sendrecv http://example.com/082005/ext.htm#xmeta short".into()).unwrap().1);
+fn test_fingerprint_line() {
+    println!("{:?}",
+        fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
+    );
 }
