@@ -10,11 +10,11 @@ use nom::{
 };
 
 pub mod candidate;
-pub mod codec;
-pub mod dtls_parameters;
+pub mod dtls;
 pub mod extmap;
 pub mod ice;
 pub mod rtcp;
+pub mod rtpmap;
 pub mod ssrc;
 
 pub use candidate::*;
