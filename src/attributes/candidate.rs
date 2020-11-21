@@ -2,12 +2,12 @@
 //!
 //! read [RFC5245 Section 15.1](https://tools.ietf.org/html/rfc5245#section-15.1)
 
-use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
     combinator::{map, opt},
     sequence::{preceded, tuple},
+    IResult,
 };
 
 use std::net::IpAddr;

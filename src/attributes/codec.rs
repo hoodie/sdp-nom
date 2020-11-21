@@ -1,10 +1,10 @@
-use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::multispace1,
     combinator::{map, opt},
     sequence::{preceded, tuple},
+    IResult,
 };
 
 #[cfg(test)]

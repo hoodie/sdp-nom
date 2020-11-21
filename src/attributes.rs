@@ -9,9 +9,17 @@ use nom::{
     sequence::{preceded, separated_pair, tuple},
 };
 
+pub mod candidate;
+pub mod codec;
 pub mod dtls_parameters;
 pub mod extmap;
+pub mod ice;
 pub mod rtcp;
+pub mod ssrc;
+
+pub use candidate::*;
+pub use ice::*;
+pub use ssrc::*;
 
 #[cfg(test)]
 use crate::assert_line;
@@ -318,4 +326,33 @@ fn test_read_rtp_option() {
     assert_line!(rtp_option_line, "a=rtcp-mux", RtcpOption::RtcpMux);
     assert_line!(rtp_option_line, "a=rtcp-mux-only", RtcpOption::RtcpMuxOnly);
     assert_line!(rtp_option_line, "a=rtcp-rsize", RtcpOption::RtcpRsize);
+}
+
+#[derive(Debug)]
+pub struct Fingerprint<'a> {
+    r#type: &'a str,
+    hash: &'a str,
+}
+
+/// fingerprint
+pub fn fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
+    attribute("fingerprint", fingerprint)(input)
+}
+
+/// fingerprint
+pub fn fingerprint(input: &str) -> IResult<&str, Fingerprint> {
+    map(
+        tuple((
+            wsf(read_string), // type
+            wsf(read_string), // hash
+        )),
+        |(r#type, hash)| Fingerprint { r#type, hash },
+    )(input)
+}
+
+#[test]
+fn test_fingerprint_line() {
+    println!("{:?}",
+        fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
+    );
 }

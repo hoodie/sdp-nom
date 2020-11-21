@@ -201,32 +201,3 @@ fn test_bandwidth_line() {
         BandWidth { r#type: BandWidthType::RR, limit: 1024 }
     );
 }
-
-#[derive(Debug)]
-pub struct Fingerprint<'a> {
-    r#type: &'a str,
-    hash: &'a str,
-}
-
-/// fingerprint
-pub fn fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
-    attribute("fingerprint", fingerprint)(input)
-}
-
-/// fingerprint
-pub fn fingerprint(input: &str) -> IResult<&str, Fingerprint> {
-    map(
-        tuple((
-            wsf(read_string), // type
-            wsf(read_string), // hash
-        )),
-        |(r#type, hash)| Fingerprint { r#type, hash },
-    )(input)
-}
-
-#[test]
-fn test_fingerprint_line() {
-    println!("{:?}",
-        fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
-    );
-}
