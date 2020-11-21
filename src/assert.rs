@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 
-pub(crate) fn print_result<T: Debug>(input: &str, rest: &str, result: &T) {
+pub fn print_result<T: Debug>(input: &str, rest: &str, result: &T) {
     println!(
         "INPUT: {:?}\nLEFT:  {:?}\nRESULT: {:#?}",
         input, rest, result
     );
 }
 
-pub(crate) fn print_leftover(input: &str, rest: &str) {
+pub fn print_leftover(input: &str, rest: &str) {
     println!("INPUT: {:?}\nLEFT:  {:?}", input, rest);
 }
 

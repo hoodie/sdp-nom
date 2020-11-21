@@ -12,7 +12,7 @@ use crate::assert_line;
 use crate::parsers::*;
 
 /// "v=0"
-pub(crate) fn version_line(input: &str) -> IResult<&str, u32> {
+pub fn version_line(input: &str) -> IResult<&str, u32> {
     preceded(tag("v="), wsf(read_number))(input)
 }
 
@@ -29,7 +29,7 @@ fn test_version_line() {
 pub struct SessionName<'a>(pub &'a str);
 
 /// "s=somename"
-pub(crate) fn name_line(input: &str) -> IResult<&str, SessionName> {
+pub fn name_line(input: &str) -> IResult<&str, SessionName> {
     preceded(tag("s="), map(wsf(read_string0), SessionName))(input)
 }
 
@@ -48,7 +48,7 @@ fn test_name_line() {
 pub struct SessionInformation<'a>(pub &'a str);
 
 /// SessionInformation "i=description"
-pub(crate) fn description_line(input: &str) -> IResult<&str, SessionInformation> {
+pub fn description_line(input: &str) -> IResult<&str, SessionInformation> {
     line("i=", map(read_string, SessionInformation))(input)
 }
 
@@ -68,7 +68,7 @@ fn test_description_line() {
 pub struct Uri<'a>(pub &'a str);
 
 /// "i=description"
-pub(crate) fn uri_line(input: &str) -> IResult<&str, Uri> {
+pub fn uri_line(input: &str) -> IResult<&str, Uri> {
     line("u=", map(read_string, Uri))(input)
 }
 
@@ -88,7 +88,7 @@ fn test_uri_line() {
 pub struct EmailAddress<'a>(pub &'a str);
 
 /// "i=description"
-pub(crate) fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
+pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
     line("e=", map(read_string, EmailAddress))(input)
 }
 
@@ -108,7 +108,7 @@ fn test_email_address_line() {
 pub struct PhoneNumber<'a>(pub &'a str);
 
 /// "i=description"
-pub(crate) fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
+pub fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
     line("p=", map(take_while(|_| true), PhoneNumber))(input)
 }
 
@@ -131,7 +131,7 @@ pub struct Timing {
 }
 
 /// "t=0 0"
-pub(crate) fn timing_line(input: &str) -> IResult<&str, Timing> {
+pub fn timing_line(input: &str) -> IResult<&str, Timing> {
     line(
         "t=",
         wsf(map(
@@ -159,7 +159,7 @@ pub enum BandWidthType {
     RS,
 }
 // TIAS|AS|CT|RR|RS
-pub(crate) fn bandwidth_type(input: &str) -> IResult<&str, BandWidthType> {
+pub fn bandwidth_type(input: &str) -> IResult<&str, BandWidthType> {
     alt((
         map(tag("TIAS"), |_| BandWidthType::TIAS),
         map(tag("AS"), |_| BandWidthType::AS),
@@ -177,13 +177,15 @@ pub struct BandWidth {
 }
 
 /// "b=AS:1024"
-pub(crate) fn bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
-    preceded(
-        tag("b="),
-        map(
-            separated_pair(bandwidth_type, tag(":"), read_number),
-            |(r#type, limit)| (BandWidth { r#type, limit }),
-        ),
+pub fn bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
+    line("b=", bandwidth)(input)
+}
+
+/// "AS:1024"
+pub fn bandwidth(input: &str) -> IResult<&str, BandWidth> {
+    map(
+        separated_pair(bandwidth_type, tag(":"), read_number),
+        |(r#type, limit)| (BandWidth { r#type, limit }),
     )(input)
 }
 
@@ -207,16 +209,18 @@ pub struct Fingerprint<'a> {
 }
 
 /// fingerprint
-pub(crate) fn fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
-    preceded(
-        tag("a=fingerprint:"),
-        map(
-            tuple((
-                wsf(read_string), // type
-                wsf(read_string), // hash
-            )),
-            |(r#type, hash)| Fingerprint { r#type, hash },
-        ),
+pub fn fingerprint_line(input: &str) -> IResult<&str, Fingerprint> {
+    attribute("fingerprint", fingerprint)(input)
+}
+
+/// fingerprint
+pub fn fingerprint(input: &str) -> IResult<&str, Fingerprint> {
+    map(
+        tuple((
+            wsf(read_string), // type
+            wsf(read_string), // hash
+        )),
+        |(r#type, hash)| Fingerprint { r#type, hash },
     )(input)
 }
 

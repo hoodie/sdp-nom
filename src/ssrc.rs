@@ -19,9 +19,9 @@ pub struct Ssrc<'a> {
 }
 
 /// ssrc
-pub(crate) fn ssrc_line(input: &str) -> IResult<&str, Ssrc> {
-    preceded(
-        tag("a=ssrc:"),
+pub fn ssrc_line(input: &str) -> IResult<&str, Ssrc> {
+    attribute(
+        "ssrc",
         map(
             tuple((
                 wsf(read_big_number), // id
@@ -76,21 +76,22 @@ pub struct SsrcGroup {
     ids: Vec<u32>,
 }
 
-pub(crate) fn ssrc_group_line(input: &str) -> IResult<&str, SsrcGroup> {
-    a_line(preceded(
-        tag("ssrc-group:"),
-        map(
-            tuple((
-                alt((
-                    // semantic
-                    map(tag("FID"), |_| SsrcSemantic::FID),
-                    map(tag("FEC"), |_| SsrcSemantic::FEC),
-                )),
-                wsf(read_as_numbers), // ids
+pub fn ssrc_group_line(input: &str) -> IResult<&str, SsrcGroup> {
+    attribute("ssrc-group", ssrc_group)(input)
+}
+
+pub fn ssrc_group(input: &str) -> IResult<&str, SsrcGroup> {
+    map(
+        tuple((
+            alt((
+                // semantic
+                map(tag("FID"), |_| SsrcSemantic::FID),
+                map(tag("FEC"), |_| SsrcSemantic::FEC),
             )),
-            |(semantic, ids)| SsrcGroup { semantic, ids },
-        ),
-    ))(input)
+            wsf(read_as_numbers), // ids
+        )),
+        |(semantic, ids)| SsrcGroup { semantic, ids },
+    )(input)
 }
 
 #[test]

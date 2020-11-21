@@ -17,12 +17,12 @@ pub enum IceParameter<'a> {
     Options(&'a str),
 }
 
-pub(crate) fn ice_parameter_line(input: &str) -> IResult<&str, IceParameter> {
-    a_line(alt((
-        preceded(tag("ice-ufrag:"), map(read_string, IceParameter::Ufrag)),
-        preceded(tag("ice-pwd:"), map(read_string, IceParameter::Pwd)),
-        preceded(tag("ice-options:"), map(read_string, IceParameter::Options)),
-    )))(input)
+pub fn ice_parameter_line(input: &str) -> IResult<&str, IceParameter> {
+    alt((
+        attribute("ice-ufrag", map(read_string, IceParameter::Ufrag)),
+        attribute("ice-pwd", map(read_string, IceParameter::Pwd)),
+        attribute("ice-options", map(read_string, IceParameter::Options)),
+    ))(input)
 }
 
 #[test]

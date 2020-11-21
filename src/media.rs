@@ -19,9 +19,9 @@ pub struct Media<'a> {
     pub payloads: Vec<u32>,
 }
 
-pub(crate) fn media_line(input: &str) -> IResult<&str, Media> {
-    preceded(
-        tag("m="),
+pub fn media_line(input: &str) -> IResult<&str, Media> {
+    line(
+        "m=",
         wsf(map(
             tuple((
                 wsf(read_string),             // type
@@ -56,19 +56,24 @@ fn test_mline() {
 #[derive(Debug)]
 pub struct Mid<'a>(pub &'a str);
 
-pub(crate) fn mid_line(input: &str) -> IResult<&str, Mid> {
-    preceded(tag("a=mid:"), map(read_string, Mid))(input)
+pub fn mid_line(input: &str) -> IResult<&str, Mid> {
+    attribute("mid", mid)(input)
+}
+
+pub fn mid(input: &str) -> IResult<&str, Mid> {
+    map(read_string, Mid)(input)
 }
 
 /// TODO: type this more strictly, if possible without `Vec`
 #[derive(Debug)]
 pub struct MsidSemantic<'a>(pub Vec<&'a str>);
 
-pub(crate) fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
-    preceded(
-        tag("a=msid-semantic:"),
-        wsf(map(space_separated_strings, MsidSemantic)),
-    )(input)
+pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
+    attribute("msid-semantic", msid_semantic)(input)
+}
+
+pub fn msid_semantic(input: &str) -> IResult<&str, MsidSemantic> {
+    wsf(map(space_separated_strings, MsidSemantic))(input)
 }
 
 #[test]
@@ -82,15 +87,18 @@ fn test_msid_semantic_line() {
 #[derive(Debug)]
 pub struct Msid<'a>(pub Vec<&'a str>);
 
-pub(crate) fn msid_line(input: &str) -> IResult<&str, Msid> {
-    preceded(tag("a=msid:"), wsf(map(space_separated_strings, Msid)))(input)
+pub fn msid_line(input: &str) -> IResult<&str, Msid> {
+    attribute("msid", msid)(input)
 }
 
+pub fn msid(input: &str) -> IResult<&str, Msid> {
+    wsf(map(space_separated_strings, Msid))(input)
+}
 
-    #[test]
-    fn test_mid_line() {
-        assert_line!(mid_line, "a=mid:1");
-        assert_line!(mid_line, "a=mid:a1");
-        assert_line!(mid_line, "a=mid:0");
-        assert_line!(mid_line, "a=mid:audio")
-    }
+#[test]
+fn test_mid_line() {
+    assert_line!(mid_line, "a=mid:1");
+    assert_line!(mid_line, "a=mid:a1");
+    assert_line!(mid_line, "a=mid:0");
+    assert_line!(mid_line, "a=mid:audio")
+}

@@ -2,6 +2,7 @@ use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
+    character::complete::multispace1,
     combinator::{map, opt},
     sequence::{preceded, tuple},
 };
@@ -17,12 +18,12 @@ pub enum PTime {
     PTime(u32),
 }
 
-pub(crate) fn read_p_time(input: &str) -> IResult<&str, PTime> {
-    a_line(alt((
-        preceded(tag("ptime:"), map(read_number, PTime::PTime)),
-        preceded(tag("minptime:"), map(read_number, PTime::MinPTime)),
-        preceded(tag("maxptime:"), map(read_number, PTime::MaxPTime)),
-    )))(input)
+pub fn read_p_time(input: &str) -> IResult<&str, PTime> {
+    alt((
+        attribute("ptime", map(read_number, PTime::PTime)),
+        attribute("minptime", map(read_number, PTime::MinPTime)),
+        attribute("maxptime", map(read_number, PTime::MaxPTime)),
+    ))(input)
 }
 
 #[test]
@@ -43,14 +44,14 @@ pub struct RtpMap<'a> {
     encoding: Option<u32>,
 }
 
-pub(crate) fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
-    a_line(preceded(
-        tag("rtpmap:"),
+pub fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
+    attribute(
+        "rtpmap",
         map(
             tuple((
-                read_number,                               // payload_typ
-                preceded(tag(" "), read_non_slash_string), // encoding_name
-                preceded(tag("/"), read_number),           // clock_rate
+                read_number,                                  // payload_typ
+                preceded(multispace1, read_non_slash_string), // encoding_name
+                preceded(tag("/"), read_number),              // clock_rate
                 opt(preceded(
                     tag("/"),
                     read_number, // encoding
@@ -63,7 +64,7 @@ pub(crate) fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
                 encoding,
             },
         ),
-    ))(input)
+    )(input)
 }
 
 #[test]

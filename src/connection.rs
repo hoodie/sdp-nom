@@ -12,7 +12,7 @@ use std::net::Ipv4Addr;
 
 #[cfg(test)]
 use crate::assert_line;
-use crate::parsers::{read_addr, read_ipver, read_number, wsf, IpVer};
+use crate::parsers::{line, read_addr, read_ipver, read_number, wsf, IpVer};
 
 /// Connection "c=IN IP4 10.23.42.137"
 #[derive(Debug, PartialEq)]
@@ -24,9 +24,9 @@ pub struct Connection {
 
 /// Connection "c=IN IP4 10.23.42.137"
 ///
-pub(crate) fn connection_line(input: &str) -> IResult<&str, Connection> {
-    preceded(
-        tag("c="),
+pub fn connection_line(input: &str) -> IResult<&str, Connection> {
+    line(
+        "c=",
         preceded(
             wsf(tag("IN")),
             map(

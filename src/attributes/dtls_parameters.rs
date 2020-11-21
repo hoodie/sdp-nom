@@ -1,11 +1,11 @@
 //! https://tools.ietf.org/html/rfc4572
 
-use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag, take_till1},
     combinator::{map, opt},
     sequence::{preceded, separated_pair, tuple},
+    IResult,
 };
 
 #[cfg(test)]
@@ -19,7 +19,7 @@ pub enum SetupRole {
     ActPass,
 }
 
-fn setup_role(input: &str) -> IResult<&str, SetupRole> {
+fn read_setup_role(input: &str) -> IResult<&str, SetupRole> {
     alt((
         map(tag("active"), |_| SetupRole::Active),
         map(tag("passive"), |_| SetupRole::Passive),
@@ -29,12 +29,12 @@ fn setup_role(input: &str) -> IResult<&str, SetupRole> {
 
 #[test]
 fn test_setup_role() {
-    assert_line!(setup_role, "active", SetupRole::Active);
-    assert_line!(setup_role, "passive", SetupRole::Passive);
+    assert_line!(read_setup_role, "active", SetupRole::Active);
+    assert_line!(read_setup_role, "passive", SetupRole::Passive);
 }
 
-pub(crate) fn setup_role_line(input: &str) -> IResult<&str, SetupRole> {
-    a_line(preceded(tag("setup:"), setup_role))(input)
+pub fn setup_role_line(input: &str) -> IResult<&str, SetupRole> {
+    attribute("setup", read_setup_role)(input)
 }
 #[test]
 fn test_setup_role_line() {

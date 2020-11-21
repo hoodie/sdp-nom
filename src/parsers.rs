@@ -10,25 +10,25 @@ use nom::{
     combinator::{map, map_res, opt},
     error::ParseError,
     multi::many0,
-    sequence::{delimited, preceded, terminated, tuple},
+    sequence::{delimited, preceded, separated_pair, terminated, tuple},
     Parser,
 };
 
 use std::net::IpAddr;
 
-pub(crate) fn is_not_space(c: char) -> bool {
+pub fn is_not_space(c: char) -> bool {
     c != ' '
 }
 
-pub(crate) fn is_alphabetic(chr: u8) -> bool {
+pub fn is_alphabetic(chr: u8) -> bool {
     (chr >= 0x41 && chr <= 0x5A) || (chr >= 0x61 && chr <= 0x7A)
 }
 
-pub(crate) fn is_alphanumeric(chr: char) -> bool {
+pub fn is_alphanumeric(chr: char) -> bool {
     is_alphabetic(chr as u8) || is_digit(chr as u8)
 }
 
-pub(crate) fn is_numeric(chr: char) -> bool {
+pub fn is_numeric(chr: char) -> bool {
     is_digit(chr as u8)
 }
 
@@ -50,6 +50,23 @@ pub fn a_line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
     line("a=", f)
 }
 
+pub fn attribute<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
+    attribute_kind: &'a str,
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
+    line(
+        "a=",
+        map(separated_pair(tag(attribute_kind), tag(":"), f), |(_, x)| x),
+    )
+}
+
+pub fn attribute_p<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
+    p: F,
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
+    line("a=", map(separated_pair(p, tag(":"), f), |(_, x)| x))
+}
+
 pub fn line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
     prefix: &'a str,
     f: F,
@@ -57,45 +74,45 @@ pub fn line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
     preceded(tag(prefix), f)
 }
 
-pub(crate) fn read_number(input: &str) -> IResult<&str, u32> {
+pub fn read_number(input: &str) -> IResult<&str, u32> {
     map_res(
         take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
         |i: &str| u32::from_str_radix(&i, 10),
     )(input)
 }
 
-pub(crate) fn read_big_number(input: &str) -> IResult<&str, u64> {
+pub fn read_big_number(input: &str) -> IResult<&str, u64> {
     map_res(
         take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
         |i: &str| u64::from_str_radix(&i, 10),
     )(input)
 }
 
-pub(crate) fn read_string0(input: &str) -> IResult<&str, &str> {
+pub fn read_string0(input: &str) -> IResult<&str, &str> {
     take_while(is_not_space)(input)
 }
 
-pub(crate) fn read_string(input: &str) -> IResult<&str, &str> {
+pub fn read_string(input: &str) -> IResult<&str, &str> {
     take_while1(is_not_space)(input)
 }
 
-pub(crate) fn read_non_colon_string(input: &str) -> IResult<&str, &str> {
+pub fn read_non_colon_string(input: &str) -> IResult<&str, &str> {
     take_while1(|c: char| -> bool { c != ' ' && c != ':' })(input)
 }
 
-pub(crate) fn read_non_slash_string(input: &str) -> IResult<&str, &str> {
+pub fn read_non_slash_string(input: &str) -> IResult<&str, &str> {
     take_while1(|c: char| -> bool { c != ' ' && c != '/' })(input)
 }
 
-pub(crate) fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
+pub fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_non_slash_string, opt(tag("/"))))(input)
 }
 
-pub(crate) fn space_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
-    many0(terminated(read_string, opt(tag(" "))))(input)
+pub fn space_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
+    many0(terminated(read_string, multispace0))(input)
 }
 
-pub(crate) fn read_addr(input: &str) -> IResult<&str, IpAddr> {
+pub fn read_addr(input: &str) -> IResult<&str, IpAddr> {
     map_res(take_while1(|c| c != ' ' && c != '/'), str::parse)(input)
 }
 
@@ -105,7 +122,7 @@ pub enum IpVer {
     Ip6,
 }
 
-pub(crate) fn read_ipver(input: &str) -> IResult<&str, IpVer> {
+pub fn read_ipver(input: &str) -> IResult<&str, IpVer> {
     alt((
         map(tag("IP4"), |_| IpVer::Ip4),
         map(tag("IP6"), |_| IpVer::Ip6),
@@ -117,14 +134,14 @@ pub enum NetType {
     IN,
 }
 
-pub(crate) fn read_net_type(input: &str) -> IResult<&str, NetType> {
+pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
     map(tag("IN"), |_| NetType::IN)(input)
 }
 
-pub(crate) fn read_as_strings(input: &str) -> IResult<&str, Vec<&str>> {
+pub fn read_as_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_string, opt(space1)))(input)
 }
 
-pub(crate) fn read_as_numbers(input: &str) -> IResult<&str, Vec<u32>> {
+pub fn read_as_numbers(input: &str) -> IResult<&str, Vec<u32>> {
     many0(terminated(read_number, opt(space1)))(input)
 }

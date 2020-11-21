@@ -14,7 +14,7 @@ use std::net::IpAddr;
 
 #[cfg(test)]
 use crate::assert_line;
-use crate::parsers::{read_addr, read_number, read_string, wsf};
+use crate::parsers::{attribute, read_addr, read_number, read_string, wsf};
 
 #[derive(Debug)]
 pub enum CandidateComponent {
@@ -61,42 +61,53 @@ pub struct Candidate<'a> {
     generation: Option<u32>,
 }
 
-pub(crate) fn candidate(input: &str) -> IResult<&str, Candidate> {
-    preceded(
-        tag("candidate:"),
-        map(
-            tuple((
-                wsf(read_number), // foundation
-                // component:
+pub fn candidate(input: &str) -> IResult<&str, Candidate> {
+    map(
+        tuple((
+            wsf(read_number), // foundation
+            // component:
+            wsf(alt((
+                map(tag("1"), |_| CandidateComponent::Rtp),
+                map(tag("2"), |_| CandidateComponent::Rtcp),
+            ))),
+            // protocol:
+            wsf(alt((
+                map(alt((tag("UDP"), tag("udp"))), |_| CandidateProtocol::Udp),
+                map(alt((tag("TCP"), tag("tcp"))), |_| CandidateProtocol::Tcp),
+                map(alt((tag("DCCP"), tag("dccp"))), |_| CandidateProtocol::Dccp),
+            ))),
+            wsf(read_number), // priority
+            wsf(read_addr),   // addr
+            wsf(read_number), // port
+            preceded(
+                tag("typ"),
+                // typ:
                 wsf(alt((
-                    map(tag("1"), |_| CandidateComponent::Rtp),
-                    map(tag("2"), |_| CandidateComponent::Rtcp),
+                    map(tag("host"), |_| CandidateType::Host),
+                    map(tag("relay"), |_| CandidateType::Relay),
+                    map(tag("srflx"), |_| CandidateType::Srflx),
+                    map(tag("prflx"), |_| CandidateType::Prflx),
                 ))),
-                // protocol:
-                wsf(alt((
-                    map(alt((tag("UDP"), tag("udp"))), |_| CandidateProtocol::Udp),
-                    map(alt((tag("TCP"), tag("tcp"))), |_| CandidateProtocol::Tcp),
-                    map(alt((tag("DCCP"), tag("dccp"))), |_| CandidateProtocol::Dccp),
-                ))),
-                wsf(read_number), // priority
-                wsf(read_addr),   // addr
-                wsf(read_number), // port
-                preceded(
-                    tag("typ"),
-                    // typ:
-                    wsf(alt((
-                        map(tag("host"), |_| CandidateType::Host),
-                        map(tag("relay"), |_| CandidateType::Relay),
-                        map(tag("srflx"), |_| CandidateType::Srflx),
-                        map(tag("prflx"), |_| CandidateType::Prflx),
-                    ))),
-                ),
-                opt(preceded(wsf(tag("raddr")), read_addr)), // raddr
-                opt(preceded(wsf(tag("rport")), read_number)), // rport
-                opt(preceded(wsf(tag("tcptype")), read_string)), // tcptype
-                opt(preceded(wsf(tag("generation")), read_number)), // generation
-            )),
-            |(
+            ),
+            opt(preceded(wsf(tag("raddr")), read_addr)), // raddr
+            opt(preceded(wsf(tag("rport")), read_number)), // rport
+            opt(preceded(wsf(tag("tcptype")), read_string)), // tcptype
+            opt(preceded(wsf(tag("generation")), read_number)), // generation
+        )),
+        |(
+            foundation,
+            component,
+            protocol,
+            priority,
+            addr,
+            port,
+            typ,
+            raddr,
+            rport,
+            tcptype,
+            generation,
+        )| {
+            Candidate {
                 foundation,
                 component,
                 protocol,
@@ -108,28 +119,14 @@ pub(crate) fn candidate(input: &str) -> IResult<&str, Candidate> {
                 rport,
                 tcptype,
                 generation,
-            )| {
-                Candidate {
-                    foundation,
-                    component,
-                    protocol,
-                    priority,
-                    addr,
-                    port,
-                    typ,
-                    raddr,
-                    rport,
-                    tcptype,
-                    generation,
-                }
-            },
-        ),
+            }
+        },
     )(input)
 }
 
 /// "a=Candidate"
 pub fn candidate_line(input: &str) -> IResult<&str, Candidate> {
-    preceded(tag("a="), candidate)(input)
+    attribute("candidate", candidate)(input)
 }
 
 #[cfg(test)]
