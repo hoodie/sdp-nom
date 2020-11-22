@@ -14,7 +14,6 @@ use std::net::IpAddr;
 use crate::assert_line;
 use crate::parsers::*;
 
-
 #[derive(Debug, PartialEq)]
 pub enum NetType {
     IN,

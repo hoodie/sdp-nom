@@ -18,13 +18,19 @@
 //! * ☒ [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) [`Media`]
 //! * ☐ [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
 
+#![deny(
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unused_import_braces,
+    unused_qualifications
+)]
+// #![warn(missing_docs)]
+
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 pub mod attributes;
-pub mod connection;
 pub mod lines;
-pub mod media;
-pub mod origin;
 mod parsers;
 #[cfg(test)]
 mod tests;
@@ -33,15 +39,20 @@ mod tests;
 #[macro_use]
 mod assert;
 
-use connection::*;
 use lines::{
-    bandwidth::*, email::*, phone_number::*, session_information::*, session_name::*, timing::*,
+    bandwidth::*,
+    connection::*,
+    email::*,
+    media::{media_line, mid::*, msid::*, Media},
+    origin::*,
+    phone_number::*,
+    session_information::*,
+    session_name::*,
+    timing::*,
     version::*,
 };
 
-use media::{media_line, mid::*, msid::*, Media};
-use origin::*;
-
+/// Sdp Line
 #[derive(Debug)]
 pub enum SdpLine<'a> {
     /// `v=0`
@@ -67,7 +78,7 @@ pub enum SdpLine<'a> {
 
     Ice(attributes::IceParameter<'a>),
 
-    /// `candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
+    /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
     Candidate(attributes::Candidate<'a>),
 
     /// `c=IN IP4 10.23.42.137`
@@ -122,7 +133,7 @@ fn sdp_line_session(input: &str) -> IResult<&str, SdpLine> {
 pub fn sdp_line_lazy(input: &str) -> IResult<&str, SdpLine> {
     alt((
         sdp_line_session,
-        map(attributes::lazy_attribute_line, |(key, val)| {
+        map(attributes::generic::lazy_attribute_line, |(key, val)| {
             SdpLine::Attribute { key, val }
         }),
     ))(input)
@@ -138,14 +149,17 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
         )),
         alt((
             map(attributes::bundle_group_line, SdpLine::BundleGroup),
-            map(attributes::ice_parameter_line, SdpLine::Ice),
-            map(attributes::ssrc_line, SdpLine::Ssrc),
-            map(attributes::ssrc_group_line, SdpLine::SsrcGroup),
+            map(attributes::ice::ice_parameter_line, SdpLine::Ice),
+            map(attributes::ssrc::ssrc_line, SdpLine::Ssrc),
+            map(attributes::ssrc::ssrc_group_line, SdpLine::SsrcGroup),
             map(attributes::rtpmap::rtpmap_line, SdpLine::RtpMap),
             map(attributes::rtpmap::read_p_time, SdpLine::PTime),
-            map(attributes::fingerprint_line, SdpLine::Fingerprint),
-            map(attributes::candidate_line, SdpLine::Candidate),
-            map(attributes::direction_line, SdpLine::Direction),
+            map(
+                attributes::fingerprint::fingerprint_line,
+                SdpLine::Fingerprint,
+            ),
+            map(attributes::candidate::candidate_line, SdpLine::Candidate),
+            map(attributes::direction::direction_line, SdpLine::Direction),
             map(attributes::extmap::extmap_line, SdpLine::Extmap),
             map(attributes::dtls::setup_role_line, SdpLine::SetupRole),
             map(attributes::rtp_attribute_line, SdpLine::Rtp),

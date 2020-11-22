@@ -106,20 +106,18 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             rport,
             tcptype,
             generation,
-        )| {
-            Candidate {
-                foundation,
-                component,
-                protocol,
-                priority,
-                addr,
-                port,
-                typ,
-                raddr,
-                rport,
-                tcptype,
-                generation,
-            }
+        )| Candidate {
+            foundation,
+            component,
+            protocol,
+            priority,
+            addr,
+            port,
+            typ,
+            raddr,
+            rport,
+            tcptype,
+            generation,
         },
     )(input)
 }

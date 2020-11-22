@@ -91,7 +91,10 @@ fn test_extmap() {
 fn test_extmap_line() {
     assert_line!(extmap_line, "a=extmap:1/sendonly URI-toffset");
     assert_line!(extmap_line, "a=extmap:2 urn:ietf:params:rtp-hdrext:toffset");
-    assert_line!(extmap_line, "a=extmap:3 urn:ietf:params:rtp-hdrext:encrypt urn:ietf:params:rtp-hdrext:smpte-tc 25@600/24");
+    assert_line!(
+        extmap_line,
+        "a=extmap:3 urn:ietf:params:rtp-hdrext:encrypt urn:ietf:params:rtp-hdrext:smpte-tc 25@600/24"
+    );
     assert_line!(
         extmap_line,
         "a=extmap:4/recvonly urn:ietf:params:rtp-hdrext:encrypt URI-gps-string"

@@ -2,11 +2,11 @@ use nom::{combinator::map, sequence::tuple, IResult};
 
 use std::net::IpAddr;
 
-#[cfg(test)]
-use crate::{assert_line, assert_line_print};
 use crate::parsers::{
     line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
 };
+#[cfg(test)]
+use crate::{assert_line, assert_line_print};
 
 /// Origin
 ///
