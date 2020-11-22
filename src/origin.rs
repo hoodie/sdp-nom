@@ -1,9 +1,4 @@
-use nom::*;
-use nom::{
-    bytes::complete::tag,
-    combinator::map,
-    sequence::{preceded, tuple},
-};
+use nom::{combinator::map, sequence::tuple, IResult};
 
 use std::net::IpAddr;
 

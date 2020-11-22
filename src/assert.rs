@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 pub fn print_result<T: Debug>(input: &str, rest: &str, result: &T) {
     println!(
@@ -9,6 +9,16 @@ pub fn print_result<T: Debug>(input: &str, rest: &str, result: &T) {
 
 pub fn print_leftover(input: &str, rest: &str) {
     println!("INPUT: {:?}\nLEFT:  {:?}", input, rest);
+}
+
+trait AssertLinify {
+    fn assert_linify(_: Self);
+}
+
+impl<T: Display> AssertLinify for T {
+    fn assert_linify(_: T) {
+        panic!("{:?} is Debug", std::any::type_name::<T>());
+    }
 }
 
 #[macro_export]
@@ -38,5 +48,15 @@ macro_rules! assert_line {
         crate::assert::print_result($line, &rest, &parsed);
         pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
         assert!(rest.is_empty(), "not parsed completely");
+    }};
+
+    ($parser:ident, $line:expr, $expectation:expr, print) => {{
+        let (rest, parsed) = $parser(&$line).unwrap();
+        crate::assert::print_result($line, &rest, &parsed);
+        pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
+        assert!(rest.is_empty(), "not parsed completely");
+
+        let serialized = parsed.to_string();
+        assert_eq!($line, serialized);
     }};
 }

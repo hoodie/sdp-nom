@@ -1,12 +1,12 @@
 ///
 
 /// [6. SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6)
-use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag, take_till1},
-    combinator::{map, opt},
+    combinator::map,
     sequence::{preceded, separated_pair, tuple},
+    IResult,
 };
 
 pub mod candidate;
@@ -90,6 +90,13 @@ pub fn generic_attribute_line(input: &str) -> IResult<&str, Attribute> {
     a_line(map(
         separated_pair(attribute_kind, tag(":"), is_not("\n")),
         |(kind, value)| Attribute { kind, value },
+    ))(input)
+}
+
+pub fn lazy_attribute_line(input: &str) -> IResult<&str, (&str, &str)> {
+    a_line(map(
+        separated_pair(read_non_colon_string, tag(":"), is_not("\n")),
+        |(key, val)| (key, val),
     ))(input)
 }
 

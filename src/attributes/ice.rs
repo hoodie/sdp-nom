@@ -1,10 +1,4 @@
-use nom::*;
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    combinator::{map, opt},
-    sequence::{preceded, tuple},
-};
+use nom::{branch::alt, combinator::map, IResult};
 
 #[cfg(test)]
 use crate::assert_line;

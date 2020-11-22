@@ -18,7 +18,6 @@
 //! * ☒ [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) [`Media`]
 //! * ☐ [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
 
-#![allow(unused_imports)]
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 pub mod attributes;
@@ -32,6 +31,7 @@ mod parsers;
 mod assert;
 
 use connection::*;
+use lines::bandwidth::*;
 use lines::*;
 use media::*;
 use origin::*;
@@ -86,21 +86,38 @@ pub enum SdpLine<'a> {
     Extmap(attributes::extmap::Extmap<'a>),
     BundleOnly,
     EoC,
-    // Aline(Vec<&'a str>), // catch all, don't use
+    Attribute {
+        key: &'a str,
+        val: &'a str,
+    }, // Aline(Vec<&'a str>), // catch all, don't use
+}
+
+fn sdp_line_session(input: &str) -> IResult<&str, SdpLine> {
+    alt((
+        // two levels of `alt` because it's not implemented for such large tuples
+        map(version_line, SdpLine::Version),
+        map(name_line, SdpLine::Name),
+        map(description_line, SdpLine::Description),
+        map(bandwidth_line, SdpLine::BandWidth),
+        map(timing_line, SdpLine::Timing),
+        map(origin_line, SdpLine::Origin),
+        map(connection_line, SdpLine::Connection),
+        map(media_line, SdpLine::Media),
+    ))(input)
+}
+pub fn sdp_line_lazy(input: &str) -> IResult<&str, SdpLine> {
+    alt((
+        sdp_line_session,
+        map(attributes::lazy_attribute_line, |(key, val)| {
+            SdpLine::Attribute { key, val }
+        }),
+    ))(input)
 }
 
 pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
     alt((
+        sdp_line_session,
         alt((
-            // two levels of `alt` because it's not implemented for such large tuples
-            map(version_line, SdpLine::Version),
-            map(name_line, SdpLine::Name),
-            map(description_line, SdpLine::Description),
-            map(bandwidth_line, SdpLine::BandWidth),
-            map(timing_line, SdpLine::Timing),
-            map(origin_line, SdpLine::Origin),
-            map(connection_line, SdpLine::Connection),
-            map(media_line, SdpLine::Media),
             map(mid_line, SdpLine::Mid),
             map(msid_semantic_line, SdpLine::MsidSemantic),
             map(msid_line, SdpLine::Msid),
@@ -129,6 +146,7 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
         )),
     ))(input)
 }
+
 #[cfg(test)]
 #[ctor::ctor]
 fn init_color_backtrace() {
@@ -157,7 +175,7 @@ impl<'a> EagerSession<'a> {
     pub fn from_str(sdp: &'a str) -> EagerSession<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
-                match sdp_line(&line) {
+                match sdp_line_lazy(&line) {
                     Ok((_, parsed)) => {
                         if matches!(parsed, SdpLine::Media(_)) {
                             if let Some(m) = state.current_msecion.take() {

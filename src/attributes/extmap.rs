@@ -1,10 +1,9 @@
 //! https://tools.ietf.org/html/rfc8285
 
 use nom::{
-    branch::alt,
-    bytes::complete::{is_not, tag, take_till1},
+    bytes::complete::tag,
     combinator::{map, opt},
-    sequence::{preceded, separated_pair, tuple},
+    sequence::{preceded, tuple},
     IResult,
 };
 

@@ -4,13 +4,12 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     combinator::{map, opt},
-    sequence::{preceded, separated_pair, tuple},
+    sequence::{preceded, tuple},
     IResult,
 };
 
 use std::net::IpAddr;
 
-use super::{read_direction, Direction};
 #[cfg(test)]
 use crate::assert_line;
 use crate::parsers::*;

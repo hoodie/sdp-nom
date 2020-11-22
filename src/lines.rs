@@ -150,54 +150,71 @@ fn test_timing_line() {
     assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 });
 }
 
-#[derive(Debug, PartialEq)]
-pub enum BandWidthType {
-    TIAS,
-    AS,
-    CT,
-    RR,
-    RS,
-}
-// TIAS|AS|CT|RR|RS
-pub fn bandwidth_type(input: &str) -> IResult<&str, BandWidthType> {
-    alt((
-        map(tag("TIAS"), |_| BandWidthType::TIAS),
-        map(tag("AS"), |_| BandWidthType::AS),
-        map(tag("CT"), |_| BandWidthType::CT),
-        map(tag("RR"), |_| BandWidthType::RR),
-        map(tag("RS"), |_| BandWidthType::RS),
-    ))(input)
-}
+pub mod bandwidth {
+    use super::*;
+    #[derive(Debug, PartialEq)]
+    pub enum BandWidthType {
+        TIAS,
+        AS,
+        CT,
+        RR,
+        RS,
+    }
+    // TIAS|AS|CT|RR|RS
+    pub fn bandwidth_type(input: &str) -> IResult<&str, BandWidthType> {
+        alt((
+            map(tag("TIAS"), |_| BandWidthType::TIAS),
+            map(tag("AS"), |_| BandWidthType::AS),
+            map(tag("CT"), |_| BandWidthType::CT),
+            map(tag("RR"), |_| BandWidthType::RR),
+            map(tag("RS"), |_| BandWidthType::RS),
+        ))(input)
+    }
 
-#[derive(Debug, PartialEq)]
-/// "b=AS:1024"
-pub struct BandWidth {
-    r#type: BandWidthType,
-    limit: u32,
-}
+    #[derive(Debug, PartialEq)]
+    /// "b=AS:1024"
+    pub struct BandWidth {
+        r#type: BandWidthType,
+        limit: u32,
+    }
 
-/// "b=AS:1024"
-pub fn bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
-    line("b=", bandwidth)(input)
-}
+    /// "b=AS:1024"
+    pub fn bandwidth_line(input: &str) -> IResult<&str, BandWidth> {
+        line("b=", bandwidth)(input)
+    }
 
-/// "AS:1024"
-pub fn bandwidth(input: &str) -> IResult<&str, BandWidth> {
-    map(
-        separated_pair(bandwidth_type, tag(":"), read_number),
-        |(r#type, limit)| (BandWidth { r#type, limit }),
-    )(input)
-}
+    /// "AS:1024"
+    pub fn bandwidth(input: &str) -> IResult<&str, BandWidth> {
+        map(
+            separated_pair(bandwidth_type, tag(":"), read_number),
+            |(r#type, limit)| (BandWidth { r#type, limit }),
+        )(input)
+    }
 
-#[test]
-#[rustfmt::skip]
-fn test_bandwidth_line() {
-    assert_line!(
-        bandwidth_line,"b=AS:30",
-        BandWidth { r#type: BandWidthType::AS, limit: 30 }
-    );
-    assert_line!(
-        bandwidth_line,"b=RR:1024",
-        BandWidth { r#type: BandWidthType::RR, limit: 1024 }
-    );
+    impl std::fmt::Display for BandWidthType {
+        #[rustfmt::skip]
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use BandWidthType::*;
+        write!( f, "{}", match self { TIAS => "TIAS", AS => "AS", CT => "CT", RR => "RR", RS => "R" })
+    }
+    }
+
+    impl std::fmt::Display for BandWidth {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "b={}:{}", self.r#type, self.limit)
+        }
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_bandwidth_line() {
+        assert_line!(
+            bandwidth_line,"b=AS:30",
+            BandWidth { r#type: BandWidthType::AS, limit: 30 }, print
+        );
+        assert_line!(
+            bandwidth_line,"b=RR:1024",
+            BandWidth { r#type: BandWidthType::RR, limit: 1024 }, print
+        );
+    }
 }

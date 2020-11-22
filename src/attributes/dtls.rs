@@ -1,12 +1,6 @@
 //! https://tools.ietf.org/html/rfc4572
 
-use nom::{
-    branch::alt,
-    bytes::complete::{is_not, tag, take_till1},
-    combinator::{map, opt},
-    sequence::{preceded, separated_pair, tuple},
-    IResult,
-};
+use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 #[cfg(test)]
 use crate::assert_line;
