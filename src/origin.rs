@@ -3,7 +3,7 @@ use nom::{combinator::map, sequence::tuple, IResult};
 use std::net::IpAddr;
 
 #[cfg(test)]
-use crate::assert_line;
+use crate::{assert_line, assert_line_print};
 use crate::parsers::{
     line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
 };
@@ -11,7 +11,7 @@ use crate::parsers::{
 /// Origin
 ///
 /// o=- 20518 0 IN IP4 203.0.113.1
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Origin<'a> {
     pub user_name: &'a str,
     pub session_id: u64,
@@ -46,13 +46,35 @@ pub fn origin_line(input: &str) -> IResult<&str, Origin> {
     line("o=", origin)(input)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parses_candidates() {
-        assert_line!(origin_line, "o=test 4962303333179871722 1 IN IP4 0.0.0.0");
-        assert_line!(origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
+impl std::fmt::Display for Origin<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "o={name} {id} {version} {nt} {ipver} {addr}",
+            name = self.user_name,
+            id = self.session_id,
+            version = self.session_version,
+            nt = self.net_type,
+            ipver = self.ip_ver,
+            addr = self.addr
+        )
     }
+}
+
+#[test]
+fn parses_candidates() {
+    assert_line!(
+        origin_line,
+        "o=test 4962303333179871722 1 IN IP4 0.0.0.0",
+        Origin {
+            user_name: "test",
+            session_id: 4962303333179871722,
+            session_version: 1,
+            net_type: "IN",
+            ip_ver: IpVer::Ip4,
+            addr: "0.0.0.0".parse().unwrap(),
+        },
+        print
+    );
+    assert_line_print!(origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
 }
