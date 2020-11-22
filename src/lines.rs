@@ -11,94 +11,136 @@ use nom::{
 use crate::assert_line;
 use crate::parsers::*;
 
-/// "v=0"
-pub fn version_line(input: &str) -> IResult<&str, u32> {
-    preceded(tag("v="), wsf(read_number))(input)
+pub mod version {
+    use super::*;
+
+    #[derive(Debug, PartialEq)]
+    pub struct Version(u32);
+
+    /// "v=0"
+    pub fn version_line(input: &str) -> IResult<&str, Version> {
+        preceded(tag("v="), map(wsf(read_number), Version))(input)
+    }
+
+    impl std::fmt::Display for Version {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "v={}", self.0)
+        }
+    }
+
+    #[test]
+    fn test_version_line() {
+        assert_line!(version_line, "v=0", Version(0), print);
+        assert_line!(version_line, "v= 0");
+    }
 }
 
-#[test]
-fn test_version_line() {
-    assert_line!(version_line, "v=0");
-    assert_line!(version_line, "v= 0");
+pub mod session_name {
+    use super::*;
+
+    /// `s=somename`
+    ///
+    /// https://tools.ietf.org/html/rfc4566#section-5.3
+    #[derive(Debug, PartialEq)]
+    pub struct SessionName<'a>(pub &'a str);
+
+    /// "s=somename"
+    pub fn name_line(input: &str) -> IResult<&str, SessionName> {
+        preceded(tag("s="), map(wsf(read_string0), SessionName))(input)
+    }
+
+    impl<'a> std::fmt::Display for SessionName<'a> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "s={}", self.0)
+        }
+    }
+
+    #[test]
+    fn test_name_line() {
+        assert_line!(name_line, "s=", SessionName(""), print);
+        assert_line!(name_line, "s=testname", SessionName("testname"), print);
+        assert_line!(name_line, "s= testname", SessionName("testname"));
+        assert_line!(name_line, "s=testname ", SessionName("testname"));
+    }
 }
 
-/// `s=somename`
-///
-/// https://tools.ietf.org/html/rfc4566#section-5.3
-#[derive(Debug, PartialEq)]
-pub struct SessionName<'a>(pub &'a str);
+pub mod session_information {
+    use super::*;
 
-/// "s=somename"
-pub fn name_line(input: &str) -> IResult<&str, SessionName> {
-    preceded(tag("s="), map(wsf(read_string0), SessionName))(input)
+    /// `i=<session description>`
+    #[derive(Debug, PartialEq)]
+    pub struct SessionInformation<'a>(pub &'a str);
+
+    /// SessionInformation "i=description"
+    pub fn description_line(input: &str) -> IResult<&str, SessionInformation> {
+        line("i=", map(read_string, SessionInformation))(input)
+    }
+
+    impl<'a> std::fmt::Display for SessionInformation<'a> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "i={}", self.0)
+        }
+    }
+
+    #[test]
+    fn test_description_line() {
+        assert_line!(
+            description_line,
+            "i=testdescription",
+            SessionInformation("testdescription"),
+            print
+        );
+    }
 }
 
-#[test]
-fn test_name_line() {
-    assert_line!(name_line, "s=", SessionName(""));
-    assert_line!(name_line, "s=testname", SessionName("testname"));
-    assert_line!(name_line, "s= testname", SessionName("testname"));
-    assert_line!(name_line, "s=testname ", SessionName("testname"));
+pub mod uri {
+    use super::*;
+    /// Uri `u=<uri>`
+    #[derive(Debug, PartialEq)]
+    pub struct Uri<'a>(pub &'a str);
+
+    /// "i=description"
+    pub fn uri_line(input: &str) -> IResult<&str, Uri> {
+        line("u=", map(read_string, Uri))(input)
+    }
+
+    #[test]
+    fn test_uri_line() {
+        assert_line!(
+            uri_line,
+            "u=https://parse-my.sdp",
+            Uri("https://parse-my.sdp")
+        );
+    }
 }
 
-// ////////////////////////
+pub mod email {
+    use super::*;
 
-/// `i=<session description>`
-#[derive(Debug, PartialEq)]
-pub struct SessionInformation<'a>(pub &'a str);
+    /// Email `e=<email-address>`
+    #[derive(Debug, PartialEq)]
+    pub struct EmailAddress<'a>(pub &'a str);
 
-/// SessionInformation "i=description"
-pub fn description_line(input: &str) -> IResult<&str, SessionInformation> {
-    line("i=", map(read_string, SessionInformation))(input)
-}
+    /// "e=email@example.com"
+    pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
+        line("e=", wsf(map(read_string, EmailAddress)))(input)
+    }
 
-#[test]
-fn test_description_line() {
-    assert_line!(
-        description_line,
-        "i=testdescription",
-        SessionInformation("testdescription")
-    );
-}
+    impl<'a> std::fmt::Display for EmailAddress<'a> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "e={}", self.0)
+        }
+    }
 
-// ////////////////////////
-
-/// Uri `u=<uri>`
-#[derive(Debug, PartialEq)]
-pub struct Uri<'a>(pub &'a str);
-
-/// "i=description"
-pub fn uri_line(input: &str) -> IResult<&str, Uri> {
-    line("u=", map(read_string, Uri))(input)
-}
-
-#[test]
-fn test_uri_line() {
-    assert_line!(
-        uri_line,
-        "u=https://parse-my.sdp",
-        Uri("https://parse-my.sdp")
-    );
-}
-
-// ////////////////////////
-
-/// Email `e=<email-address>`
-#[derive(Debug, PartialEq)]
-pub struct EmailAddress<'a>(pub &'a str);
-
-/// "i=description"
-pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
-    line("e=", map(read_string, EmailAddress))(input)
-}
-
-#[test]
-fn test_email_address_line() {
-    assert_line!(
-        email_address_line,
-        "e=test@example.com",
-        EmailAddress("test@example.com")
-    );
+    #[test]
+    fn test_email_address_line() {
+        assert_line!(
+            email_address_line,
+            "e=test@example.com",
+            EmailAddress("test@example.com"),
+            print
+        );
+    }
 }
 
 // ////////////////////////

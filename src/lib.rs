@@ -27,20 +27,25 @@ pub mod media;
 pub mod origin;
 mod parsers;
 #[cfg(test)]
+mod tests;
+
+#[cfg(test)]
 #[macro_use]
 mod assert;
 
 use connection::*;
-use lines::{bandwidth::*, timing::*, phone_number::*};
+use lines::{
+    bandwidth::*, email::*, phone_number::*, session_information::*, session_name::*, timing::*,
+    version::*,
+};
 
-use lines::*;
 use media::*;
 use origin::*;
 
 #[derive(Debug)]
 pub enum SdpLine<'a> {
     /// `v=0`
-    Version(u32),
+    Version(Version),
 
     /// `s=-`
     Name(SessionName<'a>),
@@ -56,6 +61,9 @@ pub enum SdpLine<'a> {
 
     /// `p=0118 999 881 999 119 7253`
     PhoneNumber(PhoneNumber<'a>),
+
+    /// "e=email@example.com"
+    EmailAddress(EmailAddress<'a>),
 
     Ice(attributes::IceParameter<'a>),
 
@@ -105,6 +113,7 @@ fn sdp_line_session(input: &str) -> IResult<&str, SdpLine> {
         map(bandwidth_line, SdpLine::BandWidth),
         map(timing_line, SdpLine::Timing),
         map(phone_number_line, SdpLine::PhoneNumber),
+        map(email_address_line, SdpLine::EmailAddress),
         map(origin_line, SdpLine::Origin),
         map(connection_line, SdpLine::Connection),
         map(media_line, SdpLine::Media),

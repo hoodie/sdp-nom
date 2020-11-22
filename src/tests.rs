@@ -1,21 +1,6 @@
 use super::*;
 
 #[test]
-fn parse_by_line() {
-    let jsep_sdp = include_str!("../sdp-transform/test/jsep.sdp");
-    jsep_sdp
-        .lines()
-        .map(|line| (sdp_line(line), line))
-        .for_each(|sdp_line| println!("{:?}", sdp_line));
-}
-
-#[test]
-fn test_version() {
-    assert_eq!(version_line("v=0"), Ok(("", 0)));
-    assert_eq!(version_line("v=1"), Ok(("", 1)))
-}
-
-#[test]
 fn anatomy() {
     //! every exaple from https://webrtchacks.com/sdp-anatomy/
 
@@ -128,6 +113,19 @@ fn anatomy() {
             "a=ssrc:632943048 msid:lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS daed9400-d0dd-4db3-b949-422499e96e2d",
         ];
     for (i, line) in anatomy_examples.iter().enumerate() {
+        print!("{}.", i);
+        assert_line!(line);
+    }
+}
+
+#[test]
+fn seldom_lines() {
+    let seldom_lines = [
+        "i=foobar",
+        "e=email@example.com",
+        "p=0118 999 881 999 119 7253",
+    ];
+    for (i, line) in seldom_lines.iter().enumerate() {
         print!("{}.", i);
         assert_line!(line);
     }
