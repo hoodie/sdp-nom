@@ -13,7 +13,7 @@ use nom::{
     IResult, Parser,
 };
 
-use std::net::IpAddr;
+use std::{fmt::Display, net::IpAddr};
 
 pub fn is_not_space(c: char) -> bool {
     c != ' '
@@ -128,15 +128,14 @@ pub fn read_ipver(input: &str) -> IResult<&str, IpVer> {
     ))(input)
 }
 
-#[derive(Debug, PartialEq)]
-pub enum NetType {
-    IN,
+impl Display for IpVer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            IpVer::Ip4 => write!(f, "IP4"),
+            IpVer::Ip6 => write!(f, "IP6"),
+        }
+    }
 }
-
-pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
-    map(tag("IN"), |_| NetType::IN)(input)
-}
-
 pub fn read_as_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_string, opt(space1)))(input)
 }

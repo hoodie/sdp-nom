@@ -14,6 +14,16 @@ use std::net::IpAddr;
 use crate::assert_line;
 use crate::parsers::*;
 
+
+#[derive(Debug, PartialEq)]
+pub enum NetType {
+    IN,
+}
+
+pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
+    map(tag("IN"), |_| NetType::IN)(input)
+}
+
 /// Rtcp
 ///
 /// https://tools.ietf.org/html/rfc3605

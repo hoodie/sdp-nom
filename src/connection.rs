@@ -1,11 +1,11 @@
-use nom::*;
 use nom::{
     bytes::complete::tag,
     combinator::{map, opt},
     sequence::{preceded, tuple},
+    IResult,
 };
 
-use std::net::IpAddr;
+use std::{fmt::Display, net::IpAddr};
 
 #[cfg(test)]
 use std::net::Ipv4Addr;
@@ -41,8 +41,18 @@ pub fn connection_line(input: &str) -> IResult<&str, Connection> {
     )(input)
 }
 
+impl Display for Connection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self { ip_ver, addr, mask } = self;
+        if let Some(mask) = mask {
+            write!(f, "c=IN {} {}/{}", ip_ver, addr, mask)
+        } else {
+            write!(f, "c=IN {} {}", ip_ver, addr)
+        }
+    }
+}
+
 #[test]
-#[rustfmt::skip]
 fn test_connection_line() {
     assert_line!(
         connection_line,
@@ -51,7 +61,8 @@ fn test_connection_line() {
             ip_ver: IpVer::Ip6,
             addr: "fe80::5a55:caff:fe1a:e187".parse().unwrap(),
             mask: None,
-        }
+        },
+        print
     );
     assert_line!(
         connection_line,
@@ -60,7 +71,8 @@ fn test_connection_line() {
             ip_ver: IpVer::Ip4,
             addr: IpAddr::V4(Ipv4Addr::new(10, 23, 42, 137)),
             mask: Some(32),
-        }
+        },
+        print
     );
     assert_line!(
         connection_line,
@@ -69,6 +81,7 @@ fn test_connection_line() {
             ip_ver: IpVer::Ip4,
             addr: IpAddr::V4(Ipv4Addr::new(10, 23, 42, 137)),
             mask: None,
-        }
+        },
+        print
     );
 }
