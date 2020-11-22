@@ -31,7 +31,7 @@ mod parsers;
 mod assert;
 
 use connection::*;
-use lines::{bandwidth::*, timing::*};
+use lines::{bandwidth::*, timing::*, phone_number::*};
 
 use lines::*;
 use media::*;
@@ -53,6 +53,9 @@ pub enum SdpLine<'a> {
 
     /// `b=AS:1024`
     BandWidth(BandWidth),
+
+    /// `p=0118 999 881 999 119 7253`
+    PhoneNumber(PhoneNumber<'a>),
 
     Ice(attributes::IceParameter<'a>),
 
@@ -101,6 +104,7 @@ fn sdp_line_session(input: &str) -> IResult<&str, SdpLine> {
         map(description_line, SdpLine::Description),
         map(bandwidth_line, SdpLine::BandWidth),
         map(timing_line, SdpLine::Timing),
+        map(phone_number_line, SdpLine::PhoneNumber),
         map(origin_line, SdpLine::Origin),
         map(connection_line, SdpLine::Connection),
         map(media_line, SdpLine::Media),

@@ -103,25 +103,32 @@ fn test_email_address_line() {
 
 // ////////////////////////
 
-/// Email `p=<phone-number>`
-#[derive(Debug, PartialEq)]
-pub struct PhoneNumber<'a>(pub &'a str);
+pub mod phone_number {
+    use super::*;
+    /// Email `p=<phone-number>`
+    #[derive(Debug, PartialEq)]
+    pub struct PhoneNumber<'a>(pub &'a str);
 
-/// "i=description"
-pub fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
-    line("p=", map(take_while(|_| true), PhoneNumber))(input)
+    /// "i=description"
+    pub fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
+        line("p=", map(take_while(|_| true), PhoneNumber))(input)
+    }
+
+    #[test]
+    fn test_phone_number_line() {
+        assert_line!(
+            phone_number_line,
+            "p=0118 999 881 999 119 7253",
+            PhoneNumber("0118 999 881 999 119 7253"),
+            print
+        );
+    }
+    impl<'a> std::fmt::Display for PhoneNumber<'a> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "p={}", self.0)
+        }
+    }
 }
-
-#[test]
-fn test_phone_number_line() {
-    assert_line!(
-        phone_number_line,
-        "p=0118 999 881 999 119 7253",
-        PhoneNumber("0118 999 881 999 119 7253",)
-    );
-}
-
-// ////////////////////////
 
 pub mod timing {
     use super::*;
