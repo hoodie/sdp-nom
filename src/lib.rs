@@ -39,7 +39,7 @@ use lines::{
     version::*,
 };
 
-use media::*;
+use media::{media_line, mid::*, msid::*, Media};
 use origin::*;
 
 #[derive(Debug)]

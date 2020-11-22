@@ -60,3 +60,16 @@ macro_rules! assert_line {
         assert_eq!($line, serialized);
     }};
 }
+
+#[macro_export]
+macro_rules! assert_line_print {
+    ($parser:ident, $line:expr) => {{
+        let (rest, parsed) = $parser(&$line).unwrap();
+        if !rest.is_empty() {
+            crate::assert::print_leftover($line, rest);
+        }
+        assert!(rest.is_empty(), "not parsed completely");
+        let serialized = parsed.to_string();
+        assert_eq!($line, serialized);
+    }};
+}
