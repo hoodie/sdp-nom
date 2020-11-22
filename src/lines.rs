@@ -2,7 +2,7 @@
 use nom::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_until, take_while},
+    bytes::complete::{tag, take_while},
     combinator::map,
     sequence::{preceded, separated_pair, tuple},
 };
@@ -123,31 +123,41 @@ fn test_phone_number_line() {
 
 // ////////////////////////
 
-/// `t=0 0`
-#[derive(Debug, PartialEq)]
-pub struct Timing {
-    start: u32,
-    stop: u32,
-}
+pub mod timing {
+    use super::*;
 
-/// "t=0 0"
-pub fn timing_line(input: &str) -> IResult<&str, Timing> {
-    line(
-        "t=",
-        wsf(map(
-            tuple((wsf(read_number), wsf(read_number))),
-            |(start, stop)| Timing { start, stop },
-        )),
-    )(input)
-}
+    /// `t=0 0`
+    #[derive(Debug, PartialEq)]
+    pub struct Timing {
+        start: u32,
+        stop: u32,
+    }
 
-#[test]
-#[rustfmt::skip]
-fn test_timing_line() {
-    assert_line!(timing_line,"t=0 1", Timing { start: 0, stop: 1 });
-    assert_line!(timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
-    assert_line!(timing_line,"t=  2  3 ", Timing { start: 2, stop: 3 });
-    assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 });
+    /// "t=0 0"
+    pub fn timing_line(input: &str) -> IResult<&str, Timing> {
+        line(
+            "t=",
+            wsf(map(
+                tuple((wsf(read_number), wsf(read_number))),
+                |(start, stop)| Timing { start, stop },
+            )),
+        )(input)
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_timing_line() {
+        assert_line!(timing_line,"t=0 1", Timing { start: 0, stop: 1 }, print);
+        assert_line!(timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
+        assert_line!(timing_line,"t=  2  3 ", Timing { start: 2, stop: 3 });
+        assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 }, print);
+    }
+
+    impl std::fmt::Display for Timing {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "t={} {}", self.start, self.stop)
+        }
+    }
 }
 
 pub mod bandwidth {

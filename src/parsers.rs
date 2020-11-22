@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while, take_while1},
@@ -10,8 +9,8 @@ use nom::{
     combinator::{map, map_res, opt},
     error::ParseError,
     multi::many0,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Parser,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult, Parser,
 };
 
 use std::net::IpAddr;

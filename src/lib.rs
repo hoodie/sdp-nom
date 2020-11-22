@@ -31,7 +31,8 @@ mod parsers;
 mod assert;
 
 use connection::*;
-use lines::bandwidth::*;
+use lines::{bandwidth::*, timing::*};
+
 use lines::*;
 use media::*;
 use origin::*;

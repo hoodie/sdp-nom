@@ -1,11 +1,5 @@
 #![allow(dead_code)]
-use nom::*;
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    combinator::map,
-    sequence::{preceded, separated_pair, tuple},
-};
+use nom::{combinator::map, sequence::tuple, IResult};
 
 #[cfg(test)]
 use crate::assert_line;
