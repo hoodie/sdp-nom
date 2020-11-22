@@ -1,5 +1,7 @@
 //! https://tools.ietf.org/html/rfc4572
 
+use std::fmt::Display;
+
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 #[cfg(test)]
@@ -30,8 +32,30 @@ fn test_setup_role() {
 pub fn setup_role_line(input: &str) -> IResult<&str, SetupRole> {
     attribute("setup", read_setup_role)(input)
 }
+
+impl Display for SetupRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SetupRole::Active => write!(f, "a=setup:active"),
+            SetupRole::Passive => write!(f, "a=setup:passive"),
+            SetupRole::ActPass => write!(f, "a=setup:actpass"),
+        }
+    }
+}
+
 #[test]
 fn test_setup_role_line() {
-    assert_line!(setup_role_line, "a=setup:active", SetupRole::Active);
-    assert_line!(setup_role_line, "a=setup:passive", SetupRole::Passive);
+    assert_line!(setup_role_line, "a=setup:active", SetupRole::Active, print);
+    assert_line!(
+        setup_role_line,
+        "a=setup:actpass",
+        SetupRole::ActPass,
+        print
+    );
+    assert_line!(
+        setup_role_line,
+        "a=setup:passive",
+        SetupRole::Passive,
+        print
+    );
 }
