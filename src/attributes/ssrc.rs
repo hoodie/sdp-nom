@@ -7,8 +7,11 @@ use nom::{
     IResult,
 };
 
+use std::fmt;
+
 #[cfg(test)]
-use crate::assert_line;
+use crate::{assert_line, assert_line_print};
+
 use crate::parsers::*;
 
 #[derive(Debug, PartialEq)]
@@ -39,13 +42,20 @@ pub fn ssrc_line(input: &str) -> IResult<&str, Ssrc> {
     )(input)
 }
 
+impl fmt::Display for Ssrc<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "a=ssrc:{} {}:{}", self.id, self.attribute, self.value)
+    }
+}
+
 #[test]
 #[rustfmt::skip]
 fn test_ssrc_line() {
     assert_line!(
         ssrc_line,
         "a=ssrc:1366781084 cname:EocUG1f0fcg/yvY7",
-        Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" }
+        Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" },
+        print
     );
     assert_line!(
         ssrc_line,
@@ -94,8 +104,22 @@ pub fn ssrc_group(input: &str) -> IResult<&str, SsrcGroup> {
     )(input)
 }
 
+impl fmt::Display for SsrcGroup {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "a=ssrc-group:")?;
+        match self.semantic {
+            SsrcSemantic::FID => write!(f, "FID")?,
+            SsrcSemantic::FEC => write!(f, "FEC")?,
+        }
+        for id in &self.ids {
+            write!(f, " {}", id)?;
+        }
+        Ok(())
+    }
+}
+
 #[test]
 #[rustfmt::skip]
 fn test_ssrc_group_line() {
-    assert_line!(ssrc_group_line, "a=ssrc-group:FID 2231627014 632943048");
+    assert_line_print!(ssrc_group_line, "a=ssrc-group:FID 2231627014 632943048");
 }

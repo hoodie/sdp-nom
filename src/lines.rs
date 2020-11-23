@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 
-use nom::*;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while},
     combinator::map,
     sequence::{preceded, separated_pair, tuple},
+    IResult,
 };
+
+use std::fmt;
 
 pub mod connection;
 pub mod media;
@@ -27,8 +29,8 @@ pub mod version {
         preceded(tag("v="), map(wsf(read_number), Version))(input)
     }
 
-    impl std::fmt::Display for Version {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    impl fmt::Display for Version {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(f, "v={}", self.0)
         }
     }
@@ -107,6 +109,12 @@ pub mod uri {
     /// "i=description"
     pub fn uri_line(input: &str) -> IResult<&str, Uri> {
         line("u=", map(read_string, Uri))(input)
+    }
+
+    impl fmt::Display for Uri<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{}", self.0)
+        }
     }
 
     #[test]
@@ -207,7 +215,7 @@ pub mod timing {
         assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 }, print);
     }
 
-    impl std::fmt::Display for Timing {
+    impl fmt::Display for Timing {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "t={} {}", self.start, self.stop)
         }
@@ -255,7 +263,7 @@ pub mod bandwidth {
         )(input)
     }
 
-    impl std::fmt::Display for BandWidthType {
+    impl fmt::Display for BandWidthType {
         #[rustfmt::skip]
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use BandWidthType::*;
@@ -263,7 +271,7 @@ pub mod bandwidth {
     }
     }
 
-    impl std::fmt::Display for BandWidth {
+    impl fmt::Display for BandWidth {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "b={}:{}", self.r#type, self.limit)
         }

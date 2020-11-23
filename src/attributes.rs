@@ -2,11 +2,13 @@
 
 use nom::{
     branch::alt,
-    bytes::complete::{is_not, tag, take_till1},
+    bytes::complete::{is_not, tag},
     combinator::map,
     sequence::{preceded, separated_pair, tuple},
     IResult,
 };
+
+use std::fmt;
 
 pub mod candidate;
 pub mod dtls;
@@ -20,9 +22,9 @@ pub use candidate::*;
 pub use ice::*;
 pub use ssrc::*;
 
-#[cfg(test)]
-use crate::assert_line;
 use crate::parsers::*;
+#[cfg(test)]
+use crate::{assert_line, assert_line_print};
 
 pub use bundle::*;
 pub use control::*;
@@ -32,76 +34,33 @@ pub use fmtp::*;
 pub use rtcp_option::*;
 pub use rtp::*;
 
+#[derive(Debug)]
+pub enum SdpLine<'a> {
+    // MsidSemantic(super::media::MsidSemantic<'a>),
+    // Msid(super::media::Msid<'a>),
+    RtpMap(rtpmap::RtpMap<'a>),
+    PTime(rtpmap::PTime),
+
+    Ssrc(Ssrc<'a>),
+    BundleGroup(BundleGroup<'a>),
+    SsrcGroup(SsrcGroup),
+    Fingerprint(Fingerprint<'a>),
+    Direction(Direction),
+    Rtp(Rtp<'a>),
+    Rtcp(rtcp::Rtcp),
+    Fmtp(Fmtp<'a>),
+    RtcpFb(rtcp::Fb<'a>),
+    RtcpOption(RtcpOption),
+    Control(Control<'a>),
+    SetupRole(dtls::SetupRole),
+    Extmap(extmap::Extmap<'a>),
+    BundleOnly,
+    EoC,
+    Attribute { key: &'a str, val: &'a str },
+}
+
 pub mod generic {
     use super::*;
-
-    #[derive(Debug, PartialEq)]
-    pub struct Attribute<'a> {
-        kind: AttributeKind<'a>,
-        value: &'a str,
-    }
-
-    #[allow(dead_code)]
-    #[derive(Debug, PartialEq)]
-    enum AttributeKind<'a> {
-        Rtp,
-        Fmtp,
-        Control,
-        Rtcp,
-        RtcpFbTrrInt,
-        RtcpFb,
-        Ext,
-        Crypto,
-        Setup,
-        // Mid,
-        // Msid,
-        Ptime,
-        MaxPtime,
-        // Direction,
-        IceLite,
-        IceUFrag,
-        IcePwd,
-        // Fingerprint,
-        Candidates,
-        // EndOfCandidates,
-        RemoteCandidates,
-        IceOptions,
-        Ssrcs,
-        SsrcGroups,
-        MsidSemantic,
-        Groups,
-        RtcpMux,
-        RtcpRsize,
-        Sctpmap,
-        XGoogleFlag,
-        Rids,
-        Imageattrs,
-        Simulcast,
-        Simulcast03,
-        Framerate,
-        SourceFilter,
-        BundleOnly,
-        Label,
-        SctpPort,
-        MaxMessageSize,
-        Other(&'a str),
-    }
-
-    #[allow(dead_code)]
-    fn attribute_kind(input: &str) -> IResult<&str, AttributeKind> {
-        alt((
-            map(tag("setup"), |_| AttributeKind::Setup),
-            map(take_till1(|i| i == ':'), AttributeKind::Other),
-        ))(input)
-    }
-
-    #[allow(dead_code)]
-    pub fn generic_attribute_line(input: &str) -> IResult<&str, Attribute> {
-        a_line(map(
-            separated_pair(attribute_kind, tag(":"), is_not("\n")),
-            |(kind, value)| Attribute { kind, value },
-        ))(input)
-    }
 
     pub fn lazy_attribute_line(input: &str) -> IResult<&str, (&str, &str)> {
         a_line(map(
@@ -109,33 +68,16 @@ pub mod generic {
             |(key, val)| (key, val),
         ))(input)
     }
-}
-#[test]
-fn test_generic_attribute_line() {
-    assert_line!(
-        generic_attribute_line,
-        "a=foo:bar",
-        Attribute {
-            kind: AttributeKind::Other("foo"),
-            value: "bar"
-        }
-    );
-    assert_line!(
-        generic_attribute_line,
-        "a=fmtp:111 minptime=10; useinbandfec=1",
-        Attribute {
-            kind: AttributeKind::Other("fmtp"),
-            value: "111 minptime=10; useinbandfec=1"
-        }
-    );
-    assert_line!(
-        generic_attribute_line,
-        "a=setup:actpass",
-        Attribute {
-            kind: AttributeKind::Setup,
-            value: "actpass"
-        }
-    );
+    #[test]
+    fn test_lazy_attribute_line() {
+        assert_line!(lazy_attribute_line, "a=foo:bar", ("foo", "bar"));
+        assert_line!(
+            lazy_attribute_line,
+            "a=fmtp:111 minptime=10; useinbandfec=1",
+            ("fmtp", "111 minptime=10; useinbandfec=1")
+        );
+        assert_line!(lazy_attribute_line, "a=setup:actpass", ("setup", "actpass"));
+    }
 }
 
 pub mod bundle {
@@ -156,22 +98,35 @@ pub mod bundle {
         )(input)
     }
 
+    impl fmt::Display for BundleGroup<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=group:BUNDLE")?;
+            for v in &self.0 {
+                write!(f, " {}", v)?;
+            }
+            Ok(())
+        }
+    }
+
     #[test]
     fn test_bundle_group_line() {
         assert_line!(
             bundle_group_line,
             "a=group:BUNDLE 0 1",
-            BundleGroup(vec!["0", "1"])
+            BundleGroup(vec!["0", "1"]),
+            print
         );
         assert_line!(
             bundle_group_line,
             "a=group:BUNDLE video",
-            BundleGroup(vec!["video"])
+            BundleGroup(vec!["video"]),
+            print
         );
         assert_line!(
             bundle_group_line,
             "a=group:BUNDLE sdparta_0 sdparta_1 sdparta_2",
-            BundleGroup(vec!["sdparta_0", "sdparta_1", "sdparta_2"])
+            BundleGroup(vec!["sdparta_0", "sdparta_1", "sdparta_2"]),
+            print
         );
     }
 }
@@ -209,6 +164,16 @@ pub mod rtp {
         )(input)
     }
 
+    impl fmt::Display for Rtp<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "a=rtpmap:{} {}/{}/{}",
+                self.payload, self.codec, self.rate, self.encoding
+            )
+        }
+    }
+
     #[test]
     fn test_rtp_attribute_line() {
         assert_line!("a=rtpmap:110 opus/48000/2", rtp_attribute_line);
@@ -239,6 +204,12 @@ pub mod fmtp {
         )(input)
     }
 
+    impl fmt::Display for Fmtp<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=fmtp:{} {}", self.payload, self.config)
+        }
+    }
+
     #[test]
     fn test_fmtp_attribute_line() {
         assert_line!(
@@ -247,9 +218,10 @@ pub mod fmtp {
             Fmtp {
                 payload: 108,
                 config: "profile-level-id=24;object=23;bitrate=64000",
-            }
+            },
+            print
         );
-        assert_line!(
+        assert_line_print!(
             fmtp_attribute_line,
             "a=fmtp:111 minptime=10; useinbandfec=1"
         );
@@ -270,9 +242,15 @@ pub mod control {
         map(read_string, Control)(input)
     }
 
+    impl fmt::Display for Control<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=control:{}", self.0)
+        }
+    }
+
     #[test]
     fn test_control_attribute_line() {
-        assert_line!(control_attribute_line, "a=control:streamid=0");
+        assert_line_print!(control_attribute_line, "a=control:streamid=0");
     }
 }
 pub mod direction {
@@ -284,7 +262,7 @@ pub mod direction {
     /// `a=sendonly`
     /// `a=recvonly`
     /// `a=inactive`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub enum Direction {
         SendOnly,
         SendRecv,
@@ -305,6 +283,18 @@ pub mod direction {
     pub fn direction_line(input: &str) -> IResult<&str, Direction> {
         a_line(wsf(read_direction))(input)
     }
+
+    impl fmt::Display for Direction {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Direction::SendOnly => write!(f, "a=sendonly"),
+                Direction::SendRecv => write!(f, "a=sendrecv"),
+                Direction::RecvOnly => write!(f, "a=recvonly"),
+                Direction::Inactive => write!(f, "a=inactive"),
+            }
+        }
+    }
+
     #[test]
     fn test_direction_line() {
         assert_line!(read_direction, "sendrecv", Direction::SendRecv);
@@ -340,11 +330,32 @@ pub mod rtcp_option {
     pub fn rtp_option_line(input: &str) -> IResult<&str, RtcpOption> {
         a_line(rtp_option)(input)
     }
+
+    impl fmt::Display for RtcpOption {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                RtcpOption::RtcpMux => write!(f, "a=rtcp-mux"),
+                RtcpOption::RtcpMuxOnly => write!(f, "a=rtcp-mux-only"),
+                RtcpOption::RtcpRsize => write!(f, "a=rtcp-rsize"),
+            }
+        }
+    }
+
     #[test]
     fn test_read_rtp_option() {
-        assert_line!(rtp_option_line, "a=rtcp-mux", RtcpOption::RtcpMux);
-        assert_line!(rtp_option_line, "a=rtcp-mux-only", RtcpOption::RtcpMuxOnly);
-        assert_line!(rtp_option_line, "a=rtcp-rsize", RtcpOption::RtcpRsize);
+        assert_line!(rtp_option_line, "a=rtcp-mux", RtcpOption::RtcpMux, print);
+        assert_line!(
+            rtp_option_line,
+            "a=rtcp-mux-only",
+            RtcpOption::RtcpMuxOnly,
+            print
+        );
+        assert_line!(
+            rtp_option_line,
+            "a=rtcp-rsize",
+            RtcpOption::RtcpRsize,
+            print
+        );
     }
 }
 pub mod fingerprint {
@@ -372,10 +383,128 @@ pub mod fingerprint {
         )(input)
     }
 
+    impl fmt::Display for Fingerprint<'_> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=fingerprint:{} {}", self.r#type, self.hash)
+        }
+    }
+
     #[test]
     fn test_fingerprint_line() {
-        println!("{:?}",
-        fingerprint_line("a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2").unwrap()
-    );
+        assert_line_print!(
+            fingerprint_line,
+            "a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2");
+    }
+}
+
+pub mod mid {
+    use super::*;
+
+    #[derive(Debug)]
+    pub struct Mid<'a>(pub &'a str);
+
+    pub fn mid_line(input: &str) -> IResult<&str, Mid> {
+        attribute("mid", mid)(input)
+    }
+
+    pub fn mid(input: &str) -> IResult<&str, Mid> {
+        map(read_string, Mid)(input)
+    }
+
+    impl<'a> fmt::Display for Mid<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=mid:{}", self.0)
+        }
+    }
+
+    #[test]
+    fn test_mid_line() {
+        assert_line_print!(mid_line, "a=mid:1");
+        assert_line_print!(mid_line, "a=mid:a1");
+        assert_line_print!(mid_line, "a=mid:0");
+        assert_line_print!(mid_line, "a=mid:audio")
+    }
+}
+
+pub mod msid {
+    use super::*;
+
+    /// TODO: type this more strictly, if possible without `Vec`
+    #[derive(Debug, PartialEq)]
+    pub struct MsidSemantic<'a>(pub Vec<&'a str>);
+
+    pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
+        attribute("msid-semantic", msid_semantic)(input)
+    }
+
+    pub fn msid_semantic(input: &str) -> IResult<&str, MsidSemantic> {
+        wsf(map(space_separated_strings, MsidSemantic))(input)
+    }
+
+    impl<'a> fmt::Display for MsidSemantic<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=msid-semantic:")?;
+            for (i, x) in self.0.iter().enumerate() {
+                if i > 0 {
+                    write!(f, " ")?;
+                }
+                write!(f, "{}", x)?;
+            }
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_msid_semantic_line() {
+        assert_line!(
+            msid_semantic_line,
+            "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS",
+            MsidSemantic(vec!["WMS", "lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"])
+        );
+        assert_line_print!(
+            msid_semantic_line,
+            "a=msid-semantic:WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
+        );
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct Msid<'a>(pub Vec<&'a str>);
+
+    pub fn msid_line(input: &str) -> IResult<&str, Msid> {
+        attribute("msid", msid)(input)
+    }
+
+    pub fn msid(input: &str) -> IResult<&str, Msid> {
+        wsf(map(space_separated_strings, Msid))(input)
+    }
+
+    impl<'a> fmt::Display for Msid<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "a=msid:")?;
+            for (i, x) in self.0.iter().enumerate() {
+                if i > 0 {
+                    write!(f, " ")?;
+                }
+                write!(f, "{}", x)?;
+            }
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_msid_line() {
+        assert_line!(
+            msid_line,
+            "a=msid:47017fee-b6c1-4162-929c-a25110252400 f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9",
+            Msid(vec![
+                "47017fee-b6c1-4162-929c-a25110252400",
+                "f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9"
+            ]),
+            print
+        );
+        assert_line_print!(
+            msid_line,
+            "a=msid:61317484-2ed4-49d7-9eb7-1414322a7aae f30bdb4a-5db8-49b5-bcdc-e0c9a23172e0"
+        );
     }
 }

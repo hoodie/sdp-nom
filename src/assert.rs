@@ -57,7 +57,7 @@ macro_rules! assert_line {
         assert!(rest.is_empty(), "not parsed completely");
 
         let serialized = parsed.to_string();
-        assert_eq!($line, serialized);
+        pretty_assertions::assert_eq!($line, serialized);
     }};
 }
 

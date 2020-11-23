@@ -23,9 +23,11 @@
     trivial_numeric_casts,
     unsafe_code,
     unused_import_braces,
-    unused_qualifications
+    // unused_qualifications
 )]
 // #![warn(missing_docs)]
+
+use std::fmt::Display;
 
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
@@ -40,21 +42,20 @@ mod tests;
 mod assert;
 
 use lines::{
-    bandwidth::*,
-    connection::*,
-    email::*,
-    media::{media_line, mid::*, msid::*, Media},
-    origin::*,
-    phone_number::*,
-    session_information::*,
-    session_name::*,
-    timing::*,
-    version::*,
+    bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
+    session_information::*, session_name::*, timing::*, uri::*, version::*,
 };
 
 /// Sdp Line
 #[derive(Debug)]
 pub enum SdpLine<'a> {
+    Session(SessionLine<'a>),
+    Attribute(AttributeLine<'a>),
+}
+
+/// Session Line
+#[derive(Debug)]
+pub enum SessionLine<'a> {
     /// `v=0`
     Version(Version),
 
@@ -70,16 +71,14 @@ pub enum SdpLine<'a> {
     /// `b=AS:1024`
     BandWidth(BandWidth),
 
+    /// `u=`
+    Uri(Uri<'a>),
+
     /// `p=0118 999 881 999 119 7253`
     PhoneNumber(PhoneNumber<'a>),
 
     /// "e=email@example.com"
     EmailAddress(EmailAddress<'a>),
-
-    Ice(attributes::IceParameter<'a>),
-
-    /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
-    Candidate(attributes::Candidate<'a>),
 
     /// `c=IN IP4 10.23.42.137`
     Connection(Connection),
@@ -88,12 +87,80 @@ pub enum SdpLine<'a> {
 
     /// `m=video 51744 RTP/AVP 126 97 98 34 31
     Media(Media<'a>),
-    Mid(Mid<'a>),
-    MsidSemantic(MsidSemantic<'a>),
-    Msid(Msid<'a>),
+}
+
+impl Display for SdpLine<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SdpLine::Session(session) => write!(f, "{}", session),
+            SdpLine::Attribute(attribute) => write!(f, "{}", attribute),
+        }
+    }
+}
+
+impl Display for SessionLine<'_> {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SessionLine::Version(v)      => write!(f,"{}", v),
+            SessionLine::Name(n)         => write!(f,"{}", n),
+            SessionLine::Timing(t)       => write!(f,"{}", t),
+            SessionLine::Origin(o)       => write!(f,"{}", o),
+            SessionLine::BandWidth(b)    => write!(f,"{}", b),
+            SessionLine::Uri(u)          => write!(f,"{}", u),
+            SessionLine::PhoneNumber(p)  => write!(f,"{}", p),
+            SessionLine::EmailAddress(e) => write!(f,"{}", e),
+            SessionLine::Connection(c)   => write!(f,"{}", c),
+            SessionLine::Description(d)  => write!(f,"{}", d),
+            SessionLine::Media(m)        => write!(f,"{}", m),
+        }
+    }
+}
+
+impl Display for AttributeLine<'_> {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AttributeLine::Candidate(c)    => write!(f, "{}", c),
+            AttributeLine::Ice(i)          => write!(f, "{}", i),
+            AttributeLine::Mid(m)          => write!(f, "{}", m),
+            AttributeLine::MsidSemantic(ms) => write!(f, "{}", ms),
+            AttributeLine::Msid(m)         => write!(f, "{}", m),
+            AttributeLine::RtpMap(r)       => write!(f, "{}", r),
+            AttributeLine::PTime(p)        => write!(f, "{}", p),
+            AttributeLine::Ssrc(s)         => write!(f, "{}", s),
+            AttributeLine::BundleGroup(b)  => write!(f, "{}", b),
+            AttributeLine::SsrcGroup(s)    => write!(f, "{}", s),
+            AttributeLine::Fingerprint(fp) => write!(f, "{}", fp),
+            AttributeLine::Direction(d)    => write!(f, "{}", d),
+            AttributeLine::Rtp(r)          => write!(f, "{}", r),
+            AttributeLine::Rtcp(r)         => write!(f, "{}", r),
+            AttributeLine::Fmtp(fmtp)      => write!(f, "{}", fmtp),
+            AttributeLine::RtcpFb(r)       => write!(f, "{}", r),
+            AttributeLine::RtcpOption(r)   => write!(f, "{}", r),
+            AttributeLine::Control(c)      => write!(f, "{}", c),
+            AttributeLine::SetupRole(s)    => write!(f, "{}", s),
+            AttributeLine::Extmap(e)       => write!(f, "{}", e),
+            AttributeLine::BundleOnly      => write!(f, "a=bundle-only"),
+            AttributeLine::EoC             => write!(f, "a=end-of-candidates"),
+            AttributeLine::Attribute {
+                key,
+                val
+            }                              => write!(f, "a={}:{}", key, val),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum AttributeLine<'a> {
+    /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
+    Candidate(attributes::Candidate<'a>),
+    Ice(attributes::IceParameter<'a>),
+    Mid(attributes::mid::Mid<'a>),
+    MsidSemantic(attributes::msid::MsidSemantic<'a>),
+    Msid(attributes::msid::Msid<'a>),
     RtpMap(attributes::rtpmap::RtpMap<'a>),
     PTime(attributes::rtpmap::PTime),
-
     Ssrc(attributes::Ssrc<'a>),
     BundleGroup(attributes::BundleGroup<'a>),
     SsrcGroup(attributes::SsrcGroup),
@@ -112,73 +179,71 @@ pub enum SdpLine<'a> {
     Attribute {
         key: &'a str,
         val: &'a str,
-    }, // Aline(Vec<&'a str>), // catch all, don't use
-}
-
-fn sdp_line_session(input: &str) -> IResult<&str, SdpLine> {
-    alt((
-        // two levels of `alt` because it's not implemented for such large tuples
-        map(version_line, SdpLine::Version),
-        map(name_line, SdpLine::Name),
-        map(description_line, SdpLine::Description),
-        map(bandwidth_line, SdpLine::BandWidth),
-        map(timing_line, SdpLine::Timing),
-        map(phone_number_line, SdpLine::PhoneNumber),
-        map(email_address_line, SdpLine::EmailAddress),
-        map(origin_line, SdpLine::Origin),
-        map(connection_line, SdpLine::Connection),
-        map(media_line, SdpLine::Media),
-    ))(input)
-}
-pub fn sdp_line_lazy(input: &str) -> IResult<&str, SdpLine> {
-    alt((
-        sdp_line_session,
-        map(attributes::generic::lazy_attribute_line, |(key, val)| {
-            SdpLine::Attribute { key, val }
-        }),
-    ))(input)
+    },
 }
 
 pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
     alt((
-        sdp_line_session,
-        alt((
-            map(mid_line, SdpLine::Mid),
-            map(msid_semantic_line, SdpLine::MsidSemantic),
-            map(msid_line, SdpLine::Msid),
-        )),
-        alt((
-            map(attributes::bundle_group_line, SdpLine::BundleGroup),
-            map(attributes::ice::ice_parameter_line, SdpLine::Ice),
-            map(attributes::ssrc::ssrc_line, SdpLine::Ssrc),
-            map(attributes::ssrc::ssrc_group_line, SdpLine::SsrcGroup),
-            map(attributes::rtpmap::rtpmap_line, SdpLine::RtpMap),
-            map(attributes::rtpmap::read_p_time, SdpLine::PTime),
-            map(
-                attributes::fingerprint::fingerprint_line,
-                SdpLine::Fingerprint,
-            ),
-            map(attributes::candidate::candidate_line, SdpLine::Candidate),
-            map(attributes::direction::direction_line, SdpLine::Direction),
-            map(attributes::extmap::extmap_line, SdpLine::Extmap),
-            map(attributes::dtls::setup_role_line, SdpLine::SetupRole),
-            map(attributes::rtp_attribute_line, SdpLine::Rtp),
-            map(attributes::rtcp::rtcp_attribute_line, SdpLine::Rtcp),
-            map(attributes::fmtp_attribute_line, SdpLine::Fmtp),
-            map(attributes::control_attribute_line, SdpLine::Control),
-            map(attributes::rtcp::rtcpfb_attribute_line, SdpLine::RtcpFb),
-            map(attributes::rtp_option_line, SdpLine::RtcpOption),
-            map(tag("a=bundle-only"), |_| SdpLine::BundleOnly),
-            map(tag("a=end-of-candidates"), |_| SdpLine::EoC),
-            // map(a_line, SdpLine::Aline),
-        )),
+        map(session_line, SdpLine::Session),
+        map(attribute_line, SdpLine::Attribute),
     ))(input)
 }
 
-#[cfg(test)]
-#[ctor::ctor]
-fn init_color_backtrace() {
-    color_backtrace::install();
+fn session_line(input: &str) -> IResult<&str, SessionLine> {
+    alt((
+        // two levels of `alt` because it's not implemented for such large tuples
+        map(version_line, SessionLine::Version),
+        map(name_line, SessionLine::Name),
+        map(description_line, SessionLine::Description),
+        map(bandwidth_line, SessionLine::BandWidth),
+        map(uri_line, SessionLine::Uri),
+        map(timing_line, SessionLine::Timing),
+        map(phone_number_line, SessionLine::PhoneNumber),
+        map(email_address_line, SessionLine::EmailAddress),
+        map(origin_line, SessionLine::Origin),
+        map(connection_line, SessionLine::Connection),
+        map(media_line, SessionLine::Media),
+    ))(input)
+}
+
+pub fn attribute_line_lazy(input: &str) -> IResult<&str, AttributeLine> {
+    map(attributes::generic::lazy_attribute_line, |(key, val)| {
+        AttributeLine::Attribute { key, val }
+    })(input)
+}
+
+pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
+    use attributes::*;
+    use fingerprint::fingerprint_line;
+    alt((
+        alt((
+            map(mid::mid_line, AttributeLine::Mid),
+            map(msid::msid_semantic_line, AttributeLine::MsidSemantic),
+            map(msid::msid_line, AttributeLine::Msid),
+            map(bundle::bundle_group_line, AttributeLine::BundleGroup),
+            map(ice::ice_parameter_line, AttributeLine::Ice),
+            map(ssrc::ssrc_line, AttributeLine::Ssrc),
+            map(ssrc::ssrc_group_line, AttributeLine::SsrcGroup),
+            map(rtpmap::rtpmap_line, AttributeLine::RtpMap),
+            map(rtpmap::read_p_time, AttributeLine::PTime),
+            map(fingerprint_line, AttributeLine::Fingerprint),
+        )),
+        alt((
+            map(candidate::candidate_line, AttributeLine::Candidate),
+            map(direction::direction_line, AttributeLine::Direction),
+            map(extmap::extmap_line, AttributeLine::Extmap),
+            map(dtls::setup_role_line, AttributeLine::SetupRole),
+            map(rtp_attribute_line, AttributeLine::Rtp),
+            map(rtcp::rtcp_attribute_line, AttributeLine::Rtcp),
+            map(fmtp_attribute_line, AttributeLine::Fmtp),
+            map(control_attribute_line, AttributeLine::Control),
+            map(rtcp::rtcpfb_attribute_line, AttributeLine::RtcpFb),
+            map(rtp_option_line, AttributeLine::RtcpOption),
+            map(attributes::generic::lazy_attribute_line,|(key,val)| AttributeLine::Attribute{key,val}),
+            map(tag("a=bundle-only"), |_| AttributeLine::BundleOnly),
+            map(tag("a=end-of-candidates"), |_| AttributeLine::EoC),
+        )),
+    ))(input)
 }
 
 #[derive(Debug, Default)]
@@ -189,6 +254,27 @@ pub struct MediaSection<'a> {
 pub struct EagerSession<'a> {
     pub lines: Vec<SdpLine<'a>>,
     pub media: Vec<MediaSection<'a>>,
+}
+
+impl std::fmt::Display for MediaSection<'_>{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for line in &self.lines {
+            writeln!(f, "{}", line)?;
+        }
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for EagerSession<'_>{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for line in &self.lines {
+            writeln!(f, "{}", line)?;
+        }
+        for msection in &self.media {
+            write!(f, "{}", msection)?;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Default)]
@@ -203,9 +289,9 @@ impl<'a> EagerSession<'a> {
     pub fn from_str(sdp: &'a str) -> EagerSession<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
-                match sdp_line_lazy(&line) {
+                match sdp_line(&line) {
                     Ok((_, parsed)) => {
-                        if matches!(parsed, SdpLine::Media(_)) {
+                        if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
                             if let Some(m) = state.current_msecion.take() {
                                 state.media.push(m);
                             }

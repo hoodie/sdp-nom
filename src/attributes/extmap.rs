@@ -1,5 +1,7 @@
 //! https://tools.ietf.org/html/rfc8285
 
+use std::fmt;
+
 use nom::{
     bytes::complete::tag,
     combinator::{map, opt},
@@ -42,6 +44,19 @@ fn read_extmap(input: &str) -> IResult<&str, Extmap> {
 
 pub fn extmap_line(input: &str) -> IResult<&str, Extmap> {
     attribute("extmap", read_extmap)(input)
+}
+impl fmt::Display for Extmap<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(direction) = self.direction {
+            write!(f, "a=extmap:{}/{} {}", self.value, direction, self.uri)?;
+        } else {
+            write!(f, "a=extmap:{} {}", self.value, self.uri)?;
+        }
+        for a in &self.attributes {
+            write!(f, " {}", a)?;
+        }
+        Ok(())
+    }
 }
 
 #[test]

@@ -10,10 +10,8 @@ use nom::{
     IResult,
 };
 
-use std::net::IpAddr;
+use std::{fmt::Display, net::IpAddr};
 
-#[cfg(test)]
-use crate::assert_line;
 use crate::parsers::{attribute, read_addr, read_number, read_string, wsf};
 
 #[derive(Debug)]
@@ -127,18 +125,79 @@ pub fn candidate_line(input: &str) -> IResult<&str, Candidate> {
     attribute("candidate", candidate)(input)
 }
 
+impl Display for CandidateComponent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CandidateComponent::Rtp => write!(f, "1"),
+            CandidateComponent::Rtcp => write!(f, "2"),
+        }
+    }
+}
+
+impl Display for CandidateProtocol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CandidateProtocol::Tcp => write!(f, "tcp"),
+            CandidateProtocol::Udp => write!(f, "udp"),
+            CandidateProtocol::Dccp => write!(f, "dccp"),
+        }
+    }
+}
+
+impl Display for CandidateType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CandidateType::Host => write!(f, "host"),
+            CandidateType::Relay => write!(f, "relay"),
+            CandidateType::Srflx => write!(f, "srflx"),
+            CandidateType::Prflx => write!(f, "prflx"),
+        }
+    }
+}
+
+impl Display for Candidate<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "a=candidate:{} {} {} {} {} {} typ {}",
+            self.foundation,
+            self.component,
+            self.protocol,
+            self.priority,
+            self.addr,
+            self.port,
+            self.typ,
+        )?;
+        if let Some(x) = self.raddr {
+            write!(f, "{}", x)?;
+        }
+        if let Some(x) = self.rport {
+            write!(f, "{}", x)?;
+        }
+        if let Some(x) = self.tcptype {
+            write!(f, "{}", x)?;
+        }
+        if let Some(x) = self.generation {
+            write!(f, "{}", x)?;
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 #[rustfmt::skip]
 mod tests {
+    use crate::{assert_line, assert_line_print};
+
     use super::*;
 
     #[test]
     fn parses_candidate_line() {
-        assert_line!("a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host", candidate_line);
-        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay", candidate_line);
-        assert_line!("a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx", candidate_line);
-        assert_line!("a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx", candidate_line);
-        assert_line!("a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx", candidate_line);
+        assert_line_print!(candidate_line, "a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host");
+        assert_line_print!(candidate_line, "a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx");
+        assert_line_print!(candidate_line, "a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx");
+        assert_line!(candidate_line, "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay");
+        assert_line!(candidate_line, "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx");
         // assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", candidate_line); // FIXME: is this one compliant?
     }
 
