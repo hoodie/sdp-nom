@@ -38,7 +38,11 @@ mod tests;
 #[cfg(test)]
 #[macro_use]
 mod assert;
+#[cfg(feature="display")]
 mod display;
+
+#[cfg(feature="ufmt")]
+mod udisplay;
 
 use lines::{
     bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
@@ -195,6 +199,7 @@ pub struct EagerSession<'a> {
     pub media: Vec<MediaSection<'a>>,
 }
 
+#[cfg(feature="display")]
 impl std::fmt::Display for MediaSection<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
@@ -204,6 +209,7 @@ impl std::fmt::Display for MediaSection<'_> {
     }
 }
 
+#[cfg(feature="display")]
 impl std::fmt::Display for EagerSession<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
