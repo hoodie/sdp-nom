@@ -8,8 +8,6 @@ use nom::{
     IResult,
 };
 
-use std::fmt;
-
 pub mod connection;
 pub mod media;
 pub mod origin;
@@ -22,17 +20,11 @@ pub mod version {
     use super::*;
 
     #[derive(Debug, PartialEq)]
-    pub struct Version(u32);
+    pub struct Version(pub u32);
 
     /// "v=0"
     pub fn version_line(input: &str) -> IResult<&str, Version> {
         preceded(tag("v="), map(wsf(read_number), Version))(input)
-    }
-
-    impl fmt::Display for Version {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "v={}", self.0)
-        }
     }
 
     #[test]
@@ -56,12 +48,6 @@ pub mod session_name {
         preceded(tag("s="), map(wsf(read_string0), SessionName))(input)
     }
 
-    impl<'a> std::fmt::Display for SessionName<'a> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "s={}", self.0)
-        }
-    }
-
     #[test]
     fn test_name_line() {
         assert_line!(name_line, "s=", SessionName(""), print);
@@ -81,12 +67,6 @@ pub mod session_information {
     /// SessionInformation "i=description"
     pub fn description_line(input: &str) -> IResult<&str, SessionInformation> {
         line("i=", map(read_string, SessionInformation))(input)
-    }
-
-    impl<'a> std::fmt::Display for SessionInformation<'a> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "i={}", self.0)
-        }
     }
 
     #[test]
@@ -111,12 +91,6 @@ pub mod uri {
         line("u=", map(read_string, Uri))(input)
     }
 
-    impl fmt::Display for Uri<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}", self.0)
-        }
-    }
-
     #[test]
     fn test_uri_line() {
         assert_line!(
@@ -137,12 +111,6 @@ pub mod email {
     /// "e=email@example.com"
     pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
         line("e=", wsf(map(read_string, EmailAddress)))(input)
-    }
-
-    impl<'a> std::fmt::Display for EmailAddress<'a> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "e={}", self.0)
-        }
     }
 
     #[test]
@@ -178,11 +146,6 @@ pub mod phone_number {
             print
         );
     }
-    impl<'a> std::fmt::Display for PhoneNumber<'a> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "p={}", self.0)
-        }
-    }
 }
 
 pub mod timing {
@@ -191,8 +154,8 @@ pub mod timing {
     /// `t=0 0`
     #[derive(Debug, PartialEq)]
     pub struct Timing {
-        start: u32,
-        stop: u32,
+        pub start: u32,
+        pub stop: u32,
     }
 
     /// "t=0 0"
@@ -213,12 +176,6 @@ pub mod timing {
         assert_line!(timing_line,"t=  2 3 ", Timing { start: 2, stop: 3 });
         assert_line!(timing_line,"t=  2  3 ", Timing { start: 2, stop: 3 });
         assert_line!(timing_line,"t=23 42", Timing { start: 23, stop: 42 }, print);
-    }
-
-    impl fmt::Display for Timing {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "t={} {}", self.start, self.stop)
-        }
     }
 }
 
@@ -246,8 +203,8 @@ pub mod bandwidth {
     #[derive(Debug, PartialEq)]
     /// "b=AS:1024"
     pub struct BandWidth {
-        r#type: BandWidthType,
-        limit: u32,
+        pub r#type: BandWidthType,
+        pub limit: u32,
     }
 
     /// "b=AS:1024"
@@ -261,20 +218,6 @@ pub mod bandwidth {
             separated_pair(bandwidth_type, tag(":"), read_number),
             |(r#type, limit)| (BandWidth { r#type, limit }),
         )(input)
-    }
-
-    impl fmt::Display for BandWidthType {
-        #[rustfmt::skip]
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use BandWidthType::*;
-        write!( f, "{}", match self { TIAS => "TIAS", AS => "AS", CT => "CT", RR => "RR", RS => "R" })
-    }
-    }
-
-    impl fmt::Display for BandWidth {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "b={}:{}", self.r#type, self.limit)
-        }
     }
 
     #[test]

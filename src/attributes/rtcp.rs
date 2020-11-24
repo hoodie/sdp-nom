@@ -8,7 +8,7 @@ use nom::{
     IResult,
 };
 
-use std::{fmt, net::IpAddr};
+use std::net::IpAddr;
 
 use crate::parsers::*;
 #[cfg(test)]
@@ -29,10 +29,10 @@ pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
 /// `a=rtcp:65179 IN IP4 10.23.34.567`
 #[derive(Debug, PartialEq)]
 pub struct Rtcp {
-    port: u32,
-    net_type: NetType,
-    ip_ver: IpVer,
-    addr: IpAddr,
+    pub port: u32,
+    pub net_type: NetType,
+    pub ip_ver: IpVer,
+    pub addr: IpAddr,
 }
 
 pub fn rtcp_attribute_line(input: &str) -> IResult<&str, Rtcp> {
@@ -56,22 +56,6 @@ fn rtcp_attribute(input: &str) -> IResult<&str, Rtcp> {
     )(input)
 }
 
-impl fmt::Display for NetType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "IN")
-    }
-}
-
-impl fmt::Display for Rtcp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "a=rtcp:{} {} {} {}",
-            self.port, self.net_type, self.ip_ver, self.addr
-        )
-    }
-}
-
 #[test]
 fn test_rtcp_attribute_line() {
     assert_line_print!(rtcp_attribute_line, "a=rtcp:65179 IN IP4 10.23.34.255");
@@ -89,8 +73,8 @@ fn test_rtcp_attribute_line() {
 /// eg `a=rtcp-fb:98 trr-int 100`
 #[derive(Debug, PartialEq)]
 pub struct Fb<'a> {
-    payload: u32,
-    val: FbVal<'a>,
+    pub payload: u32,
+    pub val: FbVal<'a>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -228,60 +212,4 @@ fn test_rtcpfb_line() {
             }
         }, print
     );
-}
-
-impl fmt::Display for FbAckParam<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FbAckParam::Rpsi => write!(f, "rpsi"),
-            FbAckParam::Sli(Some(x)) => write!(f, "sli {}", x),
-            FbAckParam::Sli(None) => write!(f, "sli"),
-            FbAckParam::App(x) => write!(f, "app {}", x),
-            FbAckParam::Other(k, Some(v)) => write!(f, "{} {}", k, v),
-            FbAckParam::Other(k, None) => write!(f, "{}", k),
-        }
-    }
-}
-
-impl fmt::Display for FbNackParam<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FbNackParam::Pli => write!(f, "pli"),
-            FbNackParam::Rpsi => write!(f, "rpsi"),
-            FbNackParam::Sli => write!(f, "sli"),
-            FbNackParam::Other(k, v) => write!(f, "{} {}", k, v),
-            FbNackParam::App(x) => write!(f, "app {}", x),
-        }
-    }
-}
-
-impl fmt::Display for FbParam<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FbParam::App(p) => write!(f, "app {}", p),
-            FbParam::Single(p) => write!(f, "{}", p),
-            FbParam::Pair(k, v) => write!(f, "{} {}", k, v),
-        }
-    }
-}
-
-impl fmt::Display for FbVal<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FbVal::Ack(p) => write!(f, "ack {}", p),
-            FbVal::Nack(p) => write!(f, "nack {}", p),
-            FbVal::TrrInt(p) => write!(f, "trr-int {}", p),
-            FbVal::RtcpFbId {
-                id,
-                param: Some(param),
-            } => write!(f, "{} {}", id, param),
-            FbVal::RtcpFbId { id, param: None } => write!(f, "{}", id),
-        }
-    }
-}
-
-impl fmt::Display for Fb<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a=rtcp-fb:{} {}", self.payload, self.val)
-    }
 }

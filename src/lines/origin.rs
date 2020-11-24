@@ -1,6 +1,6 @@
 use nom::{combinator::map, sequence::tuple, IResult};
 
-use std::{fmt, net::IpAddr};
+use std::net::IpAddr;
 
 use crate::parsers::{
     line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
@@ -44,21 +44,6 @@ pub fn origin(input: &str) -> IResult<&str, Origin> {
 
 pub fn origin_line(input: &str) -> IResult<&str, Origin> {
     line("o=", origin)(input)
-}
-
-impl fmt::Display for Origin<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "o={name} {id} {version} {nt} {ipver} {addr}",
-            name = self.user_name,
-            id = self.session_id,
-            version = self.session_version,
-            nt = self.net_type,
-            ipver = self.ip_ver,
-            addr = self.addr
-        )
-    }
 }
 
 #[test]

@@ -8,8 +8,6 @@ use nom::{
     IResult,
 };
 
-use std::fmt;
-
 pub mod candidate;
 pub mod dtls;
 pub mod extmap;
@@ -98,16 +96,6 @@ pub mod bundle {
         )(input)
     }
 
-    impl fmt::Display for BundleGroup<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=group:BUNDLE")?;
-            for v in &self.0 {
-                write!(f, " {}", v)?;
-            }
-            Ok(())
-        }
-    }
-
     #[test]
     fn test_bundle_group_line() {
         assert_line!(
@@ -137,10 +125,10 @@ pub mod rtp {
     // a=rtpmap:110 opus/48000/2
     #[derive(Debug, PartialEq)]
     pub struct Rtp<'a> {
-        payload: u32,
-        codec: &'a str,
-        rate: u32,
-        encoding: u32,
+        pub payload: u32,
+        pub codec: &'a str,
+        pub rate: u32,
+        pub encoding: u32,
     }
 
     pub fn rtp_attribute_line(input: &str) -> IResult<&str, Rtp> {
@@ -164,16 +152,6 @@ pub mod rtp {
         )(input)
     }
 
-    impl fmt::Display for Rtp<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(
-                f,
-                "a=rtpmap:{} {}/{}/{}",
-                self.payload, self.codec, self.rate, self.encoding
-            )
-        }
-    }
-
     #[test]
     fn test_rtp_attribute_line() {
         assert_line!("a=rtpmap:110 opus/48000/2", rtp_attribute_line);
@@ -186,8 +164,8 @@ pub mod fmtp {
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
     #[derive(Debug, PartialEq)]
     pub struct Fmtp<'a> {
-        payload: u32,
-        config: &'a str,
+        pub payload: u32,
+        pub config: &'a str,
     }
 
     pub fn fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
@@ -202,12 +180,6 @@ pub mod fmtp {
             )),
             |(payload, config)| (Fmtp { payload, config }),
         )(input)
-    }
-
-    impl fmt::Display for Fmtp<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=fmtp:{} {}", self.payload, self.config)
-        }
     }
 
     #[test]
@@ -232,7 +204,7 @@ pub mod control {
 
     /// `a=control:streamid=0`
     #[derive(Debug, PartialEq)]
-    pub struct Control<'a>(&'a str);
+    pub struct Control<'a>(pub &'a str);
 
     pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
         attribute("control", control_attribute)(input)
@@ -240,12 +212,6 @@ pub mod control {
 
     fn control_attribute(input: &str) -> IResult<&str, Control> {
         map(read_string, Control)(input)
-    }
-
-    impl fmt::Display for Control<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=control:{}", self.0)
-        }
     }
 
     #[test]
@@ -284,17 +250,6 @@ pub mod direction {
         a_line(wsf(read_direction))(input)
     }
 
-    impl fmt::Display for Direction {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                Direction::SendOnly => write!(f, "a=sendonly"),
-                Direction::SendRecv => write!(f, "a=sendrecv"),
-                Direction::RecvOnly => write!(f, "a=recvonly"),
-                Direction::Inactive => write!(f, "a=inactive"),
-            }
-        }
-    }
-
     #[test]
     fn test_direction_line() {
         assert_line!(read_direction, "sendrecv", Direction::SendRecv);
@@ -331,16 +286,6 @@ pub mod rtcp_option {
         a_line(rtp_option)(input)
     }
 
-    impl fmt::Display for RtcpOption {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                RtcpOption::RtcpMux => write!(f, "a=rtcp-mux"),
-                RtcpOption::RtcpMuxOnly => write!(f, "a=rtcp-mux-only"),
-                RtcpOption::RtcpRsize => write!(f, "a=rtcp-rsize"),
-            }
-        }
-    }
-
     #[test]
     fn test_read_rtp_option() {
         assert_line!(rtp_option_line, "a=rtcp-mux", RtcpOption::RtcpMux, print);
@@ -363,8 +308,8 @@ pub mod fingerprint {
 
     #[derive(Debug)]
     pub struct Fingerprint<'a> {
-        r#type: &'a str,
-        hash: &'a str,
+        pub r#type: &'a str,
+        pub hash: &'a str,
     }
 
     /// fingerprint
@@ -381,12 +326,6 @@ pub mod fingerprint {
             )),
             |(r#type, hash)| Fingerprint { r#type, hash },
         )(input)
-    }
-
-    impl fmt::Display for Fingerprint<'_> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=fingerprint:{} {}", self.r#type, self.hash)
-        }
     }
 
     #[test]
@@ -409,12 +348,6 @@ pub mod mid {
 
     pub fn mid(input: &str) -> IResult<&str, Mid> {
         map(read_string, Mid)(input)
-    }
-
-    impl<'a> fmt::Display for Mid<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=mid:{}", self.0)
-        }
     }
 
     #[test]
@@ -441,19 +374,6 @@ pub mod msid {
         wsf(map(space_separated_strings, MsidSemantic))(input)
     }
 
-    impl<'a> fmt::Display for MsidSemantic<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=msid-semantic:")?;
-            for (i, x) in self.0.iter().enumerate() {
-                if i > 0 {
-                    write!(f, " ")?;
-                }
-                write!(f, "{}", x)?;
-            }
-            Ok(())
-        }
-    }
-
     #[test]
     fn test_msid_semantic_line() {
         assert_line!(
@@ -476,19 +396,6 @@ pub mod msid {
 
     pub fn msid(input: &str) -> IResult<&str, Msid> {
         wsf(map(space_separated_strings, Msid))(input)
-    }
-
-    impl<'a> fmt::Display for Msid<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a=msid:")?;
-            for (i, x) in self.0.iter().enumerate() {
-                if i > 0 {
-                    write!(f, " ")?;
-                }
-                write!(f, "{}", x)?;
-            }
-            Ok(())
-        }
     }
 
     #[test]

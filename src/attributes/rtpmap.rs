@@ -7,8 +7,6 @@ use nom::{
     IResult,
 };
 
-use std::fmt;
-
 use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
@@ -28,16 +26,6 @@ pub fn read_p_time(input: &str) -> IResult<&str, PTime> {
     ))(input)
 }
 
-impl fmt::Display for PTime {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PTime::MaxPTime(x) => write!(f, "a=maxptime:{}", x),
-            PTime::MinPTime(x) => write!(f, "a=minptime:{}", x),
-            PTime::PTime(x) => write!(f, "a=ptime:{}", x),
-        }
-    }
-}
-
 #[test]
 fn test_read_p_time() {
     assert_line!(read_p_time, "a=ptime:1", PTime::PTime(1), print);
@@ -50,10 +38,10 @@ fn test_read_p_time() {
 /// https://tools.ietf.org/html/rfc4566#section-6
 #[derive(Debug, PartialEq)]
 pub struct RtpMap<'a> {
-    payload_type: u32,
-    encoding_name: &'a str,
-    clock_rate: Option<u32>,
-    encoding: Option<u32>,
+    pub payload_type: u32,
+    pub encoding_name: &'a str,
+    pub clock_rate: Option<u32>,
+    pub encoding: Option<u32>,
 }
 
 pub fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
@@ -77,19 +65,6 @@ pub fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
             },
         ),
     )(input)
-}
-
-impl fmt::Display for RtpMap<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "a=rtpmap:{} {}", self.payload_type, self.encoding_name)?;
-        if let Some(clock_rate) = self.clock_rate {
-            write!(f, "/{}", clock_rate)?;
-        }
-        if let Some(encoding) = self.encoding {
-            write!(f, "/{}", encoding)?;
-        }
-        Ok(())
-    }
 }
 
 #[test]

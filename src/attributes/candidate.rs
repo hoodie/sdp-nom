@@ -10,7 +10,7 @@ use nom::{
     IResult,
 };
 
-use std::{fmt::Display, net::IpAddr};
+use std::net::IpAddr;
 
 use crate::parsers::{attribute, read_addr, read_number, read_string, wsf};
 
@@ -46,17 +46,17 @@ pub enum CandidateType {
 // "candidate:1853887674 2 udp 1518280447 47.61.61.61 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0"
 #[derive(Debug)]
 pub struct Candidate<'a> {
-    foundation: u32,
-    component: CandidateComponent,
-    protocol: CandidateProtocol,
-    priority: u32,         // 2043278322
-    addr: IpAddr,          // "192.168.0.56"
-    port: u32,             // 44323
-    typ: CandidateType,    // "host"
-    raddr: Option<IpAddr>, // "192.168.0.56"
-    rport: Option<u32>,    // 44323
-    tcptype: Option<&'a str>,
-    generation: Option<u32>,
+    pub foundation: u32,
+    pub component: CandidateComponent,
+    pub protocol: CandidateProtocol,
+    pub priority: u32,         // 2043278322
+    pub addr: IpAddr,          // "192.168.0.56"
+    pub port: u32,             // 44323
+    pub typ: CandidateType,    // "host"
+    pub raddr: Option<IpAddr>, // "192.168.0.56"
+    pub rport: Option<u32>,    // 44323
+    pub tcptype: Option<&'a str>,
+    pub generation: Option<u32>,
 }
 
 pub fn candidate(input: &str) -> IResult<&str, Candidate> {
@@ -123,65 +123,6 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
 /// "a=Candidate"
 pub fn candidate_line(input: &str) -> IResult<&str, Candidate> {
     attribute("candidate", candidate)(input)
-}
-
-impl Display for CandidateComponent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CandidateComponent::Rtp => write!(f, "1"),
-            CandidateComponent::Rtcp => write!(f, "2"),
-        }
-    }
-}
-
-impl Display for CandidateProtocol {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CandidateProtocol::Tcp => write!(f, "tcp"),
-            CandidateProtocol::Udp => write!(f, "udp"),
-            CandidateProtocol::Dccp => write!(f, "dccp"),
-        }
-    }
-}
-
-impl Display for CandidateType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CandidateType::Host => write!(f, "host"),
-            CandidateType::Relay => write!(f, "relay"),
-            CandidateType::Srflx => write!(f, "srflx"),
-            CandidateType::Prflx => write!(f, "prflx"),
-        }
-    }
-}
-
-impl Display for Candidate<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "a=candidate:{} {} {} {} {} {} typ {}",
-            self.foundation,
-            self.component,
-            self.protocol,
-            self.priority,
-            self.addr,
-            self.port,
-            self.typ,
-        )?;
-        if let Some(x) = self.raddr {
-            write!(f, "{}", x)?;
-        }
-        if let Some(x) = self.rport {
-            write!(f, "{}", x)?;
-        }
-        if let Some(x) = self.tcptype {
-            write!(f, "{}", x)?;
-        }
-        if let Some(x) = self.generation {
-            write!(f, "{}", x)?;
-        }
-        Ok(())
-    }
 }
 
 #[cfg(test)]

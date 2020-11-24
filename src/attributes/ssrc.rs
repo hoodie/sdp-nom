@@ -7,8 +7,6 @@ use nom::{
     IResult,
 };
 
-use std::fmt;
-
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
@@ -16,9 +14,9 @@ use crate::parsers::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Ssrc<'a> {
-    id: u64,
-    attribute: &'a str,
-    value: &'a str,
+    pub id: u64,
+    pub attribute: &'a str,
+    pub value: &'a str,
 }
 
 /// ssrc
@@ -40,12 +38,6 @@ pub fn ssrc_line(input: &str) -> IResult<&str, Ssrc> {
             },
         ),
     )(input)
-}
-
-impl fmt::Display for Ssrc<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a=ssrc:{} {}:{}", self.id, self.attribute, self.value)
-    }
 }
 
 #[test]
@@ -82,8 +74,8 @@ pub enum SsrcSemantic {
 
 #[derive(Debug, PartialEq)]
 pub struct SsrcGroup {
-    semantic: SsrcSemantic,
-    ids: Vec<u32>,
+    pub semantic: SsrcSemantic,
+    pub ids: Vec<u32>,
 }
 
 pub fn ssrc_group_line(input: &str) -> IResult<&str, SsrcGroup> {
@@ -102,20 +94,6 @@ pub fn ssrc_group(input: &str) -> IResult<&str, SsrcGroup> {
         )),
         |(semantic, ids)| SsrcGroup { semantic, ids },
     )(input)
-}
-
-impl fmt::Display for SsrcGroup {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a=ssrc-group:")?;
-        match self.semantic {
-            SsrcSemantic::FID => write!(f, "FID")?,
-            SsrcSemantic::FEC => write!(f, "FEC")?,
-        }
-        for id in &self.ids {
-            write!(f, " {}", id)?;
-        }
-        Ok(())
-    }
 }
 
 #[test]

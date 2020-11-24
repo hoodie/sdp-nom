@@ -1,5 +1,4 @@
 use nom::{branch::alt, combinator::map, IResult};
-use std::fmt;
 
 #[cfg(test)]
 use crate::assert_line;
@@ -18,16 +17,6 @@ pub fn ice_parameter_line(input: &str) -> IResult<&str, IceParameter> {
         attribute("ice-pwd", map(read_string, IceParameter::Pwd)),
         attribute("ice-options", map(read_string, IceParameter::Options)),
     ))(input)
-}
-
-impl fmt::Display for IceParameter<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            IceParameter::Ufrag(ufrag) => write!(f, "a=ice-ufrag:{}", ufrag),
-            IceParameter::Pwd(pwd) => write!(f, "a=ice-pwd:{}", pwd),
-            IceParameter::Options(options) => write!(f, "a=ice-options:{}", options),
-        }
-    }
 }
 
 #[test]

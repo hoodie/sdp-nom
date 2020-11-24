@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use std::fmt;
 
 use nom::{combinator::map, sequence::tuple, IResult};
 
@@ -33,22 +32,6 @@ pub fn media_line(input: &str) -> IResult<&str, Media> {
             },
         )),
     )(input)
-}
-
-impl<'a> fmt::Display for Media<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "m={ty} {port} {protos}",
-            ty = self.r#type,
-            port = self.port,
-            protos = self.protocol.join("/"),
-        )?;
-        for payload in &self.payloads {
-            write!(f, " {}", payload)?;
-        }
-        Ok(())
-    }
 }
 
 #[test]

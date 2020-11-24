@@ -5,7 +5,7 @@ use nom::{
     IResult,
 };
 
-use std::{fmt::Display, net::IpAddr};
+use std::net::IpAddr;
 
 #[cfg(test)]
 use std::net::Ipv4Addr;
@@ -39,17 +39,6 @@ pub fn connection_line(input: &str) -> IResult<&str, Connection> {
             ),
         ),
     )(input)
-}
-
-impl Display for Connection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self { ip_ver, addr, mask } = self;
-        if let Some(mask) = mask {
-            write!(f, "c=IN {} {}/{}", ip_ver, addr, mask)
-        } else {
-            write!(f, "c=IN {} {}", ip_ver, addr)
-        }
-    }
 }
 
 #[test]

@@ -27,8 +27,6 @@
 )]
 // #![warn(missing_docs)]
 
-use std::fmt::Display;
-
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 pub mod attributes;
@@ -40,6 +38,7 @@ mod tests;
 #[cfg(test)]
 #[macro_use]
 mod assert;
+mod display;
 
 use lines::{
     bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
@@ -87,68 +86,6 @@ pub enum SessionLine<'a> {
 
     /// `m=video 51744 RTP/AVP 126 97 98 34 31
     Media(Media<'a>),
-}
-
-impl Display for SdpLine<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SdpLine::Session(session) => write!(f, "{}", session),
-            SdpLine::Attribute(attribute) => write!(f, "{}", attribute),
-        }
-    }
-}
-
-impl Display for SessionLine<'_> {
-    #[rustfmt::skip]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SessionLine::Version(v)      => write!(f,"{}", v),
-            SessionLine::Name(n)         => write!(f,"{}", n),
-            SessionLine::Timing(t)       => write!(f,"{}", t),
-            SessionLine::Origin(o)       => write!(f,"{}", o),
-            SessionLine::BandWidth(b)    => write!(f,"{}", b),
-            SessionLine::Uri(u)          => write!(f,"{}", u),
-            SessionLine::PhoneNumber(p)  => write!(f,"{}", p),
-            SessionLine::EmailAddress(e) => write!(f,"{}", e),
-            SessionLine::Connection(c)   => write!(f,"{}", c),
-            SessionLine::Description(d)  => write!(f,"{}", d),
-            SessionLine::Media(m)        => write!(f,"{}", m),
-        }
-    }
-}
-
-impl Display for AttributeLine<'_> {
-    #[rustfmt::skip]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AttributeLine::Candidate(c)    => write!(f, "{}", c),
-            AttributeLine::Ice(i)          => write!(f, "{}", i),
-            AttributeLine::Mid(m)          => write!(f, "{}", m),
-            AttributeLine::MsidSemantic(ms) => write!(f, "{}", ms),
-            AttributeLine::Msid(m)         => write!(f, "{}", m),
-            AttributeLine::RtpMap(r)       => write!(f, "{}", r),
-            AttributeLine::PTime(p)        => write!(f, "{}", p),
-            AttributeLine::Ssrc(s)         => write!(f, "{}", s),
-            AttributeLine::BundleGroup(b)  => write!(f, "{}", b),
-            AttributeLine::SsrcGroup(s)    => write!(f, "{}", s),
-            AttributeLine::Fingerprint(fp) => write!(f, "{}", fp),
-            AttributeLine::Direction(d)    => write!(f, "{}", d),
-            AttributeLine::Rtp(r)          => write!(f, "{}", r),
-            AttributeLine::Rtcp(r)         => write!(f, "{}", r),
-            AttributeLine::Fmtp(fmtp)      => write!(f, "{}", fmtp),
-            AttributeLine::RtcpFb(r)       => write!(f, "{}", r),
-            AttributeLine::RtcpOption(r)   => write!(f, "{}", r),
-            AttributeLine::Control(c)      => write!(f, "{}", c),
-            AttributeLine::SetupRole(s)    => write!(f, "{}", s),
-            AttributeLine::Extmap(e)       => write!(f, "{}", e),
-            AttributeLine::BundleOnly      => write!(f, "a=bundle-only"),
-            AttributeLine::EoC             => write!(f, "a=end-of-candidates"),
-            AttributeLine::Attribute {
-                key,
-                val
-            }                              => write!(f, "a={}:{}", key, val),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -239,7 +176,9 @@ pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
             map(control_attribute_line, AttributeLine::Control),
             map(rtcp::rtcpfb_attribute_line, AttributeLine::RtcpFb),
             map(rtp_option_line, AttributeLine::RtcpOption),
-            map(attributes::generic::lazy_attribute_line,|(key,val)| AttributeLine::Attribute{key,val}),
+            map(attributes::generic::lazy_attribute_line, |(key, val)| {
+                AttributeLine::Attribute { key, val }
+            }),
             map(tag("a=bundle-only"), |_| AttributeLine::BundleOnly),
             map(tag("a=end-of-candidates"), |_| AttributeLine::EoC),
         )),
@@ -256,7 +195,7 @@ pub struct EagerSession<'a> {
     pub media: Vec<MediaSection<'a>>,
 }
 
-impl std::fmt::Display for MediaSection<'_>{
+impl std::fmt::Display for MediaSection<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
             writeln!(f, "{}", line)?;
@@ -265,7 +204,7 @@ impl std::fmt::Display for MediaSection<'_>{
     }
 }
 
-impl std::fmt::Display for EagerSession<'_>{
+impl std::fmt::Display for EagerSession<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
             writeln!(f, "{}", line)?;

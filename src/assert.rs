@@ -1,6 +1,6 @@
-use std::fmt::{Debug, Display};
+use std::fmt;
 
-pub fn print_result<T: Debug>(input: &str, rest: &str, result: &T) {
+pub fn print_result<T: fmt::Debug>(input: &str, rest: &str, result: &T) {
     println!(
         "INPUT: {:?}\nLEFT:  {:?}\nRESULT: {:#?}",
         input, rest, result
@@ -15,7 +15,7 @@ trait AssertLinify {
     fn assert_linify(_: Self);
 }
 
-impl<T: Display> AssertLinify for T {
+impl<T: fmt::Display> AssertLinify for T {
     fn assert_linify(_: T) {
         panic!("{:?} is Debug", std::any::type_name::<T>());
     }
