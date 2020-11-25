@@ -222,15 +222,68 @@ impl std::fmt::Display for EagerSession<'_> {
     }
 }
 
+type ParseError<'a> = nom::Err<nom::error::Error<&'a str>>;
+
 #[derive(Debug, Default)]
 struct ParserState<'a> {
     current_msecion: Option<MediaSection<'a>>,
     lines: Vec<SdpLine<'a>>,
     media: Vec<MediaSection<'a>>,
+    failed: Option<nom::Err<nom::error::Error<&'a str>>>,
+}
+
+impl<'a> std::convert::TryFrom<&'a String> for EagerSession<'a> {
+    type Error = ParseError<'a>;
+
+    fn try_from(sdp: &'a String) -> Result<EagerSession<'a>, Self::Error> {
+        EagerSession::try_from(sdp.as_str())
+    }
+}
+
+impl<'a> std::convert::TryFrom<&'a str> for EagerSession<'a> {
+    type Error = ParseError<'a>;
+
+    fn try_from(sdp: &'a str) -> Result<EagerSession<'a>, Self::Error> {
+        let mut state = {
+            sdp.lines().fold(ParserState::default(), |mut state, line| {
+                if state.failed.is_some() {
+                    return state;
+                }
+                match sdp_line(&line) {
+                    Ok((_, parsed)) => {
+                        if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
+                            if let Some(m) = state.current_msecion.take() {
+                                state.media.push(m);
+                            }
+                            let mut new_m_section = MediaSection::default();
+                            new_m_section.lines.push(parsed);
+                            state.current_msecion = Some(new_m_section);
+                        } else if let Some(ref mut msection) = state.current_msecion {
+                            msection.lines.push(parsed);
+                        } else {
+                            state.lines.push(parsed);
+                        }
+                    }
+                    Err(e) => state.failed = Some(e),
+                }
+                state
+            })
+        };
+
+        if let Some(err) = state.failed {
+            return Err(err);
+        }
+        if let Some(m) = state.current_msecion.take() {
+            state.media.push(m);
+        }
+        Ok(EagerSession {
+            media: state.media,
+            lines: state.lines,
+        })
+    }
 }
 
 impl<'a> EagerSession<'a> {
-    #[allow(clippy::should_implement_trait)]
     pub fn read_str(sdp: &'a str) -> EagerSession<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
