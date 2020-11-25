@@ -21,6 +21,7 @@ pretty_assertions = "0.6.1"
 [features]
 default = []
 display = []
+udisplay= ["rogu", "ufmt"]
 
 [profile.release]
 lto = true

@@ -9,9 +9,13 @@ a=group:BUNDLE video
 a=msid-semantic: WMS
 m=video 9 RTP/SAVPF 96 97 98 99 100 101 102 124 127 123 125
 c=IN IP4 0.0.0.0";
-    let session = EagerSession::from_str(&content);
+    let session = EagerSession::read_str(&content);
     #[cfg(feature="ufmt")]
-    rogu::info!("{}", session);
+    {
+        rogu::set_level(rogu::Level::INFO);
+        rogu::info!("{}", session);
+
+    }
     #[cfg(feature="display")]
     println!("{}", session)
 }
