@@ -6,8 +6,10 @@ edition = "2018"
 
 [dependencies]
 nom = "6.0.1"
+
 [dependencies.ufmt]
 version = "0.1.0"
+features = ["std"]
 optional = true
 
 [dependencies.rogu]
@@ -19,7 +21,7 @@ optional = true
 pretty_assertions = "0.6.1"
 
 [features]
-default = []
+default = ["udisplay"]
 display = []
 udisplay= ["rogu", "ufmt"]
 

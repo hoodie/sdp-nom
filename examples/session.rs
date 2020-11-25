@@ -12,8 +12,9 @@ c=IN IP4 0.0.0.0";
     let session = EagerSession::read_str(&content);
     #[cfg(feature="ufmt")]
     {
-        rogu::set_level(rogu::Level::INFO);
-        rogu::info!("{}", session);
+        // rogu::set_level(rogu::Level::INFO);
+        // rogu::info!("{}", session);
+        session.to_string();
 
     }
     #[cfg(feature="display")]

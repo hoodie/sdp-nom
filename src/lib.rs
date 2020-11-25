@@ -232,6 +232,15 @@ struct ParserState<'a> {
     failed: Option<nom::Err<nom::error::Error<&'a str>>>,
 }
 
+#[cfg(feature = "udisplay")]
+impl std::string::ToString for EagerSession<'_> {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        ufmt::uwrite!(output, "{}", self).unwrap();
+        output
+    }
+}
+
 impl<'a> std::convert::TryFrom<&'a String> for EagerSession<'a> {
     type Error = ParseError<'a>;
 
