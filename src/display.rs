@@ -141,12 +141,12 @@ impl fmt::Display for Fingerprint<'_> {
         write!(f, "a=fingerprint:{} {}", self.r#type, self.hash)
     }
 }
-impl<'a> fmt::Display for Mid<'a> {
+impl fmt::Display for Mid<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a=mid:{}", self.0)
     }
 }
-impl<'a> fmt::Display for MsidSemantic<'a> {
+impl fmt::Display for MsidSemantic<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a=msid-semantic:")?;
         for (i, x) in self.0.iter().enumerate() {
@@ -158,7 +158,7 @@ impl<'a> fmt::Display for MsidSemantic<'a> {
         Ok(())
     }
 }
-impl<'a> fmt::Display for Msid<'a> {
+impl fmt::Display for Msid<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a=msid:")?;
         for (i, x) in self.0.iter().enumerate() {
@@ -175,12 +175,12 @@ impl fmt::Display for Version {
         write!(f, "v={}", self.0)
     }
 }
-impl<'a> fmt::Display for SessionInformation<'a> {
+impl fmt::Display for SessionInformation<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "i={}", self.0)
     }
 }
-impl<'a> fmt::Display for SessionName<'a> {
+impl fmt::Display for SessionName<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "s={}", self.0)
     }
@@ -200,7 +200,7 @@ impl fmt::Display for Origin<'_> {
     }
 }
 
-impl<'a> fmt::Display for Media<'a> {
+impl fmt::Display for Media<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -379,12 +379,12 @@ impl fmt::Display for Uri<'_> {
         write!(f, "{}", self.0)
     }
 }
-impl<'a> fmt::Display for EmailAddress<'a> {
+impl fmt::Display for EmailAddress<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "e={}", self.0)
     }
 }
-impl<'a> fmt::Display for PhoneNumber<'a> {
+impl fmt::Display for PhoneNumber<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "p={}", self.0)
     }

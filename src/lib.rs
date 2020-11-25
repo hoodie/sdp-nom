@@ -38,7 +38,11 @@ mod tests;
 #[cfg(test)]
 #[macro_use]
 mod assert;
+#[cfg(feature = "display")]
 mod display;
+
+#[cfg(feature = "ufmt")]
+mod udisplay;
 
 use lines::{
     bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
@@ -195,6 +199,7 @@ pub struct EagerSession<'a> {
     pub media: Vec<MediaSection<'a>>,
 }
 
+#[cfg(feature = "display")]
 impl std::fmt::Display for MediaSection<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
@@ -204,6 +209,7 @@ impl std::fmt::Display for MediaSection<'_> {
     }
 }
 
+#[cfg(feature = "display")]
 impl std::fmt::Display for EagerSession<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
@@ -225,26 +231,21 @@ struct ParserState<'a> {
 
 impl<'a> EagerSession<'a> {
     #[allow(clippy::should_implement_trait)]
-    pub fn from_str(sdp: &'a str) -> EagerSession<'a> {
+    pub fn read_str(sdp: &'a str) -> EagerSession<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
-                match sdp_line(&line) {
-                    Ok((_, parsed)) => {
-                        if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
-                            if let Some(m) = state.current_msecion.take() {
-                                state.media.push(m);
-                            }
-                            let mut new_m_section = MediaSection::default();
-                            new_m_section.lines.push(parsed);
-                            state.current_msecion = Some(new_m_section);
-                        } else if let Some(ref mut msection) = state.current_msecion {
-                            msection.lines.push(parsed);
-                        } else {
-                            state.lines.push(parsed);
+                if let Ok((_, parsed)) = sdp_line(&line) {
+                    if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
+                        if let Some(m) = state.current_msecion.take() {
+                            state.media.push(m);
                         }
-                    }
-                    Err(e) => {
-                        eprintln!("{}", e);
+                        let mut new_m_section = MediaSection::default();
+                        new_m_section.lines.push(parsed);
+                        state.current_msecion = Some(new_m_section);
+                    } else if let Some(ref mut msection) = state.current_msecion {
+                        msection.lines.push(parsed);
+                    } else {
+                        state.lines.push(parsed);
                     }
                 }
                 state
