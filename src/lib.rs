@@ -38,7 +38,7 @@ mod tests;
 #[cfg(test)]
 #[macro_use]
 mod assert;
-#[cfg(feature = "display")]
+#[cfg(any(feature = "display", test))]
 mod display;
 
 #[cfg(feature = "ufmt")]
