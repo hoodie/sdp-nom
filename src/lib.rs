@@ -205,6 +205,9 @@ pub struct EagerSession<'a> {
     pub media: Vec<MediaSection<'a>>,
 }
 
+#[cfg(all(feature = "display", feature = "udisplay"))]
+compile_error!("The features \"display\" and \"udisplay\" can not be enabled together.");
+
 #[cfg(feature = "display")]
 impl std::fmt::Display for MediaSection<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -225,6 +228,15 @@ impl std::fmt::Display for EagerSession<'_> {
             write!(f, "{}", msection)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(feature = "udisplay")]
+impl std::string::ToString for EagerSession<'_> {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        ufmt::uwrite!(output, "{}", self).unwrap();
+        output
     }
 }
 
