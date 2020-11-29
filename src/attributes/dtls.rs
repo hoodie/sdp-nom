@@ -7,6 +7,7 @@ use crate::assert_line;
 use crate::parsers::*;
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum SetupRole {
     Active,
     Passive,

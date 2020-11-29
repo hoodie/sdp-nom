@@ -15,6 +15,7 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum NetType {
     IN,
 }
@@ -78,6 +79,7 @@ pub struct Fb<'a> {
 }
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum FbVal<'a> {
     Ack(FbAckParam<'a>),
     Nack(FbNackParam<'a>),
@@ -89,6 +91,7 @@ pub enum FbVal<'a> {
 }
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum FbParam<'a> {
     App(&'a str),
     Single(&'a str),
@@ -107,6 +110,7 @@ fn read_param(input: &str) -> IResult<&str, FbParam> {
 }
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum FbAckParam<'a> {
     Rpsi,
     Sli(Option<&'a str>),
@@ -133,6 +137,7 @@ fn test_rtcpfb_ack_param() {
 }
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum FbNackParam<'a> {
     Pli,
     Sli,

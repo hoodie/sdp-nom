@@ -67,6 +67,7 @@ fn test_ssrc_line() {
 }
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum SsrcSemantic {
     FID,
     FEC,

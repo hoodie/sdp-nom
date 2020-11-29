@@ -182,6 +182,7 @@ pub mod timing {
 pub mod bandwidth {
     use super::*;
     #[derive(Debug, PartialEq)]
+    #[non_exhaustive]
     pub enum BandWidthType {
         TIAS,
         AS,

@@ -12,6 +12,7 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum PTime {
     MaxPTime(u32),
     MinPTime(u32),

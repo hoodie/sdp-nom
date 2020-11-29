@@ -120,6 +120,7 @@ pub fn read_addr(input: &str) -> IResult<&str, IpAddr> {
 }
 
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum IpVer {
     Ip4,
     Ip6,

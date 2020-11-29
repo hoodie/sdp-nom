@@ -14,7 +14,7 @@
 //! * ☐ [Repeat Times](https://tools.ietf.org/html/rfc4566#section-5.10) (`"r="`)
 //! * ☐ [Time Zones](https://tools.ietf.org/html/rfc4566#section-5.11) (`"z="`)
 //! * ☐ [Encryption Keys](https://tools.ietf.org/html/rfc4566#section-5.12) (`"k="`)
-//! * ☐ [Attributes](https://tools.ietf.org/html/rfc4566#section-5.13) (`"a="`)
+//! * ☒ [Attributes](https://tools.ietf.org/html/rfc4566#section-5.13) (`"a="`)
 //! * ☒ [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) [`Media`]
 //! * ☐ [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
 
@@ -29,8 +29,8 @@
 
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
-#[cfg_attr(feature="wee_alloc", global_allocator)]
-#[cfg(feature="wee_alloc")]
+#[cfg_attr(feature = "wee_alloc", global_allocator)]
+#[cfg(feature = "wee_alloc")]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub mod attributes;
@@ -55,6 +55,7 @@ use lines::{
 
 /// Sdp Line
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
     Attribute(AttributeLine<'a>),
@@ -63,6 +64,7 @@ pub enum SdpLine<'a> {
 
 /// Session Line
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum SessionLine<'a> {
     /// `v=0`
     Version(Version),
@@ -98,6 +100,7 @@ pub enum SessionLine<'a> {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum AttributeLine<'a> {
     /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
     Candidate(attributes::Candidate<'a>),
@@ -248,15 +251,6 @@ struct ParserState<'a> {
     lines: Vec<SdpLine<'a>>,
     media: Vec<MediaSection<'a>>,
     failed: Option<nom::Err<nom::error::Error<&'a str>>>,
-}
-
-#[cfg(feature = "udisplay")]
-impl std::string::ToString for EagerSession<'_> {
-    fn to_string(&self) -> String {
-        let mut output = String::new();
-        ufmt::uwrite!(output, "{}", self).unwrap();
-        output
-    }
 }
 
 impl<'a> std::convert::TryFrom<&'a String> for EagerSession<'a> {

@@ -33,6 +33,7 @@ pub use rtcp_option::*;
 pub use rtp::*;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum SdpLine<'a> {
     // MsidSemantic(super::media::MsidSemantic<'a>),
     // Msid(super::media::Msid<'a>),
@@ -229,6 +230,7 @@ pub mod direction {
     /// `a=recvonly`
     /// `a=inactive`
     #[derive(Debug, PartialEq, Clone, Copy)]
+    #[non_exhaustive]
     pub enum Direction {
         SendOnly,
         SendRecv,
@@ -269,6 +271,7 @@ pub mod rtcp_option {
     use super::*;
 
     #[derive(Debug, PartialEq)]
+    #[non_exhaustive]
     pub enum RtcpOption {
         RtcpMux,
         RtcpMuxOnly,

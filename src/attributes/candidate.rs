@@ -21,6 +21,7 @@ pub enum CandidateComponent {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum CandidateProtocol {
     Tcp,
     Udp,
@@ -28,6 +29,7 @@ pub enum CandidateProtocol {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum CandidateType {
     Host,
     Relay,
