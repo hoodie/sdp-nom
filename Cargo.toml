@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 nom = "6.0.1"
+wee_alloc = { version = "0.4.5", optional = true }
 
 [dependencies.ufmt]
 version = "0.1.0"
@@ -18,10 +19,10 @@ pretty_assertions = "0.6.1"
 [features]
 default = ["udisplay"]
 display = []
-udisplay= ["ufmt"]
+udisplay = ["ufmt"]
+wee = ["wee_alloc"]
 
 [profile.release]
 lto = true
 opt-level = 's'
 panic = "abort"
-

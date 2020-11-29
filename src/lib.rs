@@ -29,6 +29,10 @@
 
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
+#[cfg_attr(feature="wee_alloc", global_allocator)]
+#[cfg(feature="wee_alloc")]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 pub mod attributes;
 pub mod lines;
 mod parsers;
