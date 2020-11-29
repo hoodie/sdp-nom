@@ -1,4 +1,4 @@
-use nom::{branch::alt, combinator::map, IResult};
+use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 #[cfg(test)]
 use crate::assert_line;
@@ -10,6 +10,8 @@ pub enum IceParameter<'a> {
     Ufrag(&'a str),
     Pwd(&'a str),
     Options(&'a str),
+    Mismatch,
+    Lite,
 }
 
 pub fn ice_parameter_line(input: &str) -> IResult<&str, IceParameter> {
@@ -17,6 +19,8 @@ pub fn ice_parameter_line(input: &str) -> IResult<&str, IceParameter> {
         attribute("ice-ufrag", map(read_string, IceParameter::Ufrag)),
         attribute("ice-pwd", map(read_string, IceParameter::Pwd)),
         attribute("ice-options", map(read_string, IceParameter::Options)),
+        a_line(map(tag("ice-mismatch"), |_| IceParameter::Mismatch)),
+        a_line(map(tag("ice-lite"), |_| IceParameter::Lite)),
     ))(input)
 }
 
@@ -52,4 +56,5 @@ fn test_ice_parameters() {
         IceParameter::Options("trickle"),
         print
     );
+    assert_line!(ice_parameter_line, "a=ice-lite", IceParameter::Lite, print);
 }

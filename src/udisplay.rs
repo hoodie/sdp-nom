@@ -488,6 +488,8 @@ impl ufmt::uDisplay for IceParameter<'_> {
             IceParameter::Ufrag(ufrag) => uwrite!(f, "a=ice-ufrag:{}", ufrag),
             IceParameter::Pwd(pwd) => uwrite!(f, "a=ice-pwd:{}", pwd),
             IceParameter::Options(options) => uwrite!(f, "a=ice-options:{}", options),
+            IceParameter::Mismatch=> uwrite!(f, "a=ice-mismatch"),
+            IceParameter::Lite => uwrite!(f, "a=ice-lite"),
         }
     }
 }

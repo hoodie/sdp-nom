@@ -344,6 +344,8 @@ impl fmt::Display for IceParameter<'_> {
             IceParameter::Ufrag(ufrag) => write!(f, "a=ice-ufrag:{}", ufrag),
             IceParameter::Pwd(pwd) => write!(f, "a=ice-pwd:{}", pwd),
             IceParameter::Options(options) => write!(f, "a=ice-options:{}", options),
+            IceParameter::Mismatch=> write!(f, "a=ice-mismatch"),
+            IceParameter::Lite => write!(f, "a=ice-lite"),
         }
     }
 }
