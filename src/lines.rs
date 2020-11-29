@@ -233,3 +233,20 @@ pub mod bandwidth {
         );
     }
 }
+
+pub mod comment {
+    use super::*;
+
+    pub fn comment_line(input: &str) -> IResult<&str, &str> {
+        preceded(tag(";"), wsf(read_everything))(input)
+    }
+
+    #[test]
+    fn test_read_comment() {
+        assert_line!(
+            comment_line,
+            "; this should not be part of the document",
+            "this should not be part of the document"
+        )
+    }
+}

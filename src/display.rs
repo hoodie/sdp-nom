@@ -32,6 +32,7 @@ impl fmt::Display for SdpLine<'_> {
         match self {
             SdpLine::Session(session) => write!(f, "{}", session),
             SdpLine::Attribute(attribute) => write!(f, "{}", attribute),
+            SdpLine::Comment(_) => Ok(()),
         }
     }
 }

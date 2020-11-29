@@ -54,6 +54,7 @@ use lines::{
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
     Attribute(AttributeLine<'a>),
+    Comment(&'a str),
 }
 
 /// Session Line
@@ -127,6 +128,7 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
     alt((
         map(session_line, SdpLine::Session),
         map(attribute_line, SdpLine::Attribute),
+        map(lines::comment::comment_line, SdpLine::Comment),
     ))(input)
 }
 

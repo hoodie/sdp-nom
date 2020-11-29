@@ -62,6 +62,7 @@ impl ufmt::uDisplay for SdpLine<'_> {
         match self {
             SdpLine::Session(session) => uwrite!(f, "{}", session),
             SdpLine::Attribute(attribute) => uwrite!(f, "{}", attribute),
+            SdpLine::Comment(_) => Ok(()),
         }
     }
 }

@@ -6,7 +6,7 @@ use nom::{
         complete::{multispace0, space1},
         is_digit,
     },
-    combinator::{map, map_res, opt},
+    combinator::{complete, map, map_res, opt},
     error::ParseError,
     multi::many0,
     sequence::{delimited, preceded, separated_pair, terminated},
@@ -70,7 +70,7 @@ pub fn line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
     prefix: &'a str,
     f: F,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
-    preceded(tag(prefix), f)
+    complete(preceded(tag(prefix), f))
 }
 
 pub fn read_number(input: &str) -> IResult<&str, u32> {
@@ -85,6 +85,10 @@ pub fn read_big_number(input: &str) -> IResult<&str, u64> {
         take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
         |i: &str| u64::from_str_radix(&i, 10),
     )(input)
+}
+
+pub fn read_everything(input: &str) -> IResult<&str, &str> {
+    take_while(|c| c != '\n')(input)
 }
 
 pub fn read_string0(input: &str) -> IResult<&str, &str> {
