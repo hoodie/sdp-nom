@@ -20,7 +20,7 @@ pub fn is_not_space(c: char) -> bool {
 }
 
 pub fn is_alphabetic(chr: u8) -> bool {
-    (chr >= 0x41 && chr <= 0x5A) || (chr >= 0x61 && chr <= 0x7A)
+    (0x41..=0x5A).contains(&chr) || (0x61..=0x7A).contains(&chr)
 }
 
 pub fn is_alphanumeric(chr: char) -> bool {
@@ -76,14 +76,14 @@ pub fn line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
 pub fn read_number(input: &str) -> IResult<&str, u32> {
     map_res(
         take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
-        |i: &str| u32::from_str_radix(&i, 10),
+        |i: &str| i.parse::<u32>(),
     )(input)
 }
 
 pub fn read_big_number(input: &str) -> IResult<&str, u64> {
     map_res(
         take_while1(|c: char| -> bool { c != ' ' && c != ':' && c != '/' }),
-        |i: &str| u64::from_str_radix(&i, 10),
+        |i: &str| (i).parse::<u64>(),
     )(input)
 }
 

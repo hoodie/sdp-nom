@@ -270,7 +270,7 @@ impl<'a> std::convert::TryFrom<&'a str> for EagerSession<'a> {
                 if state.failed.is_some() {
                     return state;
                 }
-                match sdp_line(&line) {
+                match sdp_line(line) {
                     Ok((_, parsed)) => {
                         if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
                             if let Some(m) = state.current_msecion.take() {
@@ -308,7 +308,7 @@ impl<'a> EagerSession<'a> {
     pub fn read_str(sdp: &'a str) -> EagerSession<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
-                if let Ok((_, parsed)) = sdp_line(&line) {
+                if let Ok((_, parsed)) = sdp_line(line) {
                     if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
                         if let Some(m) = state.current_msecion.take() {
                             state.media.push(m);
