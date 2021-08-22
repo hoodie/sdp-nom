@@ -1,4 +1,4 @@
-# SDP-rs
+# SDP-nom
 
 This is an experimental nom based SDP parser.
 It can parse and reserialize and is currently optimized for a very small wasm footprint (hence the use of [ufmt](https://docs.rs/ufmt)).

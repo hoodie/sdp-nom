@@ -2,21 +2,21 @@
 //!
 //!
 //! ## Implementation status:
-//! * ☒️ [Protocol Version](https://tools.ietf.org/html/rfc4566#section-5.1) (`"v="`) [`u32`]
-//! * ☒️ [Origin](https://tools.ietf.org/html/rfc4566#section-5.2) (`"o="`) [`Origin`]
-//! * ☒ [Session Name](https://tools.ietf.org/html/rfc4566#section-5.3) (`"s="`) [`SessionName`]
-//! * ☒ [Session Information](https://tools.ietf.org/html/rfc4566#section-5.4) (`"i="`) [`SessionInformation`]
-//! * ☒ [URI](https://tools.ietf.org/html/rfc4566#section-5.5) (`"u="`) [`Uri`]
-//! * ☒ [Email Address and Phone Number](https://tools.ietf.org/html/rfc4566#section-5.6) (`"e="` and `"p="`) [`EmailAddress`] [`PhoneNumber`]
-//! * ☒ [Connection Data](https://tools.ietf.org/html/rfc4566#section-5.7) (`"c="`) [`Connection`]
-//! * ☒ [Bandwidth](https://tools.ietf.org/html/rfc4566#section-5.8) (`"b="`) [`BandWidth`]
-//! * ☒ [Timing](https://tools.ietf.org/html/rfc4566#section-5.9) (`"t="`) [`Timing`]
-//! * ☐ [Repeat Times](https://tools.ietf.org/html/rfc4566#section-5.10) (`"r="`)
-//! * ☐ [Time Zones](https://tools.ietf.org/html/rfc4566#section-5.11) (`"z="`)
-//! * ☐ [Encryption Keys](https://tools.ietf.org/html/rfc4566#section-5.12) (`"k="`)
-//! * ☒ [Attributes](https://tools.ietf.org/html/rfc4566#section-5.13) (`"a="`)
-//! * ☒ [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) [`Media`]
-//! * ☐ [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
+//! * [x] [Protocol Version](https://tools.ietf.org/html/rfc4566#section-5.1) (`"v="`) [`u32`]
+//! * [x] [Origin](https://tools.ietf.org/html/rfc4566#section-5.2) (`"o="`) [`Origin`]
+//! * [x] [Session Name](https://tools.ietf.org/html/rfc4566#section-5.3) (`"s="`) [`SessionName`]
+//! * [x] [Session Information](https://tools.ietf.org/html/rfc4566#section-5.4) (`"i="`) [`SessionInformation`]
+//! * [x] [URI](https://tools.ietf.org/html/rfc4566#section-5.5) (`"u="`) [`Uri`]
+//! * [x] [Email Address and Phone Number](https://tools.ietf.org/html/rfc4566#section-5.6) (`"e="` and `"p="`) [`EmailAddress`] [`PhoneNumber`]
+//! * [x] [Connection Data](https://tools.ietf.org/html/rfc4566#section-5.7) (`"c="`) [`Connection`]
+//! * [x] [Bandwidth](https://tools.ietf.org/html/rfc4566#section-5.8) (`"b="`) [`BandWidth`]
+//! * [x] [Timing](https://tools.ietf.org/html/rfc4566#section-5.9) (`"t="`) [`Timing`]
+//! * [ ] [Repeat Times](https://tools.ietf.org/html/rfc4566#section-5.10) (`"r="`)
+//! * [ ] [Time Zones](https://tools.ietf.org/html/rfc4566#section-5.11) (`"z="`)
+//! * [ ] [Encryption Keys](https://tools.ietf.org/html/rfc4566#section-5.12) (`"k="`)
+//! * [x] [Attributes](https://tools.ietf.org/html/rfc4566#section-5.13) (`"a="`)
+//! * [x] [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) [`Media`]
+//! * [ ] [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
 
 #![deny(
     trivial_casts,
