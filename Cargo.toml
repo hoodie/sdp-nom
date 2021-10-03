@@ -6,15 +6,15 @@ edition = "2018"
 
 [dependencies]
 nom = "7"
-wee_alloc = { version = "0.4.5", optional = true }
+wee_alloc = { version = "0.4", optional = true }
 
 [dependencies.ufmt]
-version = "0.1.0"
+version = "0.1"
 features = ["std"]
 optional = true
 
 [dev-dependencies]
-pretty_assertions = "0.6.1"
+pretty_assertions = "1"
 
 [features]
 default = ["udisplay"]
