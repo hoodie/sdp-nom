@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn anatomy() {
-    //! every exaple from https://webrtchacks.com/sdp-anatomy/
+    //! every exaple from<https://webrtchacks.com/sdp-anatomy/>
 
     let anatomy_examples = [
             // Global Lines

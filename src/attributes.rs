@@ -161,7 +161,7 @@ pub mod rtp {
 
 pub mod fmtp {
     use super::*;
-    /// https://tools.ietf.org/html/rfc4588#section-8.1
+    ///<https://tools.ietf.org/html/rfc4588#section-8.1>
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
     #[derive(Debug, PartialEq)]
     pub struct Fmtp<'a> {

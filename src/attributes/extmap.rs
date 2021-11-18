@@ -1,4 +1,4 @@
-//! https://tools.ietf.org/html/rfc8285
+//!<https://tools.ietf.org/html/rfc8285>
 
 use nom::{
     bytes::complete::tag,
@@ -13,7 +13,7 @@ use crate::assert_line;
 use crate::parsers::*;
 
 /// `a=extmap:<value>["/"<direction>] <URI> <extensionattributes>`
-/// https://tools.ietf.org/html/rfc8285#section-8
+///<https://tools.ietf.org/html/rfc8285#section-8>
 #[derive(Debug, PartialEq)]
 pub struct Extmap<'a> {
     pub value: u32,

@@ -39,7 +39,7 @@ pub mod session_name {
 
     /// `s=somename`
     ///
-    /// https://tools.ietf.org/html/rfc4566#section-5.3
+    /// <https://tools.ietf.org/html/rfc4566#section-5.3>
     #[derive(Debug, PartialEq)]
     pub struct SessionName<'a>(pub &'a str);
 

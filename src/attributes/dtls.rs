@@ -1,4 +1,4 @@
-//! https://tools.ietf.org/html/rfc4572
+//! <https://tools.ietf.org/html/rfc4572>
 
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 

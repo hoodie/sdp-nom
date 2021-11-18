@@ -1,4 +1,4 @@
-//! Rtcp https://tools.ietf.org/html/rfc3605
+//! Rtcp<https://tools.ietf.org/html/rfc3605>
 // ///////////////////////
 use nom::{
     branch::alt,
@@ -26,7 +26,7 @@ pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
 
 /// Rtcp
 ///
-/// https://tools.ietf.org/html/rfc3605
+///<https://tools.ietf.org/html/rfc3605>
 /// `a=rtcp:65179 IN IP4 10.23.34.567`
 #[derive(Debug, PartialEq)]
 pub struct Rtcp {
@@ -68,9 +68,9 @@ fn test_rtcp_attribute_line() {
 /// RtcpFeedback
 ///
 /// This one is fun to parse
-/// https://tools.ietf.org/html/rfc6642
-/// https://tools.ietf.org/html/rfc4585#section-4.2
-/// https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1
+///<https://tools.ietf.org/html/rfc6642>
+///<https://tools.ietf.org/html/rfc4585#section-4.2>
+///<https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1>
 /// eg `a=rtcp-fb:98 trr-int 100`
 #[derive(Debug, PartialEq)]
 pub struct Fb<'a> {

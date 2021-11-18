@@ -39,8 +39,8 @@ pub enum CandidateType {
 
 /// Candidate
 ///
-/// https://tools.ietf.org/html/rfc5245#section-15.1
-/// https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateInit/candidate
+/// <https://tools.ietf.org/html/rfc5245#section-15.1>
+/// <https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateInit/candidate>
 ///
 ///
 /// candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host

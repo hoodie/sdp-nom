@@ -36,7 +36,7 @@ fn test_read_p_time() {
 
 /// RtpMap
 /// `a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding` parameters>]
-/// https://tools.ietf.org/html/rfc4566#section-6
+///<https://tools.ietf.org/html/rfc4566#section-6>
 #[derive(Debug, PartialEq)]
 pub struct RtpMap<'a> {
     pub payload_type: u32,
