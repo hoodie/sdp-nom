@@ -99,6 +99,10 @@ pub fn read_string(input: &str) -> IResult<&str, &str> {
     take_while1(is_not_space)(input)
 }
 
+pub fn read_cow_string(input: &str) -> IResult<&str, Cow<'_, str>> {
+    map(take_while1(is_not_space), Cow::Borrowed)(input)
+}
+
 pub fn read_non_colon_string(input: &str) -> IResult<&str, &str> {
     take_while1(|c: char| -> bool { c != ' ' && c != ':' })(input)
 }
@@ -109,6 +113,10 @@ pub fn read_non_slash_string(input: &str) -> IResult<&str, &str> {
 
 pub fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_non_slash_string, opt(tag("/"))))(input)
+}
+
+pub fn space_separated_cow_strings(input: &str) -> IResult<&str, Vec<Cow<'_, str>>> {
+    many0(terminated(read_cow_string, multispace0))(input)
 }
 
 pub fn space_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
