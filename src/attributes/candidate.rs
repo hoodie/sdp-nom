@@ -10,9 +10,9 @@ use nom::{
     IResult,
 };
 
-use std::net::IpAddr;
+use std::{borrow::Cow, net::IpAddr};
 
-use crate::parsers::{attribute, read_addr, read_number, read_string, wsf};
+use crate::parsers::{attribute, cowify, read_addr, read_number, read_string, wsf};
 
 #[derive(Debug)]
 pub enum CandidateComponent {
@@ -57,7 +57,7 @@ pub struct Candidate<'a> {
     pub typ: CandidateType,    // "host"
     pub raddr: Option<IpAddr>, // "192.168.0.56"
     pub rport: Option<u32>,    // 44323
-    pub tcptype: Option<&'a str>,
+    pub tcptype: Option<Cow<'a, str>>,
     pub generation: Option<u32>,
 }
 
@@ -91,7 +91,7 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             ),
             opt(preceded(wsf(tag("raddr")), read_addr)), // raddr
             opt(preceded(wsf(tag("rport")), read_number)), // rport
-            opt(preceded(wsf(tag("tcptype")), read_string)), // tcptype
+            opt(preceded(wsf(tag("tcptype")), cowify(read_string))), // tcptype
             opt(preceded(wsf(tag("generation")), read_number)), // generation
         )),
         |(

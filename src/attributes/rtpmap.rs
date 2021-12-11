@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -40,7 +42,7 @@ fn test_read_p_time() {
 #[derive(Debug, PartialEq)]
 pub struct RtpMap<'a> {
     pub payload_type: u32,
-    pub encoding_name: &'a str,
+    pub encoding_name: Cow<'a, str>,
     pub clock_rate: Option<u32>,
     pub encoding: Option<u32>,
 }
@@ -50,9 +52,9 @@ pub fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
         "rtpmap",
         map(
             tuple((
-                read_number,                                  // payload_typ
-                preceded(multispace1, read_non_slash_string), // encoding_name
-                opt(preceded(tag("/"), read_number)),         // clock_rate
+                read_number,                                          // payload_typ
+                preceded(multispace1, cowify(read_non_slash_string)), // encoding_name
+                opt(preceded(tag("/"), read_number)),                 // clock_rate
                 opt(preceded(
                     tag("/"),
                     read_number, // encoding
@@ -75,7 +77,7 @@ fn test_rtpmap_line() {
         "a=rtpmap:96 VP8/90000",
         RtpMap {
             payload_type: 96,
-            encoding_name: "VP8",
+            encoding_name: "VP8".into(),
             clock_rate: Some(90000),
             encoding: None,
         },
@@ -86,7 +88,7 @@ fn test_rtpmap_line() {
         "a=rtpmap:97 rtx/90000",
         RtpMap {
             payload_type: 97,
-            encoding_name: "rtx",
+            encoding_name: "rtx".into(),
             clock_rate: Some(90000),
             encoding: None,
         },
@@ -97,7 +99,7 @@ fn test_rtpmap_line() {
         "a=rtpmap:111 opus/48000/2",
         RtpMap {
             payload_type: 111,
-            encoding_name: "opus",
+            encoding_name: "opus".into(),
             clock_rate: Some(48000),
             encoding: Some(2),
         },
@@ -117,7 +119,7 @@ fn test_rtpmap_line() {
         "a=rtpmap:113 telephone-event/16000",
         RtpMap {
             payload_type: 113,
-            encoding_name: "telephone-event",
+            encoding_name: "telephone-event".into(),
             clock_rate: Some(16000),
             encoding: None,
         },

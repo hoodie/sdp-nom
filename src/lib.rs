@@ -27,6 +27,8 @@
 )]
 // #![warn(missing_docs)]
 
+use std::borrow::Cow;
+
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 #[cfg_attr(feature = "wee_alloc", global_allocator)]
@@ -52,6 +54,7 @@ use lines::{
     bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
     session_information::*, session_name::*, timing::*, uri::*, version::*,
 };
+use parsers::cowify;
 
 /// Sdp Line
 #[derive(Debug)]
@@ -59,7 +62,7 @@ use lines::{
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
     Attribute(AttributeLine<'a>),
-    Comment(&'a str),
+    Comment(Cow<'a, str>),
 }
 
 /// Session Line
@@ -126,8 +129,8 @@ pub enum AttributeLine<'a> {
     BundleOnly,
     EoC,
     Attribute {
-        key: &'a str,
-        val: &'a str,
+        key: Cow<'a, str>,
+        val: Cow<'a, str>,
     },
 }
 
@@ -135,7 +138,7 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
     alt((
         map(session_line, SdpLine::Session),
         map(attribute_line, SdpLine::Attribute),
-        map(lines::comment::comment_line, SdpLine::Comment),
+        map(cowify(lines::comment::comment_line), SdpLine::Comment),
     ))(input)
 }
 

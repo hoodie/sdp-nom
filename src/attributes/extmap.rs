@@ -1,5 +1,7 @@
 //!<https://tools.ietf.org/html/rfc8285>
 
+use std::borrow::Cow;
+
 use nom::{
     bytes::complete::tag,
     combinator::{map, opt},
@@ -18,8 +20,8 @@ use crate::parsers::*;
 pub struct Extmap<'a> {
     pub value: u32,
     pub direction: Option<Direction>,
-    pub uri: &'a str,
-    pub attributes: Vec<&'a str>,
+    pub uri: Cow<'a, str>,
+    pub attributes: Vec<Cow<'a, str>>,
 }
 
 /// a=extmap:<value>["/"<direction>] <URI> <extensionattributes>
@@ -28,8 +30,8 @@ fn read_extmap(input: &str) -> IResult<&str, Extmap> {
         tuple((
             wsf(read_number),                             // <value>
             wsf(opt(preceded(tag("/"), read_direction))), // ["/"<direction>]
-            wsf(read_string),                             // <uri>
-            wsf(read_as_strings),                         // <extensionattributes>
+            wsf(cowify(read_string)),                     // <uri>
+            wsf(read_as_cow_strings),                     // <extensionattributes>
         )),
         |(value, direction, uri, attributes)| Extmap {
             value,
@@ -52,7 +54,7 @@ fn test_extmap() {
         Extmap {
             value: 1,
             direction: Some(Direction::SendOnly),
-            uri: "URI-toffset",
+            uri: "URI-toffset".into(),
             attributes: vec![]
         }
     );
@@ -62,7 +64,7 @@ fn test_extmap() {
         Extmap {
             value: 2,
             direction: None,
-            uri: "urn:ietf:params:rtp-hdrext:toffset",
+            uri: "urn:ietf:params:rtp-hdrext:toffset".into(),
             attributes: vec![]
         }
     );
@@ -72,8 +74,11 @@ fn test_extmap() {
         Extmap {
             value: 3,
             direction: None,
-            uri: "urn:ietf:params:rtp-hdrext:encrypt",
-            attributes: vec!["urn:ietf:params:rtp-hdrext:smpte-tc", "25@600/24"]
+            uri: "urn:ietf:params:rtp-hdrext:encrypt".into(),
+            attributes: vec![
+                "urn:ietf:params:rtp-hdrext:smpte-tc".into(),
+                "25@600/24".into()
+            ]
         }
     );
     assert_line!(
@@ -82,8 +87,8 @@ fn test_extmap() {
         Extmap {
             value: 4,
             direction: Some(Direction::RecvOnly),
-            uri: "urn:ietf:params:rtp-hdrext:encrypt",
-            attributes: vec!["URI-gps-string"]
+            uri: "urn:ietf:params:rtp-hdrext:encrypt".into(),
+            attributes: vec!["URI-gps-string".into()]
         }
     );
 }

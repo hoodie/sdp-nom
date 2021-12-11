@@ -119,7 +119,7 @@ impl ufmt::uDisplay for AttributeLine<'_> {
             AttributeLine::Attribute {
                 key,
                 val
-            }                              => uwrite!(f, "a={}:{}", key, val),
+            }                              => uwrite!(f, "a={}:{}", key.as_ref(), val.as_ref()),
         }
     }
 }
@@ -131,7 +131,7 @@ impl ufmt::uDisplay for BundleGroup<'_> {
     {
         uwrite!(f, "a=group:BUNDLE")?;
         for v in &self.0 {
-            uwrite!(f, " {}", v)?;
+            uwrite!(f, " {}", v.as_ref())?;
         }
         Ok(())
     }
@@ -141,7 +141,7 @@ impl ufmt::uDisplay for Fmtp<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=fmtp:{} {}", self.payload, self.config)
+        uwrite!(f, "a=fmtp:{} {}", self.payload, self.config.as_ref())
     }
 }
 impl ufmt::uDisplay for Rtp<'_> {
@@ -153,7 +153,7 @@ impl ufmt::uDisplay for Rtp<'_> {
             f,
             "a=rtpmap:{} {}/{}/{}",
             self.payload,
-            self.codec,
+            self.codec.as_ref(),
             self.rate,
             self.encoding
         )
@@ -164,7 +164,7 @@ impl ufmt::uDisplay for Control<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=control:{}", self.0)
+        uwrite!(f, "a=control:{}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for Direction {
@@ -197,7 +197,12 @@ impl ufmt::uDisplay for Fingerprint<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=fingerprint:{} {}", self.r#type, self.hash)
+        uwrite!(
+            f,
+            "a=fingerprint:{} {}",
+            self.r#type.as_ref(),
+            self.hash.as_ref()
+        )
     }
 }
 impl ufmt::uDisplay for Mid<'_> {
@@ -205,7 +210,7 @@ impl ufmt::uDisplay for Mid<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=mid:{}", self.0)
+        uwrite!(f, "a=mid:{}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for MsidSemantic<'_> {
@@ -218,7 +223,7 @@ impl ufmt::uDisplay for MsidSemantic<'_> {
             if i > 0 {
                 uwrite!(f, " ")?;
             }
-            uwrite!(f, "{}", x)?;
+            uwrite!(f, "{}", x.as_ref())?;
         }
         Ok(())
     }
@@ -233,7 +238,7 @@ impl ufmt::uDisplay for Msid<'_> {
             if i > 0 {
                 uwrite!(f, " ")?;
             }
-            uwrite!(f, "{}", x)?;
+            uwrite!(f, "{}", x.as_ref())?;
         }
         Ok(())
     }
@@ -251,7 +256,7 @@ impl ufmt::uDisplay for SessionInformation<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "i={}", self.0)
+        uwrite!(f, "i={}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for SessionName<'_> {
@@ -259,7 +264,7 @@ impl ufmt::uDisplay for SessionName<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "s={}", self.0)
+        uwrite!(f, "s={}", self.0.as_ref())
     }
 }
 
@@ -271,10 +276,10 @@ impl ufmt::uDisplay for Origin<'_> {
         uwrite!(
             f,
             "o={} {} {} {} {} {}",
-            self.user_name,
+            self.user_name.as_ref(),
             self.session_id,
             self.session_version,
-            self.net_type,
+            self.net_type.as_ref(),
             self.ip_ver,
             IpAddress(&self.addr)
         )
@@ -289,12 +294,12 @@ impl ufmt::uDisplay for Media<'_> {
         uwrite!(
             f,
             "m={} {} {}",
-            self.r#type,
+            self.r#type.as_ref(),
             self.port,
             self.protocol.join("/").as_str(),
         )?;
         for payload in &self.payloads {
-            uwrite!(f, " {}", payload)?;
+            uwrite!(f, " {}", payload.as_ref())?;
         }
         Ok(())
     }
@@ -353,7 +358,13 @@ impl ufmt::uDisplay for Ssrc<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=ssrc:{} {}:{}", self.id, self.attribute, self.value)
+        uwrite!(
+            f,
+            "a=ssrc:{} {}:{}",
+            self.id,
+            self.attribute.as_ref(),
+            self.value.as_ref()
+        )
     }
 }
 impl ufmt::uDisplay for RtpMap<'_> {
@@ -361,7 +372,12 @@ impl ufmt::uDisplay for RtpMap<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=rtpmap:{} {}", self.payload_type, self.encoding_name)?;
+        uwrite!(
+            f,
+            "a=rtpmap:{} {}",
+            self.payload_type,
+            self.encoding_name.as_ref()
+        )?;
         if let Some(clock_rate) = self.clock_rate {
             uwrite!(f, "/{}", clock_rate)?;
         }
@@ -391,11 +407,11 @@ impl ufmt::uDisplay for FbAckParam<'_> {
     {
         match self {
             FbAckParam::Rpsi => uwrite!(f, "rpsi"),
-            FbAckParam::Sli(Some(x)) => uwrite!(f, "sli {}", x),
+            FbAckParam::Sli(Some(x)) => uwrite!(f, "sli {}", x.as_ref()),
             FbAckParam::Sli(None) => uwrite!(f, "sli"),
-            FbAckParam::App(x) => uwrite!(f, "app {}", x),
-            FbAckParam::Other(k, Some(v)) => uwrite!(f, "{} {}", k, v),
-            FbAckParam::Other(k, None) => uwrite!(f, "{}", k),
+            FbAckParam::App(x) => uwrite!(f, "app {}", x.as_ref()),
+            FbAckParam::Other(k, Some(v)) => uwrite!(f, "{} {}", k.as_ref(), v.as_ref()),
+            FbAckParam::Other(k, None) => uwrite!(f, "{}", k.as_ref()),
         }
     }
 }
@@ -409,8 +425,8 @@ impl ufmt::uDisplay for FbNackParam<'_> {
             FbNackParam::Pli => uwrite!(f, "pli"),
             FbNackParam::Rpsi => uwrite!(f, "rpsi"),
             FbNackParam::Sli => uwrite!(f, "sli"),
-            FbNackParam::Other(k, v) => uwrite!(f, "{} {}", k, v),
-            FbNackParam::App(x) => uwrite!(f, "app {}", x),
+            FbNackParam::Other(k, v) => uwrite!(f, "{} {}", k.as_ref(), v.as_ref()),
+            FbNackParam::App(x) => uwrite!(f, "app {}", x.as_ref()),
         }
     }
 }
@@ -421,9 +437,9 @@ impl ufmt::uDisplay for FbParam<'_> {
         W: uWrite + ?Sized,
     {
         match self {
-            FbParam::App(p) => uwrite!(f, "app {}", p),
-            FbParam::Single(p) => uwrite!(f, "{}", p),
-            FbParam::Pair(k, v) => uwrite!(f, "{} {}", k, v),
+            FbParam::App(p) => uwrite!(f, "app {}", p.as_ref()),
+            FbParam::Single(p) => uwrite!(f, "{}", p.as_ref()),
+            FbParam::Pair(k, v) => uwrite!(f, "{} {}", k.as_ref(), v.as_ref()),
         }
     }
 }
@@ -440,8 +456,8 @@ impl ufmt::uDisplay for FbVal<'_> {
             FbVal::RtcpFbId {
                 id,
                 param: Some(param),
-            } => uwrite!(f, "{} {}", id, param),
-            FbVal::RtcpFbId { id, param: None } => uwrite!(f, "{}", id),
+            } => uwrite!(f, "{} {}", id.as_ref(), param),
+            FbVal::RtcpFbId { id, param: None } => uwrite!(f, "{}", id.as_ref()),
         }
     }
 }
@@ -485,10 +501,10 @@ impl ufmt::uDisplay for IceParameter<'_> {
         W: uWrite + ?Sized,
     {
         match self {
-            IceParameter::Ufrag(ufrag) => uwrite!(f, "a=ice-ufrag:{}", ufrag),
-            IceParameter::Pwd(pwd) => uwrite!(f, "a=ice-pwd:{}", pwd),
-            IceParameter::Options(options) => uwrite!(f, "a=ice-options:{}", options),
-            IceParameter::Mismatch=> uwrite!(f, "a=ice-mismatch"),
+            IceParameter::Ufrag(ufrag) => uwrite!(f, "a=ice-ufrag:{}", ufrag.as_ref()),
+            IceParameter::Pwd(pwd) => uwrite!(f, "a=ice-pwd:{}", pwd.as_ref()),
+            IceParameter::Options(options) => uwrite!(f, "a=ice-options:{}", options.as_ref()),
+            IceParameter::Mismatch => uwrite!(f, "a=ice-mismatch"),
             IceParameter::Lite => uwrite!(f, "a=ice-lite"),
         }
     }
@@ -500,12 +516,18 @@ impl ufmt::uDisplay for Extmap<'_> {
         W: uWrite + ?Sized,
     {
         if let Some(direction) = self.direction {
-            uwrite!(f, "a=extmap:{}/{} {}", self.value, direction, self.uri)?;
+            uwrite!(
+                f,
+                "a=extmap:{}/{} {}",
+                self.value,
+                direction,
+                self.uri.as_ref()
+            )?;
         } else {
-            uwrite!(f, "a=extmap:{} {}", self.value, self.uri)?;
+            uwrite!(f, "a=extmap:{} {}", self.value, self.uri.as_ref())?;
         }
         for a in &self.attributes {
-            uwrite!(f, " {}", a)?;
+            uwrite!(f, " {}", a.as_ref())?;
         }
         Ok(())
     }
@@ -534,7 +556,7 @@ impl ufmt::uDisplay for Uri<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "{}", self.0)
+        uwrite!(f, "{}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for EmailAddress<'_> {
@@ -542,7 +564,7 @@ impl ufmt::uDisplay for EmailAddress<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "e={}", self.0)
+        uwrite!(f, "e={}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for PhoneNumber<'_> {
@@ -550,7 +572,7 @@ impl ufmt::uDisplay for PhoneNumber<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "p={}", self.0)
+        uwrite!(f, "p={}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for Timing {
@@ -634,8 +656,8 @@ impl ufmt::uDisplay for Candidate<'_> {
         if let Some(x) = self.rport {
             uwrite!(f, "{}", x)?;
         }
-        if let Some(x) = self.tcptype {
-            uwrite!(f, "{}", x)?;
+        if let Some(x) = self.tcptype.as_ref() {
+            uwrite!(f, "{}", x.as_ref())?;
         }
         if let Some(x) = self.generation {
             uwrite!(f, "{}", x)?;

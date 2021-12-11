@@ -7,6 +7,7 @@ use nom::{
     sequence::{preceded, separated_pair, tuple},
     IResult,
 };
+use std::borrow::Cow;
 
 pub mod candidate;
 pub mod dtls;
@@ -55,27 +56,42 @@ pub enum SdpLine<'a> {
     Extmap(extmap::Extmap<'a>),
     BundleOnly,
     EoC,
-    Attribute { key: &'a str, val: &'a str },
+    Attribute {
+        key: Cow<'a, str>,
+        val: Cow<'a, str>,
+    },
 }
 
 pub mod generic {
     use super::*;
 
-    pub fn lazy_attribute_line(input: &str) -> IResult<&str, (&str, &str)> {
+    pub fn lazy_attribute_line(input: &str) -> IResult<&str, (Cow<'_, str>, Cow<'_, str>)> {
         a_line(map(
-            separated_pair(read_non_colon_string, tag(":"), is_not("\n")),
+            separated_pair(
+                cowify(read_non_colon_string),
+                tag(":"),
+                cowify(is_not("\n")),
+            ),
             |(key, val)| (key, val),
         ))(input)
     }
     #[test]
     fn test_lazy_attribute_line() {
-        assert_line!(lazy_attribute_line, "a=foo:bar", ("foo", "bar"));
+        assert_line!(
+            lazy_attribute_line,
+            "a=foo:bar",
+            ("foo".into(), "bar".into())
+        );
         assert_line!(
             lazy_attribute_line,
             "a=fmtp:111 minptime=10; useinbandfec=1",
-            ("fmtp", "111 minptime=10; useinbandfec=1")
+            ("fmtp".into(), "111 minptime=10; useinbandfec=1".into())
         );
-        assert_line!(lazy_attribute_line, "a=setup:actpass", ("setup", "actpass"));
+        assert_line!(
+            lazy_attribute_line,
+            "a=setup:actpass",
+            ("setup".into(), "actpass".into())
+        );
     }
 }
 
@@ -84,7 +100,7 @@ pub mod bundle {
 
     /// `a=group:BUNDLE 0 1`
     #[derive(Debug, PartialEq)]
-    pub struct BundleGroup<'a>(pub Vec<&'a str>);
+    pub struct BundleGroup<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
         attribute("group", bundle_group)(input)
@@ -93,7 +109,7 @@ pub mod bundle {
     fn bundle_group(input: &str) -> IResult<&str, BundleGroup> {
         preceded(
             tag("BUNDLE"),
-            map(wsf(space_separated_strings), BundleGroup),
+            map(wsf(space_separated_cow_strings), BundleGroup),
         )(input)
     }
 
@@ -102,19 +118,19 @@ pub mod bundle {
         assert_line!(
             bundle_group_line,
             "a=group:BUNDLE 0 1",
-            BundleGroup(vec!["0", "1"]),
+            BundleGroup(create_test_vec(&["0", "1"])),
             print
         );
         assert_line!(
             bundle_group_line,
             "a=group:BUNDLE video",
-            BundleGroup(vec!["video"]),
+            BundleGroup(create_test_vec(&["video"])),
             print
         );
         assert_line!(
             bundle_group_line,
             "a=group:BUNDLE sdparta_0 sdparta_1 sdparta_2",
-            BundleGroup(vec!["sdparta_0", "sdparta_1", "sdparta_2"]),
+            BundleGroup(create_test_vec(&["sdparta_0", "sdparta_1", "sdparta_2"])),
             print
         );
     }
@@ -127,7 +143,7 @@ pub mod rtp {
     #[derive(Debug, PartialEq)]
     pub struct Rtp<'a> {
         pub payload: u32,
-        pub codec: &'a str,
+        pub codec: Cow<'a, str>,
         pub rate: u32,
         pub encoding: u32,
     }
@@ -139,10 +155,10 @@ pub mod rtp {
     fn rtp_attribute(input: &str) -> IResult<&str, Rtp> {
         map(
             tuple((
-                wsf(read_number),                // payload
-                wsf(read_non_slash_string),      // codec
-                preceded(tag("/"), read_number), // rate
-                preceded(tag("/"), read_number), // encoding
+                wsf(read_number),                   // payload
+                wsf(cowify(read_non_slash_string)), // codec
+                preceded(tag("/"), read_number),    // rate
+                preceded(tag("/"), read_number),    // encoding
             )),
             |(payload, codec, rate, encoding)| Rtp {
                 payload,
@@ -166,7 +182,7 @@ pub mod fmtp {
     #[derive(Debug, PartialEq)]
     pub struct Fmtp<'a> {
         pub payload: u32,
-        pub config: &'a str,
+        pub config: Cow<'a, str>,
     }
 
     pub fn fmtp_attribute_line(input: &str) -> IResult<&str, Fmtp> {
@@ -176,8 +192,8 @@ pub mod fmtp {
     fn fmtp_attribute(input: &str) -> IResult<&str, Fmtp> {
         map(
             tuple((
-                read_number,       // payload
-                wsf(is_not("\n")), // config
+                read_number,               // payload
+                cowify(wsf(is_not("\n"))), // config
             )),
             |(payload, config)| (Fmtp { payload, config }),
         )(input)
@@ -190,7 +206,7 @@ pub mod fmtp {
             "a=fmtp:108 profile-level-id=24;object=23;bitrate=64000",
             Fmtp {
                 payload: 108,
-                config: "profile-level-id=24;object=23;bitrate=64000",
+                config: "profile-level-id=24;object=23;bitrate=64000".into(),
             },
             print
         );
@@ -205,14 +221,14 @@ pub mod control {
 
     /// `a=control:streamid=0`
     #[derive(Debug, PartialEq)]
-    pub struct Control<'a>(pub &'a str);
+    pub struct Control<'a>(pub Cow<'a, str>);
 
     pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
         attribute("control", control_attribute)(input)
     }
 
     fn control_attribute(input: &str) -> IResult<&str, Control> {
-        map(read_string, Control)(input)
+        map(cowify(read_string), Control)(input)
     }
 
     #[test]
@@ -311,8 +327,8 @@ pub mod fingerprint {
 
     #[derive(Debug)]
     pub struct Fingerprint<'a> {
-        pub r#type: &'a str,
-        pub hash: &'a str,
+        pub r#type: Cow<'a, str>,
+        pub hash: Cow<'a, str>,
     }
 
     /// fingerprint
@@ -324,8 +340,8 @@ pub mod fingerprint {
     pub fn fingerprint(input: &str) -> IResult<&str, Fingerprint> {
         map(
             tuple((
-                wsf(read_string), // type
-                wsf(read_string), // hash
+                cowify(wsf(read_string)), // type
+                cowify(wsf(read_string)), // hash
             )),
             |(r#type, hash)| Fingerprint { r#type, hash },
         )(input)
@@ -343,14 +359,14 @@ pub mod mid {
     use super::*;
 
     #[derive(Debug)]
-    pub struct Mid<'a>(pub &'a str);
+    pub struct Mid<'a>(pub Cow<'a, str>);
 
     pub fn mid_line(input: &str) -> IResult<&str, Mid> {
         attribute("mid", mid)(input)
     }
 
     pub fn mid(input: &str) -> IResult<&str, Mid> {
-        map(read_string, Mid)(input)
+        map(cowify(read_string), Mid)(input)
     }
 
     #[test]
@@ -367,14 +383,14 @@ pub mod msid {
 
     /// TODO: type this more strictly, if possible without `Vec`
     #[derive(Debug, PartialEq)]
-    pub struct MsidSemantic<'a>(pub Vec<&'a str>);
+    pub struct MsidSemantic<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
         attribute("msid-semantic", msid_semantic)(input)
     }
 
     pub fn msid_semantic(input: &str) -> IResult<&str, MsidSemantic> {
-        wsf(map(space_separated_strings, MsidSemantic))(input)
+        wsf(map(space_separated_cow_strings, MsidSemantic))(input)
     }
 
     #[test]
@@ -382,7 +398,10 @@ pub mod msid {
         assert_line!(
             msid_semantic_line,
             "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS",
-            MsidSemantic(vec!["WMS", "lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"])
+            MsidSemantic(create_test_vec(&[
+                "WMS",
+                "lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
+            ]))
         );
         assert_line_print!(
             msid_semantic_line,
@@ -391,14 +410,14 @@ pub mod msid {
     }
 
     #[derive(Debug, PartialEq)]
-    pub struct Msid<'a>(pub Vec<&'a str>);
+    pub struct Msid<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_line(input: &str) -> IResult<&str, Msid> {
         attribute("msid", msid)(input)
     }
 
     pub fn msid(input: &str) -> IResult<&str, Msid> {
-        wsf(map(space_separated_strings, Msid))(input)
+        wsf(map(space_separated_cow_strings, Msid))(input)
     }
 
     #[test]
@@ -407,8 +426,8 @@ pub mod msid {
             msid_line,
             "a=msid:47017fee-b6c1-4162-929c-a25110252400 f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9",
             Msid(vec![
-                "47017fee-b6c1-4162-929c-a25110252400",
-                "f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9"
+                "47017fee-b6c1-4162-929c-a25110252400".into(),
+                "f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9".into()
             ]),
             print
         );

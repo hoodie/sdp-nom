@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
@@ -15,8 +17,8 @@ use crate::parsers::*;
 #[derive(Debug, PartialEq)]
 pub struct Ssrc<'a> {
     pub id: u64,
-    pub attribute: &'a str,
-    pub value: &'a str,
+    pub attribute: Cow<'a, str>,
+    pub value: Cow<'a, str>,
 }
 
 /// ssrc
@@ -28,7 +30,11 @@ pub fn ssrc_line(input: &str) -> IResult<&str, Ssrc> {
                 wsf(read_big_number), // id
                 preceded(
                     multispace0,
-                    separated_pair(read_non_colon_string, tag(":"), wsf(is_not("\n"))),
+                    separated_pair(
+                        cowify(read_non_colon_string),
+                        tag(":"),
+                        cowify(wsf(is_not("\n"))),
+                    ),
                 ),
             )),
             |(id, (attribute, value))| Ssrc {
@@ -46,13 +52,13 @@ fn test_ssrc_line() {
     assert_line!(
         ssrc_line,
         "a=ssrc:1366781084 cname:EocUG1f0fcg/yvY7",
-        Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" },
+        Ssrc { id: 1366781084, attribute: "cname".into(), value: "EocUG1f0fcg/yvY7".into() },
         print
     );
     assert_line!(
         ssrc_line,
         "a=ssrc: 1366781084 cname: EocUG1f0fcg/yvY7",
-        Ssrc { id: 1366781084, attribute: "cname", value: "EocUG1f0fcg/yvY7" }
+        Ssrc { id: 1366781084, attribute: "cname".into(), value: "EocUG1f0fcg/yvY7".into() }
     );
     assert_line!(ssrc_line, "a=ssrc:3570614608 cname:4TOk42mSjXCkVIa6");
     assert_line!(ssrc_line, "a=ssrc:3570614608 msid:lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS 35429d94-5637-4686-9ecd-7d0622261ce8");

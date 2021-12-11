@@ -8,7 +8,7 @@ use nom::{
     IResult,
 };
 
-use std::net::IpAddr;
+use std::{borrow::Cow, net::IpAddr};
 
 use crate::parsers::*;
 #[cfg(test)]
@@ -85,7 +85,7 @@ pub enum FbVal<'a> {
     Nack(FbNackParam<'a>),
     TrrInt(u32),
     RtcpFbId {
-        id: &'a str,
+        id: Cow<'a, str>,
         param: Option<FbParam<'a>>,
     },
 }
@@ -93,19 +93,19 @@ pub enum FbVal<'a> {
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
 pub enum FbParam<'a> {
-    App(&'a str),
-    Single(&'a str),
-    Pair(&'a str, &'a str),
+    App(Cow<'a, str>),
+    Single(Cow<'a, str>),
+    Pair(Cow<'a, str>, Cow<'a, str>),
 }
 
 fn read_param(input: &str) -> IResult<&str, FbParam> {
     alt((
-        map(preceded(tag("app"), wsf(read_string)), FbParam::App),
+        map(preceded(tag("app"), wsf(cowify(read_string))), FbParam::App),
         map(
-            tuple((wsf(read_string), wsf(read_string))),
+            tuple((wsf(cowify(read_string)), wsf(cowify(read_string)))),
             |(token, value)| FbParam::Pair(token, value),
         ),
-        map(wsf(read_string), |value| FbParam::Single(value)),
+        map(wsf(cowify(read_string)), FbParam::Single),
     ))(input)
 }
 
@@ -113,18 +113,24 @@ fn read_param(input: &str) -> IResult<&str, FbParam> {
 #[non_exhaustive]
 pub enum FbAckParam<'a> {
     Rpsi,
-    Sli(Option<&'a str>),
-    App(&'a str),
-    Other(&'a str, Option<&'a str>),
+    Sli(Option<Cow<'a, str>>),
+    App(Cow<'a, str>),
+    Other(Cow<'a, str>, Option<Cow<'a, str>>),
 }
 
 fn read_ack_param(input: &str) -> IResult<&str, FbAckParam> {
     alt((
         map(tag("rpsi"), |_| FbAckParam::Rpsi),
-        map(preceded(tag("app"), wsf(read_string)), FbAckParam::App),
-        map(preceded(tag("sli"), opt(wsf(read_string))), FbAckParam::Sli),
         map(
-            tuple((wsf(read_string), wsf(read_string))),
+            preceded(tag("app"), wsf(cowify(read_string))),
+            FbAckParam::App,
+        ),
+        map(
+            preceded(tag("sli"), opt(wsf(cowify(read_string)))),
+            FbAckParam::Sli,
+        ),
+        map(
+            tuple((wsf(cowify(read_string)), wsf(cowify(read_string)))),
             |(token, value)| FbAckParam::Other(token, Some(value)),
         ),
     ))(input)
@@ -133,7 +139,11 @@ fn read_ack_param(input: &str) -> IResult<&str, FbAckParam> {
 #[test]
 fn test_rtcpfb_ack_param() {
     assert_line!(read_ack_param, "sli", FbAckParam::Sli(None));
-    assert_line!(read_ack_param, "sli 5432", FbAckParam::Sli(Some("5432")));
+    assert_line!(
+        read_ack_param,
+        "sli 5432",
+        FbAckParam::Sli(Some("5432".into()))
+    );
 }
 
 #[derive(Debug, PartialEq)]
@@ -142,16 +152,19 @@ pub enum FbNackParam<'a> {
     Pli,
     Sli,
     Rpsi,
-    App(&'a str),
-    Other(&'a str, &'a str),
+    App(Cow<'a, str>),
+    Other(Cow<'a, str>, Cow<'a, str>),
 }
 
 fn read_nack_param(input: &str) -> IResult<&str, FbNackParam> {
     alt((
         map(tag("rpsi"), |_| FbNackParam::Rpsi),
-        map(preceded(tag("app"), wsf(read_string)), FbNackParam::App),
         map(
-            tuple((wsf(read_string), wsf(read_string))),
+            preceded(tag("app"), wsf(cowify(read_string))),
+            FbNackParam::App,
+        ),
+        map(
+            tuple((wsf(cowify(read_string)), wsf(cowify(read_string)))),
             |(token, value)| FbNackParam::Other(token, value),
         ),
     ))(input)
@@ -163,7 +176,7 @@ fn read_val(input: &str) -> IResult<&str, FbVal> {
         map(preceded(tag("nack"), wsf(read_nack_param)), FbVal::Nack),
         map(preceded(tag("trr-int"), wsf(read_number)), FbVal::TrrInt),
         map(
-            tuple((wsf(read_string), opt(wsf(read_param)))),
+            tuple((wsf(cowify(read_string)), opt(wsf(read_param)))),
             |(id, param)| FbVal::RtcpFbId { id, param },
         ),
     ))(input)
@@ -174,12 +187,12 @@ fn read_val(input: &str) -> IResult<&str, FbVal> {
 fn test_read_val() {
     assert_line!(read_val, "trr-int 100", FbVal::TrrInt(100), print);
     assert_line!(read_val, "ack sli", FbVal::Ack(FbAckParam::Sli(None)), print);
-    assert_line!(read_val, "ack sli 5432", FbVal::Ack(FbAckParam::Sli(Some("5432"))), print);
+    assert_line!(read_val, "ack sli 5432", FbVal::Ack(FbAckParam::Sli(Some("5432".into()))), print);
     assert_line!(read_val, "nack rpsi", FbVal::Nack(FbNackParam::Rpsi), print);
-    assert_line!(read_val, "goog-remb", FbVal:: RtcpFbId{id: "goog-remb", param: None}, print);
-    assert_line!(read_val, "ccm", FbVal:: RtcpFbId{id: "ccm", param: None}, print);
-    assert_line!(read_val, "ccm fir", FbVal:: RtcpFbId{id: "ccm", param: Some(FbParam::Single("fir"))}, print);
-    assert_line!(read_val, "fb foo bar", FbVal:: RtcpFbId{id: "fb", param: Some(FbParam::Pair("foo", "bar"))}, print);
+    assert_line!(read_val, "goog-remb", FbVal:: RtcpFbId{id: "goog-remb".into(), param: None}, print);
+    assert_line!(read_val, "ccm", FbVal:: RtcpFbId{id: "ccm".into(), param: None}, print);
+    assert_line!(read_val, "ccm fir", FbVal:: RtcpFbId{id: "ccm".into(), param: Some(FbParam::Single("fir".into()))}, print);
+    assert_line!(read_val, "fb foo bar", FbVal:: RtcpFbId{id: "fb".into(), param: Some(FbParam::Pair("foo".into(), "bar".into()))}, print);
 }
 
 pub fn rtcpfb_attribute_line(input: &str) -> IResult<&str, Fb> {
@@ -204,16 +217,16 @@ fn test_rtcpfb_line() {
     assert_line_print!(rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli 5432");
     assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 nack rpsi", Fb {payload: 98, val: FbVal::Nack(FbNackParam::Rpsi)}, print);
 
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:96 goog-remb", Fb {payload: 96, val: FbVal::RtcpFbId{id: "goog-remb", param: None}}, print);
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:96 transport-cc", Fb {payload: 96, val: FbVal::RtcpFbId{id: "transport-cc", param: None}}, print);
+    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:96 goog-remb", Fb {payload: 96, val: FbVal::RtcpFbId{id: "goog-remb".into(), param: None}}, print);
+    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:96 transport-cc", Fb {payload: 96, val: FbVal::RtcpFbId{id: "transport-cc".into(), param: None}}, print);
     assert_line!(
         rtcpfb_attribute_line,
         "a=rtcp-fb:96 ccm fir",
         Fb {
             payload: 96,
             val: FbVal::RtcpFbId{
-                id: "ccm",
-                param: Some(FbParam::Single("fir"))
+                id: "ccm".into(),
+                param: Some(FbParam::Single("fir".into()))
             }
         }, print
     );

@@ -6,7 +6,7 @@ fn main() {
         if let Ok(content) = std::fs::read_to_string(arg) {
             err_count = 0;
             for line in content.lines() {
-                match sdp_line(&line) {
+                match sdp_line(line) {
                     Ok(parsed) => {
                         println!("\n👌 {:#} -> {:?}", line, parsed.0);
                         println!("{:#?}", parsed.1);

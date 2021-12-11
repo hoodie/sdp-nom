@@ -13,7 +13,12 @@ use nom::{
     IResult, Parser,
 };
 
-use std::net::IpAddr;
+use std::{borrow::Cow, net::IpAddr};
+
+#[cfg(test)]
+pub fn create_test_vec(strs: &[&str]) -> Vec<Cow<'static, str>> {
+    strs.iter().map(|&s| Cow::from(s.to_owned())).collect()
+}
 
 pub fn is_not_space(c: char) -> bool {
     c != ' '
@@ -41,6 +46,12 @@ pub fn wsf<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
     f: F,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, E> {
     delimited(multispace0, f, multispace0)
+}
+
+pub fn cowify<'a, E: ParseError<&'a str>, F: Parser<&'a str, &'a str, E>>(
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, Cow<'a, str>, E> {
+    map(f, Cow::from)
 }
 
 pub fn a_line<'a, O, E: ParseError<&'a str>, F: Parser<&'a str, O, E>>(
@@ -99,10 +110,6 @@ pub fn read_string(input: &str) -> IResult<&str, &str> {
     take_while1(is_not_space)(input)
 }
 
-pub fn read_cow_string(input: &str) -> IResult<&str, Cow<'_, str>> {
-    map(take_while1(is_not_space), Cow::Borrowed)(input)
-}
-
 pub fn read_non_colon_string(input: &str) -> IResult<&str, &str> {
     take_while1(|c: char| -> bool { c != ' ' && c != ':' })(input)
 }
@@ -115,8 +122,12 @@ pub fn slash_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_non_slash_string, opt(tag("/"))))(input)
 }
 
+pub fn slash_separated_cow_strings(input: &str) -> IResult<&str, Vec<Cow<'_, str>>> {
+    many0(terminated(cowify(read_non_slash_string), opt(tag("/"))))(input)
+}
+
 pub fn space_separated_cow_strings(input: &str) -> IResult<&str, Vec<Cow<'_, str>>> {
-    many0(terminated(read_cow_string, multispace0))(input)
+    many0(terminated(cowify(read_string), multispace0))(input)
 }
 
 pub fn space_separated_strings(input: &str) -> IResult<&str, Vec<&str>> {
@@ -143,6 +154,10 @@ pub fn read_ipver(input: &str) -> IResult<&str, IpVer> {
 
 pub fn read_as_strings(input: &str) -> IResult<&str, Vec<&str>> {
     many0(terminated(read_string, opt(space1)))(input)
+}
+
+pub fn read_as_cow_strings(input: &str) -> IResult<&str, Vec<Cow<'_, str>>> {
+    many0(terminated(cowify(read_string), opt(space1)))(input)
 }
 
 pub fn read_as_numbers(input: &str) -> IResult<&str, Vec<u32>> {

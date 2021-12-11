@@ -1,9 +1,9 @@
 use nom::{combinator::map, sequence::tuple, IResult};
 
-use std::net::IpAddr;
+use std::{borrow::Cow, net::IpAddr};
 
 use crate::parsers::{
-    line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
+    cowify, line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
 };
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
@@ -13,10 +13,10 @@ use crate::{assert_line, assert_line_print};
 /// o=- 20518 0 IN IP4 203.0.113.1
 #[derive(Debug, PartialEq)]
 pub struct Origin<'a> {
-    pub user_name: &'a str,
+    pub user_name: Cow<'a, str>,
     pub session_id: u64,
     pub session_version: u32,
-    pub net_type: &'a str,
+    pub net_type: Cow<'a, str>,
     pub ip_ver: IpVer,
     pub addr: IpAddr,
 }
@@ -24,12 +24,12 @@ pub struct Origin<'a> {
 pub fn origin(input: &str) -> IResult<&str, Origin> {
     map(
         tuple((
-            wsf(read_string),     // user_name
-            wsf(read_big_number), // session_id
-            wsf(read_number),     // session_version
-            wsf(read_string),     // net_type
-            wsf(read_ipver),      // ip_ver
-            wsf(read_addr),       // addr
+            wsf(cowify(read_string)), // user_name
+            wsf(read_big_number),     // session_id
+            wsf(read_number),         // session_version
+            wsf(cowify(read_string)), // net_type
+            wsf(read_ipver),          // ip_ver
+            wsf(read_addr),           // addr
         )),
         |(user_name, session_id, session_version, net_type, ip_ver, addr)| Origin {
             user_name,
@@ -52,10 +52,10 @@ fn parses_candidates() {
         origin_line,
         "o=test 4962303333179871722 1 IN IP4 0.0.0.0",
         Origin {
-            user_name: "test",
+            user_name: "test".into(),
             session_id: 4962303333179871722,
             session_version: 1,
-            net_type: "IN",
+            net_type: "IN".into(),
             ip_ver: IpVer::Ip4,
             addr: "0.0.0.0".parse().unwrap(),
         },

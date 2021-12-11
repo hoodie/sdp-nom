@@ -7,6 +7,7 @@ use nom::{
     sequence::{preceded, separated_pair, tuple},
     IResult,
 };
+use std::borrow::Cow;
 
 pub mod connection;
 pub mod media;
@@ -41,19 +42,24 @@ pub mod session_name {
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
     #[derive(Debug, PartialEq)]
-    pub struct SessionName<'a>(pub &'a str);
+    pub struct SessionName<'a>(pub Cow<'a, str>);
 
     /// "s=somename"
     pub fn name_line(input: &str) -> IResult<&str, SessionName> {
-        preceded(tag("s="), map(wsf(read_string0), SessionName))(input)
+        preceded(tag("s="), map(wsf(cowify(read_string0)), SessionName))(input)
     }
 
     #[test]
     fn test_name_line() {
-        assert_line!(name_line, "s=", SessionName(""), print);
-        assert_line!(name_line, "s=testname", SessionName("testname"), print);
-        assert_line!(name_line, "s= testname", SessionName("testname"));
-        assert_line!(name_line, "s=testname ", SessionName("testname"));
+        assert_line!(name_line, "s=", SessionName("".into()), print);
+        assert_line!(
+            name_line,
+            "s=testname",
+            SessionName("testname".into()),
+            print
+        );
+        assert_line!(name_line, "s= testname", SessionName("testname".into()));
+        assert_line!(name_line, "s=testname ", SessionName("testname".into()));
     }
 }
 
@@ -62,11 +68,11 @@ pub mod session_information {
 
     /// `i=<session description>`
     #[derive(Debug, PartialEq)]
-    pub struct SessionInformation<'a>(pub &'a str);
+    pub struct SessionInformation<'a>(pub Cow<'a, str>);
 
     /// SessionInformation "i=description"
     pub fn description_line(input: &str) -> IResult<&str, SessionInformation> {
-        line("i=", map(read_string, SessionInformation))(input)
+        line("i=", map(cowify(read_string), SessionInformation))(input)
     }
 
     #[test]
@@ -74,7 +80,7 @@ pub mod session_information {
         assert_line!(
             description_line,
             "i=testdescription",
-            SessionInformation("testdescription"),
+            SessionInformation("testdescription".into()),
             print
         );
     }
@@ -84,11 +90,11 @@ pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
     #[derive(Debug, PartialEq)]
-    pub struct Uri<'a>(pub &'a str);
+    pub struct Uri<'a>(pub Cow<'a, str>);
 
     /// "i=description"
     pub fn uri_line(input: &str) -> IResult<&str, Uri> {
-        line("u=", map(read_string, Uri))(input)
+        line("u=", map(cowify(read_string), Uri))(input)
     }
 
     #[test]
@@ -96,21 +102,22 @@ pub mod uri {
         assert_line!(
             uri_line,
             "u=https://parse-my.sdp",
-            Uri("https://parse-my.sdp")
+            Uri("https://parse-my.sdp".into())
         );
     }
 }
 
 pub mod email {
+
     use super::*;
 
     /// Email `e=<email-address>`
     #[derive(Debug, PartialEq)]
-    pub struct EmailAddress<'a>(pub &'a str);
+    pub struct EmailAddress<'a>(pub Cow<'a, str>);
 
     /// "e=email@example.com"
     pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
-        line("e=", wsf(map(read_string, EmailAddress)))(input)
+        line("e=", wsf(map(cowify(read_string), EmailAddress)))(input)
     }
 
     #[test]
@@ -118,7 +125,7 @@ pub mod email {
         assert_line!(
             email_address_line,
             "e=test@example.com",
-            EmailAddress("test@example.com"),
+            EmailAddress("test@example.com".into()),
             print
         );
     }
@@ -130,11 +137,11 @@ pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
     #[derive(Debug, PartialEq)]
-    pub struct PhoneNumber<'a>(pub &'a str);
+    pub struct PhoneNumber<'a>(pub Cow<'a, str>);
 
     /// "i=description"
     pub fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
-        line("p=", map(take_while(|_| true), PhoneNumber))(input)
+        line("p=", map(cowify(take_while(|_| true)), |s| PhoneNumber(s)))(input)
     }
 
     #[test]
@@ -142,7 +149,7 @@ pub mod phone_number {
         assert_line!(
             phone_number_line,
             "p=0118 999 881 999 119 7253",
-            PhoneNumber("0118 999 881 999 119 7253"),
+            PhoneNumber("0118 999 881 999 119 7253".into()),
             print
         );
     }
