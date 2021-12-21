@@ -6,7 +6,7 @@ fn main() {
         if let Ok(content) = std::fs::read_to_string(arg) {
             err_count = 0;
             for line in content.lines() {
-                if let Err(e) = sdp_line(&line) {
+                if let Err(e) = sdp_line(line) {
                     println!("{:#}", line);
                     println!("{}\n", e);
                     err_count += 1;

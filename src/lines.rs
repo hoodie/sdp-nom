@@ -143,7 +143,7 @@ pub mod phone_number {
 
     /// "i=description"
     pub fn phone_number_line(input: &str) -> IResult<&str, PhoneNumber> {
-        line("p=", map(cowify(take_while(|_| true)), |s| PhoneNumber(s)))(input)
+        line("p=", map(cowify(take_while(|_| true)), PhoneNumber))(input)
     }
 
     #[test]
