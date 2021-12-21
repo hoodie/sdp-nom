@@ -7,11 +7,14 @@ edition = "2018"
 [dependencies]
 nom = "7"
 wee_alloc = { version = "0.4", optional = true }
-
 [dependencies.ufmt]
 version = "0.1"
 features = ["std"]
 optional = true
+
+[dependencies.derive-into-owned]
+git = "https://github.com/hoodie/derive-into-owned"
+branch = "feature/update-syn"
 
 [dev-dependencies]
 pretty_assertions = "1"

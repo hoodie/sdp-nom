@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use derive_into_owned::IntoOwned;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while},
@@ -7,6 +8,7 @@ use nom::{
     sequence::{preceded, separated_pair, tuple},
     IResult,
 };
+
 use std::borrow::Cow;
 
 pub mod connection;
@@ -20,7 +22,7 @@ use crate::parsers::*;
 pub mod version {
     use super::*;
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct Version(pub u32);
 
     /// "v=0"
@@ -41,7 +43,7 @@ pub mod session_name {
     /// `s=somename`
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct SessionName<'a>(pub Cow<'a, str>);
 
     /// "s=somename"
@@ -67,7 +69,7 @@ pub mod session_information {
     use super::*;
 
     /// `i=<session description>`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct SessionInformation<'a>(pub Cow<'a, str>);
 
     /// SessionInformation "i=description"
@@ -89,7 +91,7 @@ pub mod session_information {
 pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct Uri<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -112,7 +114,7 @@ pub mod email {
     use super::*;
 
     /// Email `e=<email-address>`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct EmailAddress<'a>(pub Cow<'a, str>);
 
     /// "e=email@example.com"
@@ -136,7 +138,7 @@ pub mod email {
 pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct PhoneNumber<'a>(pub Cow<'a, str>);
 
     /// "i=description"

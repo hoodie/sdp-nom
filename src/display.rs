@@ -447,7 +447,7 @@ impl fmt::Display for Candidate<'_> {
             self.priority,
             self.addr,
             self.port,
-            self.typ,
+            self.r#type,
         )?;
         if let Some(x) = self.raddr {
             write!(f, "{}", x)?;

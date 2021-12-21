@@ -1,5 +1,6 @@
 //! [6. SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6)
 
+use derive_into_owned::IntoOwned;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
@@ -99,7 +100,7 @@ pub mod bundle {
     use super::*;
 
     /// `a=group:BUNDLE 0 1`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct BundleGroup<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
@@ -140,7 +141,7 @@ pub mod rtp {
     use super::*;
 
     // a=rtpmap:110 opus/48000/2
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct Rtp<'a> {
         pub payload: u32,
         pub codec: Cow<'a, str>,
@@ -179,7 +180,7 @@ pub mod fmtp {
     use super::*;
     ///<https://tools.ietf.org/html/rfc4588#section-8.1>
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct Fmtp<'a> {
         pub payload: u32,
         pub config: Cow<'a, str>,
@@ -220,7 +221,7 @@ pub mod control {
     use super::*;
 
     /// `a=control:streamid=0`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct Control<'a>(pub Cow<'a, str>);
 
     pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
@@ -325,7 +326,7 @@ pub mod rtcp_option {
 pub mod fingerprint {
     use super::*;
 
-    #[derive(Debug)]
+    #[derive(Debug, IntoOwned)]
     pub struct Fingerprint<'a> {
         pub r#type: Cow<'a, str>,
         pub hash: Cow<'a, str>,
@@ -358,7 +359,7 @@ pub mod fingerprint {
 pub mod mid {
     use super::*;
 
-    #[derive(Debug)]
+    #[derive(Debug, IntoOwned)]
     pub struct Mid<'a>(pub Cow<'a, str>);
 
     pub fn mid_line(input: &str) -> IResult<&str, Mid> {
@@ -382,7 +383,7 @@ pub mod msid {
     use super::*;
 
     /// TODO: type this more strictly, if possible without `Vec`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, derive_into_owned::IntoOwned, PartialEq)]
     pub struct MsidSemantic<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
@@ -409,7 +410,7 @@ pub mod msid {
         );
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, IntoOwned, PartialEq)]
     pub struct Msid<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_line(input: &str) -> IResult<&str, Msid> {

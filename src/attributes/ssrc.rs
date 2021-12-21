@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use derive_into_owned::IntoOwned;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
@@ -9,12 +10,11 @@ use nom::{
     IResult,
 };
 
+use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-use crate::parsers::*;
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, IntoOwned, PartialEq)]
 pub struct Ssrc<'a> {
     pub id: u64,
     pub attribute: Cow<'a, str>,

@@ -1,3 +1,4 @@
+use derive_into_owned::IntoOwned;
 use nom::{combinator::map, sequence::tuple, IResult};
 
 use std::{borrow::Cow, net::IpAddr};
@@ -11,7 +12,7 @@ use crate::{assert_line, assert_line_print};
 /// Origin
 ///
 /// o=- 20518 0 IN IP4 203.0.113.1
-#[derive(Debug, PartialEq)]
+#[derive(Debug, IntoOwned, PartialEq)]
 pub struct Origin<'a> {
     pub user_name: Cow<'a, str>,
     pub session_id: u64,

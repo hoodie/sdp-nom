@@ -29,6 +29,7 @@
 
 use std::borrow::Cow;
 
+use derive_into_owned::IntoOwned;
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 #[cfg_attr(feature = "wee_alloc", global_allocator)]
@@ -57,7 +58,7 @@ use lines::{
 use parsers::cowify;
 
 /// Sdp Line
-#[derive(Debug)]
+#[derive(Debug, IntoOwned)]
 #[non_exhaustive]
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
@@ -66,7 +67,7 @@ pub enum SdpLine<'a> {
 }
 
 /// Session Line
-#[derive(Debug)]
+#[derive(Debug, IntoOwned)]
 #[non_exhaustive]
 pub enum SessionLine<'a> {
     /// `v=0`
@@ -102,7 +103,7 @@ pub enum SessionLine<'a> {
     Media(Media<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, IntoOwned)]
 #[non_exhaustive]
 pub enum AttributeLine<'a> {
     /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
@@ -201,11 +202,11 @@ pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
     ))(input)
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, IntoOwned)]
 pub struct MediaSection<'a> {
     pub lines: Vec<SdpLine<'a>>,
 }
-#[derive(Debug, Default)]
+#[derive(Debug, Default, IntoOwned)]
 pub struct EagerSession<'a> {
     pub lines: Vec<SdpLine<'a>>,
     pub media: Vec<MediaSection<'a>>,

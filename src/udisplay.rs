@@ -648,7 +648,7 @@ impl ufmt::uDisplay for Candidate<'_> {
             self.priority,
             IpAddress(&self.addr),
             self.port,
-            self.typ,
+            self.r#type,
         )?;
         if let Some(x) = self.raddr {
             uwrite!(f, "{}", IpAddress(&x))?;

@@ -2,13 +2,14 @@
 
 use std::borrow::Cow;
 
+use derive_into_owned::IntoOwned;
 use nom::{combinator::map, sequence::tuple, IResult};
 
 use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, IntoOwned, PartialEq)]
 pub struct Media<'a> {
     pub r#type: Cow<'a, str>,
     pub port: u32,

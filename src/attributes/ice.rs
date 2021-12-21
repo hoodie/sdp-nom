@@ -1,12 +1,13 @@
 use std::borrow::Cow;
 
+use derive_into_owned::IntoOwned;
 use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 
 #[cfg(test)]
 use crate::assert_line;
 use crate::parsers::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, IntoOwned, PartialEq)]
 #[non_exhaustive]
 pub enum IceParameter<'a> {
     Ufrag(Cow<'a, str>),

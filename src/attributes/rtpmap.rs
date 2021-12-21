@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use derive_into_owned::IntoOwned;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -39,7 +40,7 @@ fn test_read_p_time() {
 /// RtpMap
 /// `a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding` parameters>]
 ///<https://tools.ietf.org/html/rfc4566#section-6>
-#[derive(Debug, PartialEq)]
+#[derive(Debug, IntoOwned, PartialEq)]
 pub struct RtpMap<'a> {
     pub payload_type: u32,
     pub encoding_name: Cow<'a, str>,

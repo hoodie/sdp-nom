@@ -2,6 +2,7 @@
 //!
 //! read [RFC5245 Section 15.1](https://tools.ietf.org/html/rfc5245#section-15.1)
 
+use derive_into_owned::IntoOwned;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -46,7 +47,7 @@ pub enum CandidateType {
 /// candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host
 /// candidate:3348148302 2 udp 2113937151 192.0.2.1 56501 typ host
 // "candidate:1853887674 2 udp 1518280447 47.61.61.61 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0"
-#[derive(Debug)]
+#[derive(Debug, IntoOwned)]
 pub struct Candidate<'a> {
     pub foundation: u32,
     pub component: CandidateComponent,
@@ -54,7 +55,7 @@ pub struct Candidate<'a> {
     pub priority: u32,         // 2043278322
     pub addr: IpAddr,          // "192.168.0.56"
     pub port: u32,             // 44323
-    pub typ: CandidateType,    // "host"
+    pub r#type: CandidateType, // "host"
     pub raddr: Option<IpAddr>, // "192.168.0.56"
     pub rport: Option<u32>,    // 44323
     pub tcptype: Option<Cow<'a, str>>,
@@ -101,7 +102,7 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             priority,
             addr,
             port,
-            typ,
+            r#type,
             raddr,
             rport,
             tcptype,
@@ -113,7 +114,7 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             priority,
             addr,
             port,
-            typ,
+            r#type,
             raddr,
             rport,
             tcptype,

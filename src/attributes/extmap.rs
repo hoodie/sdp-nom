@@ -2,6 +2,7 @@
 
 use std::borrow::Cow;
 
+use derive_into_owned::IntoOwned;
 use nom::{
     bytes::complete::tag,
     combinator::{map, opt},
@@ -16,7 +17,7 @@ use crate::parsers::*;
 
 /// `a=extmap:<value>["/"<direction>] <URI> <extensionattributes>`
 ///<https://tools.ietf.org/html/rfc8285#section-8>
-#[derive(Debug, PartialEq)]
+#[derive(Debug, IntoOwned, PartialEq)]
 pub struct Extmap<'a> {
     pub value: u32,
     pub direction: Option<Direction>,
