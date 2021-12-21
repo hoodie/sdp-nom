@@ -23,11 +23,13 @@ use crate::{
         bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
         session_information::*, session_name::*, timing::*, uri::*, version::*,
     },
+    media_section::MediaSection,
     parsers::IpVer,
-    AttributeLine, SdpLine, SessionLine,
+    session::{Session, SessionLine},
+    AttributeLine, SdpLine,
 };
 
-impl ufmt::uDisplay for crate::MediaSection<'_> {
+impl ufmt::uDisplay for MediaSection<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
         W: uWrite + ?Sized,
@@ -39,7 +41,7 @@ impl ufmt::uDisplay for crate::MediaSection<'_> {
     }
 }
 
-impl ufmt::uDisplay for crate::Session<'_> {
+impl ufmt::uDisplay for Session<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
         W: uWrite + ?Sized,

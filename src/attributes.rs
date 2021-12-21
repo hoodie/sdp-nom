@@ -1,4 +1,4 @@
-//! [6. SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6)
+//! [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6) aka lines that start with `a=`
 
 use derive_into_owned::IntoOwned;
 use nom::{
@@ -18,30 +18,61 @@ pub mod rtcp;
 pub mod rtpmap;
 pub mod ssrc;
 
-pub use candidate::*;
-pub use ice::*;
-pub use ssrc::*;
-
 use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
 pub use bundle::*;
+pub use candidate::*;
 pub use control::*;
 pub use direction::*;
 pub use fingerprint::*;
 pub use fmtp::*;
+pub use ice::*;
 pub use rtcp_option::*;
 pub use rtp::*;
+pub use ssrc::*;
 
-#[derive(Debug)]
+// #[derive(Debug)]
+// #[non_exhaustive]
+// pub enum SdpLine<'a> {
+//     // MsidSemantic(super::media::MsidSemantic<'a>),
+//     // Msid(super::media::Msid<'a>),
+//     RtpMap(rtpmap::RtpMap<'a>),
+//     PTime(rtpmap::PTime),
+//
+//     Ssrc(Ssrc<'a>),
+//     BundleGroup(BundleGroup<'a>),
+//     SsrcGroup(SsrcGroup),
+//     Fingerprint(Fingerprint<'a>),
+//     Direction(Direction),
+//     Rtp(Rtp<'a>),
+//     Rtcp(rtcp::Rtcp),
+//     Fmtp(Fmtp<'a>),
+//     RtcpFb(rtcp::Fb<'a>),
+//     RtcpOption(RtcpOption),
+//     Control(Control<'a>),
+//     SetupRole(dtls::SetupRole),
+//     Extmap(extmap::Extmap<'a>),
+//     BundleOnly,
+//     EoC,
+//     Attribute {
+//         key: Cow<'a, str>,
+//         val: Cow<'a, str>,
+//     },
+// }
+
+#[derive(Debug, IntoOwned)]
 #[non_exhaustive]
-pub enum SdpLine<'a> {
-    // MsidSemantic(super::media::MsidSemantic<'a>),
-    // Msid(super::media::Msid<'a>),
+pub enum AttributeLine<'a> {
+    /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
+    Candidate(candidate::Candidate<'a>),
+    Ice(ice::IceParameter<'a>),
+    Mid(mid::Mid<'a>),
+    MsidSemantic(msid::MsidSemantic<'a>),
+    Msid(msid::Msid<'a>),
     RtpMap(rtpmap::RtpMap<'a>),
     PTime(rtpmap::PTime),
-
     Ssrc(Ssrc<'a>),
     BundleGroup(BundleGroup<'a>),
     SsrcGroup(SsrcGroup),
@@ -61,6 +92,39 @@ pub enum SdpLine<'a> {
         key: Cow<'a, str>,
         val: Cow<'a, str>,
     },
+}
+pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
+    alt((
+        alt((
+            map(mid::mid_line, AttributeLine::Mid),
+            map(msid::msid_semantic_line, AttributeLine::MsidSemantic),
+            map(msid::msid_line, AttributeLine::Msid),
+            map(bundle::bundle_group_line, AttributeLine::BundleGroup),
+            map(ice::ice_parameter_line, AttributeLine::Ice),
+            map(ssrc::ssrc_line, AttributeLine::Ssrc),
+            map(ssrc::ssrc_group_line, AttributeLine::SsrcGroup),
+            map(rtpmap::rtpmap_line, AttributeLine::RtpMap),
+            map(rtpmap::read_p_time, AttributeLine::PTime),
+            map(fingerprint_line, AttributeLine::Fingerprint),
+        )),
+        alt((
+            map(candidate::candidate_line, AttributeLine::Candidate),
+            map(direction::direction_line, AttributeLine::Direction),
+            map(extmap::extmap_line, AttributeLine::Extmap),
+            map(dtls::setup_role_line, AttributeLine::SetupRole),
+            map(rtp_attribute_line, AttributeLine::Rtp),
+            map(rtcp::rtcp_attribute_line, AttributeLine::Rtcp),
+            map(fmtp_attribute_line, AttributeLine::Fmtp),
+            map(control_attribute_line, AttributeLine::Control),
+            map(rtcp::rtcpfb_attribute_line, AttributeLine::RtcpFb),
+            map(rtp_option_line, AttributeLine::RtcpOption),
+            map(generic::lazy_attribute_line, |(key, val)| {
+                AttributeLine::Attribute { key, val }
+            }),
+            map(tag("a=bundle-only"), |_| AttributeLine::BundleOnly),
+            map(tag("a=end-of-candidates"), |_| AttributeLine::EoC),
+        )),
+    ))(input)
 }
 
 pub mod generic {

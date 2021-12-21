@@ -1,3 +1,4 @@
+//! Lines that don't start with `a=`
 #![allow(dead_code)]
 
 use derive_into_owned::IntoOwned;
