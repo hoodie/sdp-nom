@@ -39,7 +39,7 @@ impl ufmt::uDisplay for crate::MediaSection<'_> {
     }
 }
 
-impl ufmt::uDisplay for crate::EagerSession<'_> {
+impl ufmt::uDisplay for crate::Session<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
         W: uWrite + ?Sized,

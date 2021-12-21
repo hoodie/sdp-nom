@@ -1,4 +1,4 @@
-use sdp_rs::EagerSession;
+use sdp_rs::Session;
 use std::convert::TryFrom;
 
 fn main() {
@@ -6,7 +6,7 @@ fn main() {
     if let Some(arg) = std::env::args().nth(1) {
         if let Ok(content) = std::fs::read_to_string(arg) {
             err_count = 0;
-            EagerSession::try_from(&content).unwrap();
+            Session::try_from(&content).unwrap();
         }
     }
     println!("{} errors", err_count);

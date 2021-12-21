@@ -206,8 +206,9 @@ pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
 pub struct MediaSection<'a> {
     pub lines: Vec<SdpLine<'a>>,
 }
+
 #[derive(Debug, Default, IntoOwned)]
-pub struct EagerSession<'a> {
+pub struct Session<'a> {
     pub lines: Vec<SdpLine<'a>>,
     pub media: Vec<MediaSection<'a>>,
 }
@@ -226,7 +227,7 @@ impl std::fmt::Display for MediaSection<'_> {
 }
 
 #[cfg(feature = "display")]
-impl std::fmt::Display for EagerSession<'_> {
+impl std::fmt::Display for Session<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.lines {
             writeln!(f, "{}", line)?;
@@ -239,7 +240,7 @@ impl std::fmt::Display for EagerSession<'_> {
 }
 
 #[cfg(feature = "udisplay")]
-impl std::string::ToString for EagerSession<'_> {
+impl std::string::ToString for Session<'_> {
     fn to_string(&self) -> String {
         let mut output = String::new();
         ufmt::uwrite!(output, "{}", self).unwrap();
@@ -257,18 +258,18 @@ struct ParserState<'a> {
     failed: Option<nom::Err<nom::error::Error<&'a str>>>,
 }
 
-impl<'a> std::convert::TryFrom<&'a String> for EagerSession<'a> {
+impl<'a> std::convert::TryFrom<&'a String> for Session<'a> {
     type Error = ParseError<'a>;
 
-    fn try_from(sdp: &'a String) -> Result<EagerSession<'a>, Self::Error> {
-        EagerSession::try_from(sdp.as_str())
+    fn try_from(sdp: &'a String) -> Result<Session<'a>, Self::Error> {
+        Session::try_from(sdp.as_str())
     }
 }
 
-impl<'a> std::convert::TryFrom<&'a str> for EagerSession<'a> {
+impl<'a> std::convert::TryFrom<&'a str> for Session<'a> {
     type Error = ParseError<'a>;
 
-    fn try_from(sdp: &'a str) -> Result<EagerSession<'a>, Self::Error> {
+    fn try_from(sdp: &'a str) -> Result<Session<'a>, Self::Error> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
                 if state.failed.is_some() {
@@ -301,15 +302,15 @@ impl<'a> std::convert::TryFrom<&'a str> for EagerSession<'a> {
         if let Some(m) = state.current_msecion.take() {
             state.media.push(m);
         }
-        Ok(EagerSession {
+        Ok(Session {
             media: state.media,
             lines: state.lines,
         })
     }
 }
 
-impl<'a> EagerSession<'a> {
-    pub fn read_str(sdp: &'a str) -> EagerSession<'a> {
+impl<'a> Session<'a> {
+    pub fn read_str(sdp: &'a str) -> Session<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
                 if let Ok((_, parsed)) = sdp_line(line) {
@@ -332,7 +333,7 @@ impl<'a> EagerSession<'a> {
         if let Some(m) = state.current_msecion.take() {
             state.media.push(m);
         }
-        EagerSession {
+        Session {
             media: state.media,
             lines: state.lines,
         }

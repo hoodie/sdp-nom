@@ -1,4 +1,4 @@
-use sdp_rs::EagerSession;
+use sdp_rs::Session;
 
 fn main() {
     let content = "v=0
@@ -9,7 +9,7 @@ a=group:BUNDLE video
 a=msid-semantic: WMS
 m=video 9 RTP/SAVPF 96 97 98 99 100 101 102 124 127 123 125
 c=IN IP4 0.0.0.0";
-    let session = EagerSession::read_str(content);
+    let session = Session::read_str(content);
     println!("{}", session.to_string());
     println!("{:#?}", session);
 }
