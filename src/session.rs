@@ -1,4 +1,5 @@
 use derive_into_owned::IntoOwned;
+use enum_as_inner::EnumAsInner;
 use nom::{branch::alt, combinator::map, IResult};
 use std::borrow::Cow;
 
@@ -14,7 +15,7 @@ use lines::{
 };
 
 /// Sdp Line
-#[derive(Debug, IntoOwned)]
+#[derive(Clone, Debug, IntoOwned, EnumAsInner)]
 #[non_exhaustive]
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
@@ -31,7 +32,7 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
 }
 
 /// Session Line
-#[derive(Debug, IntoOwned)]
+#[derive(Clone, Debug, IntoOwned, EnumAsInner)]
 #[non_exhaustive]
 pub enum SessionLine<'a> {
     /// `v=0`
@@ -143,12 +144,14 @@ impl<'a> std::convert::TryFrom<&'a str> for Session<'a> {
                 }
                 match sdp_line(line) {
                     Ok((_, parsed)) => {
-                        if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
+                        if let SdpLine::Session(SessionLine::Media(mline)) = parsed {
                             if let Some(m) = state.current_msecion.take() {
                                 state.media.push(m);
                             }
-                            let mut new_m_section = MediaSection::default();
-                            new_m_section.lines.push(parsed);
+                            let new_m_section = MediaSection {
+                                mline,
+                                lines: Default::default(),
+                            };
                             state.current_msecion = Some(new_m_section);
                         } else if let Some(ref mut msection) = state.current_msecion {
                             msection.lines.push(parsed);
@@ -180,12 +183,14 @@ impl<'a> Session<'a> {
         let mut state = {
             sdp.lines().fold(ParserState::default(), |mut state, line| {
                 if let Ok((_, parsed)) = sdp_line(line) {
-                    if matches!(parsed, SdpLine::Session(SessionLine::Media(_))) {
+                    if let SdpLine::Session(SessionLine::Media(mline)) = parsed {
                         if let Some(m) = state.current_msecion.take() {
                             state.media.push(m);
                         }
-                        let mut new_m_section = MediaSection::default();
-                        new_m_section.lines.push(parsed);
+                        let new_m_section = MediaSection {
+                            mline,
+                            lines: Default::default(),
+                        };
                         state.current_msecion = Some(new_m_section);
                     } else if let Some(ref mut msection) = state.current_msecion {
                         msection.lines.push(parsed);

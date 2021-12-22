@@ -9,7 +9,7 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Debug, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, IntoOwned, PartialEq)]
 pub struct Media<'a> {
     pub r#type: Cow<'a, str>,
     pub port: u32,

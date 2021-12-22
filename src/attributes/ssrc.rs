@@ -14,7 +14,7 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Debug, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, IntoOwned, PartialEq)]
 pub struct Ssrc<'a> {
     pub id: u64,
     pub attribute: Cow<'a, str>,
@@ -72,14 +72,14 @@ fn test_ssrc_line() {
     assert_line!(ssrc_line, "a=ssrc:632943048 msid:lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS daed9400-d0dd-4db3-b949-422499e96e2d");
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum SsrcSemantic {
     FID,
     FEC,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct SsrcGroup {
     pub semantic: SsrcSemantic,
     pub ids: Vec<u32>,

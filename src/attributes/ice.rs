@@ -7,7 +7,7 @@ use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 use crate::assert_line;
 use crate::parsers::*;
 
-#[derive(Debug, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, IntoOwned, PartialEq)]
 #[non_exhaustive]
 pub enum IceParameter<'a> {
     Ufrag(Cow<'a, str>),

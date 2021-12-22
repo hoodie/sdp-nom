@@ -138,7 +138,7 @@ pub fn read_addr(input: &str) -> IResult<&str, IpAddr> {
     map_res(take_while1(|c| c != ' ' && c != '/'), str::parse)(input)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum IpVer {
     Ip4,

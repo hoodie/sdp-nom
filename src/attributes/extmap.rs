@@ -17,7 +17,7 @@ use crate::parsers::*;
 
 /// `a=extmap:<value>["/"<direction>] <URI> <extensionattributes>`
 ///<https://tools.ietf.org/html/rfc8285#section-8>
-#[derive(Debug, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, IntoOwned, PartialEq)]
 pub struct Extmap<'a> {
     pub value: u32,
     pub direction: Option<Direction>,

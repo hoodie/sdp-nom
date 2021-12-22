@@ -14,7 +14,7 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum PTime {
     MaxPTime(u32),
@@ -40,7 +40,7 @@ fn test_read_p_time() {
 /// RtpMap
 /// `a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding` parameters>]
 ///<https://tools.ietf.org/html/rfc4566#section-6>
-#[derive(Debug, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, IntoOwned, PartialEq)]
 pub struct RtpMap<'a> {
     pub payload_type: u32,
     pub encoding_name: Cow<'a, str>,

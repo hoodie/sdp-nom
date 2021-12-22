@@ -12,7 +12,7 @@ use crate::{assert_line, assert_line_print};
 /// Origin
 ///
 /// o=- 20518 0 IN IP4 203.0.113.1
-#[derive(Debug, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, IntoOwned, PartialEq)]
 pub struct Origin<'a> {
     pub user_name: Cow<'a, str>,
     pub session_id: u64,

@@ -6,7 +6,7 @@ use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 use crate::assert_line;
 use crate::parsers::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum SetupRole {
     Active,

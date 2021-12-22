@@ -24,8 +24,8 @@ use crate::{
         session_information::*, session_name::*, timing::*, uri::*, version::*,
     },
     parsers::IpVer,
-    session::SessionLine,
-    AttributeLine, SdpLine,
+    session::{SdpLine, SessionLine},
+    AttributeLine,
 };
 
 impl fmt::Display for SdpLine<'_> {

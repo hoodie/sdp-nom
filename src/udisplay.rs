@@ -25,8 +25,8 @@ use crate::{
     },
     media_section::MediaSection,
     parsers::IpVer,
-    session::{Session, SessionLine},
-    AttributeLine, SdpLine,
+    session::{SdpLine, Session, SessionLine},
+    AttributeLine,
 };
 
 impl ufmt::uDisplay for MediaSection<'_> {

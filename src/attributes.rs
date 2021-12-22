@@ -1,6 +1,7 @@
 //! [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6) aka lines that start with `a=`
 
 use derive_into_owned::IntoOwned;
+use enum_as_inner::EnumAsInner;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
@@ -33,36 +34,7 @@ pub use rtcp_option::*;
 pub use rtp::*;
 pub use ssrc::*;
 
-// #[derive(Debug)]
-// #[non_exhaustive]
-// pub enum SdpLine<'a> {
-//     // MsidSemantic(super::media::MsidSemantic<'a>),
-//     // Msid(super::media::Msid<'a>),
-//     RtpMap(rtpmap::RtpMap<'a>),
-//     PTime(rtpmap::PTime),
-//
-//     Ssrc(Ssrc<'a>),
-//     BundleGroup(BundleGroup<'a>),
-//     SsrcGroup(SsrcGroup),
-//     Fingerprint(Fingerprint<'a>),
-//     Direction(Direction),
-//     Rtp(Rtp<'a>),
-//     Rtcp(rtcp::Rtcp),
-//     Fmtp(Fmtp<'a>),
-//     RtcpFb(rtcp::Fb<'a>),
-//     RtcpOption(RtcpOption),
-//     Control(Control<'a>),
-//     SetupRole(dtls::SetupRole),
-//     Extmap(extmap::Extmap<'a>),
-//     BundleOnly,
-//     EoC,
-//     Attribute {
-//         key: Cow<'a, str>,
-//         val: Cow<'a, str>,
-//     },
-// }
-
-#[derive(Debug, IntoOwned)]
+#[derive(Clone, Debug, IntoOwned, EnumAsInner)]
 #[non_exhaustive]
 pub enum AttributeLine<'a> {
     /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
@@ -164,7 +136,7 @@ pub mod bundle {
     use super::*;
 
     /// `a=group:BUNDLE 0 1`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct BundleGroup<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
@@ -205,7 +177,7 @@ pub mod rtp {
     use super::*;
 
     // a=rtpmap:110 opus/48000/2
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct Rtp<'a> {
         pub payload: u32,
         pub codec: Cow<'a, str>,
@@ -244,7 +216,7 @@ pub mod fmtp {
     use super::*;
     ///<https://tools.ietf.org/html/rfc4588#section-8.1>
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct Fmtp<'a> {
         pub payload: u32,
         pub config: Cow<'a, str>,
@@ -285,7 +257,7 @@ pub mod control {
     use super::*;
 
     /// `a=control:streamid=0`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct Control<'a>(pub Cow<'a, str>);
 
     pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
@@ -351,7 +323,7 @@ pub mod direction {
 pub mod rtcp_option {
     use super::*;
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Clone, Debug, PartialEq)]
     #[non_exhaustive]
     pub enum RtcpOption {
         RtcpMux,
@@ -390,7 +362,7 @@ pub mod rtcp_option {
 pub mod fingerprint {
     use super::*;
 
-    #[derive(Debug, IntoOwned)]
+    #[derive(Clone, Debug, IntoOwned)]
     pub struct Fingerprint<'a> {
         pub r#type: Cow<'a, str>,
         pub hash: Cow<'a, str>,
@@ -423,7 +395,7 @@ pub mod fingerprint {
 pub mod mid {
     use super::*;
 
-    #[derive(Debug, IntoOwned)]
+    #[derive(Clone, Debug, IntoOwned)]
     pub struct Mid<'a>(pub Cow<'a, str>);
 
     pub fn mid_line(input: &str) -> IResult<&str, Mid> {
@@ -447,7 +419,7 @@ pub mod msid {
     use super::*;
 
     /// TODO: type this more strictly, if possible without `Vec`
-    #[derive(Debug, derive_into_owned::IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, derive_into_owned::IntoOwned, PartialEq)]
     pub struct MsidSemantic<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
@@ -474,7 +446,7 @@ pub mod msid {
         );
     }
 
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct Msid<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_line(input: &str) -> IResult<&str, Msid> {

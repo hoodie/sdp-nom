@@ -34,7 +34,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub mod attributes;
 pub mod lines;
 mod media_section;
-mod session;
+pub mod session;
 
 mod parsers;
 #[cfg(test)]
@@ -51,6 +51,7 @@ mod udisplay;
 
 use attributes::AttributeLine;
 
+pub use media_section::MediaSection;
 pub use session::{Session, SdpLine, sdp_line};
 
 #[cfg(all(feature = "display", feature = "udisplay"))]

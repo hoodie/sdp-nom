@@ -23,7 +23,7 @@ use crate::parsers::*;
 pub mod version {
     use super::*;
 
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct Version(pub u32);
 
     /// "v=0"
@@ -44,7 +44,7 @@ pub mod session_name {
     /// `s=somename`
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct SessionName<'a>(pub Cow<'a, str>);
 
     /// "s=somename"
@@ -70,7 +70,7 @@ pub mod session_information {
     use super::*;
 
     /// `i=<session description>`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct SessionInformation<'a>(pub Cow<'a, str>);
 
     /// SessionInformation "i=description"
@@ -92,7 +92,7 @@ pub mod session_information {
 pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct Uri<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -115,7 +115,7 @@ pub mod email {
     use super::*;
 
     /// Email `e=<email-address>`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct EmailAddress<'a>(pub Cow<'a, str>);
 
     /// "e=email@example.com"
@@ -139,7 +139,7 @@ pub mod email {
 pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
-    #[derive(Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     pub struct PhoneNumber<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -162,7 +162,7 @@ pub mod timing {
     use super::*;
 
     /// `t=0 0`
-    #[derive(Debug, PartialEq)]
+    #[derive(Clone, Debug, PartialEq)]
     pub struct Timing {
         pub start: u32,
         pub stop: u32,
@@ -191,7 +191,7 @@ pub mod timing {
 
 pub mod bandwidth {
     use super::*;
-    #[derive(Debug, PartialEq)]
+    #[derive(Clone, Debug, PartialEq)]
     #[non_exhaustive]
     pub enum BandWidthType {
         TIAS,
@@ -211,7 +211,7 @@ pub mod bandwidth {
         ))(input)
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Clone, Debug, PartialEq)]
     /// "b=AS:1024"
     pub struct BandWidth {
         pub r#type: BandWidthType,
