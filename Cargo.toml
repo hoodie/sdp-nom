@@ -29,5 +29,8 @@ wee = ["wee_alloc"]
 
 [profile.release]
 lto = true
-opt-level = 'z' # try 'z' (size) or 's' (speed)
+opt-level = 's' # try 'z' (size) or 's' (speed)
 panic = "abort"
+
+[package.metadata]
+wasm-opt = false # in release builds wasm-opt crashes for some reason
