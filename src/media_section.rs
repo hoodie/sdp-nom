@@ -7,6 +7,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, IntoOwned)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MediaSection<'a> {
     pub mline: Media<'a>,
     pub lines: Vec<SdpLine<'a>>,

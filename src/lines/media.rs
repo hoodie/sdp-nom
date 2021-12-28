@@ -10,6 +10,7 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Media<'a> {
     pub r#type: Cow<'a, str>,
     pub port: u32,

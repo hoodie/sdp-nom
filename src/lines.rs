@@ -24,6 +24,7 @@ pub mod version {
     use super::*;
 
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Version(pub u32);
 
     /// "v=0"
@@ -45,6 +46,7 @@ pub mod session_name {
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct SessionName<'a>(pub Cow<'a, str>);
 
     /// "s=somename"
@@ -71,6 +73,7 @@ pub mod session_information {
 
     /// `i=<session description>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct SessionInformation<'a>(pub Cow<'a, str>);
 
     /// SessionInformation "i=description"
@@ -93,6 +96,7 @@ pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Uri<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -116,6 +120,7 @@ pub mod email {
 
     /// Email `e=<email-address>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct EmailAddress<'a>(pub Cow<'a, str>);
 
     /// "e=email@example.com"
@@ -140,6 +145,7 @@ pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct PhoneNumber<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -163,6 +169,7 @@ pub mod timing {
 
     /// `t=0 0`
     #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Timing {
         pub start: u32,
         pub stop: u32,
@@ -192,6 +199,7 @@ pub mod timing {
 pub mod bandwidth {
     use super::*;
     #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[non_exhaustive]
     pub enum BandWidthType {
         TIAS,
@@ -212,6 +220,7 @@ pub mod bandwidth {
     }
 
     #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// "b=AS:1024"
     pub struct BandWidth {
         pub r#type: BandWidthType,
