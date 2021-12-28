@@ -35,6 +35,7 @@ pub use rtp::*;
 pub use ssrc::*;
 
 #[derive(Clone, Debug, IntoOwned, EnumAsInner)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum AttributeLine<'a> {
     /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
@@ -137,6 +138,7 @@ pub mod bundle {
 
     /// `a=group:BUNDLE 0 1`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct BundleGroup<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
@@ -178,6 +180,7 @@ pub mod rtp {
 
     // a=rtpmap:110 opus/48000/2
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Rtp<'a> {
         pub payload: u32,
         pub codec: Cow<'a, str>,
@@ -217,6 +220,7 @@ pub mod fmtp {
     ///<https://tools.ietf.org/html/rfc4588#section-8.1>
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Fmtp<'a> {
         pub payload: u32,
         pub config: Cow<'a, str>,
@@ -258,6 +262,7 @@ pub mod control {
 
     /// `a=control:streamid=0`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Control<'a>(pub Cow<'a, str>);
 
     pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
@@ -283,6 +288,7 @@ pub mod direction {
     /// `a=recvonly`
     /// `a=inactive`
     #[derive(Debug, PartialEq, Clone, Copy)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[non_exhaustive]
     pub enum Direction {
         SendOnly,
@@ -324,6 +330,7 @@ pub mod rtcp_option {
     use super::*;
 
     #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[non_exhaustive]
     pub enum RtcpOption {
         RtcpMux,
@@ -363,6 +370,7 @@ pub mod fingerprint {
     use super::*;
 
     #[derive(Clone, Debug, IntoOwned)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Fingerprint<'a> {
         pub r#type: Cow<'a, str>,
         pub hash: Cow<'a, str>,
@@ -396,6 +404,7 @@ pub mod mid {
     use super::*;
 
     #[derive(Clone, Debug, IntoOwned)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Mid<'a>(pub Cow<'a, str>);
 
     pub fn mid_line(input: &str) -> IResult<&str, Mid> {
@@ -420,6 +429,7 @@ pub mod msid {
 
     /// TODO: type this more strictly, if possible without `Vec`
     #[derive(Clone, Debug, derive_into_owned::IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct MsidSemantic<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
@@ -447,6 +457,7 @@ pub mod msid {
     }
 
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Msid<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_line(input: &str) -> IResult<&str, Msid> {

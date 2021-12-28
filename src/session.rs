@@ -16,7 +16,7 @@ use lines::{
 
 /// Sdp Line
 #[derive(Clone, Debug, IntoOwned, EnumAsInner)]
-#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
     Attribute(AttributeLine<'a>),
@@ -33,6 +33,7 @@ pub fn sdp_line(input: &str) -> IResult<&str, SdpLine> {
 
 /// Session Line
 #[derive(Clone, Debug, IntoOwned, EnumAsInner)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum SessionLine<'a> {
     /// `v=0`
@@ -88,6 +89,7 @@ fn session_line(input: &str) -> IResult<&str, SessionLine> {
 /**********/
 
 #[derive(Debug, Default, IntoOwned)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Session<'a> {
     pub lines: Vec<SdpLine<'a>>,
     pub media: Vec<MediaSection<'a>>,
