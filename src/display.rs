@@ -18,14 +18,14 @@ use crate::{
         rtp::Rtp,
         rtpmap::*,
         ssrc::{Ssrc, SsrcGroup, SsrcSemantic},
+        AttributeLine,
     },
     lines::{
         bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
-        session_information::*, session_name::*, timing::*, uri::*, version::*,
+        session_information::*, session_name::*, timing::*, uri::*, version::*, SessionLine,
     },
     parsers::IpVer,
-    session::{SdpLine, SessionLine},
-    AttributeLine,
+    sdp_line::SdpLine,
 };
 
 impl fmt::Display for SdpLine<'_> {

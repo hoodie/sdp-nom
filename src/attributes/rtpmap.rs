@@ -15,7 +15,11 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum PTime {
     MaxPTime(u32),
@@ -42,7 +46,11 @@ fn test_read_p_time() {
 /// `a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding` parameters>]
 ///<https://tools.ietf.org/html/rfc4566#section-6>
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct RtpMap<'a> {
     pub payload_type: u32,
     pub encoding_name: Cow<'a, str>,

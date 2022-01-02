@@ -19,17 +19,17 @@ use crate::{
         rtpmap::*,
         ssrc::{Ssrc, SsrcGroup, SsrcSemantic},
     },
+    lazy_media_section::LazyMediaSection,
+    lazy_session::{LazySession, SdpLine, SessionLine},
     lines::{
         bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
         session_information::*, session_name::*, timing::*, uri::*, version::*,
     },
-    media_section::MediaSection,
     parsers::IpVer,
-    session::{SdpLine, Session, SessionLine},
     AttributeLine,
 };
 
-impl ufmt::uDisplay for MediaSection<'_> {
+impl ufmt::uDisplay for LazyMediaSection<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
         W: uWrite + ?Sized,
@@ -41,7 +41,7 @@ impl ufmt::uDisplay for MediaSection<'_> {
     }
 }
 
-impl ufmt::uDisplay for Session<'_> {
+impl ufmt::uDisplay for LazySession<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
         W: uWrite + ?Sized,

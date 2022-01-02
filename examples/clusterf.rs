@@ -1,4 +1,4 @@
-use sdp_rs::Session;
+use sdp_rs::LazySession;
 
 fn main() {
     println!("example");
@@ -8,7 +8,7 @@ s=-
 t=;
 m=o 1 DTLS/SCTP
 a=sctp-port";
-    let session = Session::read_str(content);
+    let session = LazySession::read_str(content);
     println!("{}", session.to_string());
     println!("{:#?}", session);
 }

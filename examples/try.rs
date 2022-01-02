@@ -1,4 +1,4 @@
-use sdp_rs::Session;
+use sdp_rs::LazySession;
 use std::convert::TryFrom;
 
 fn main() {
@@ -6,7 +6,7 @@ fn main() {
     if let Some(arg) = std::env::args().nth(1) {
         if let Ok(content) = std::fs::read_to_string(arg) {
             err_count = 0;
-            Session::try_from(&content).unwrap();
+            LazySession::try_from(&content).unwrap();
         }
     }
     println!("{} errors", err_count);

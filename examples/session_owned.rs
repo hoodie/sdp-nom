@@ -1,7 +1,7 @@
-use sdp_rs::Session;
+use sdp_rs::LazySession;
 
-fn get_session(content: &str) -> Session<'static> {
-    Session::read_str(content).into_owned()
+fn get_session(content: &str) -> LazySession<'static> {
+    LazySession::read_str(content).into_owned()
 }
 fn main() {
     let content = "v=0
