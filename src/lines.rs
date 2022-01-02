@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 
 use derive_into_owned::IntoOwned;
+use enum_as_inner::EnumAsInner;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while},
@@ -11,6 +12,70 @@ use nom::{
 };
 
 use std::borrow::Cow;
+
+use self::{
+    bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
+    session_information::*, session_name::*, timing::*, uri::*, version::*,
+};
+
+/// Session Line
+#[derive(Clone, Debug, IntoOwned, EnumAsInner)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
+#[non_exhaustive]
+pub enum SessionLine<'a> {
+    /// `v=0`
+    Version(Version),
+
+    /// `s=-`
+    Name(SessionName<'a>),
+
+    /// `t=0 0`
+    Timing(Timing),
+
+    /// `o=- 20518 0 IN IP4 203.0.113.1`
+    Origin(Origin<'a>),
+
+    /// `b=AS:1024`
+    BandWidth(BandWidth),
+
+    /// `u=`
+    Uri(Uri<'a>),
+
+    /// `p=0118 999 881 999 119 7253`
+    PhoneNumber(PhoneNumber<'a>),
+
+    /// "e=email@example.com"
+    EmailAddress(EmailAddress<'a>),
+
+    /// `c=IN IP4 10.23.42.137`
+    Connection(Connection),
+
+    Description(SessionInformation<'a>),
+
+    /// `m=video 51744 RTP/AVP 126 97 98 34 31
+    Media(Media<'a>),
+}
+
+pub fn session_line(input: &str) -> IResult<&str, SessionLine> {
+    alt((
+        // two levels of `alt` because it's not implemented for such large tuples
+        map(version_line, SessionLine::Version),
+        map(name_line, SessionLine::Name),
+        map(description_line, SessionLine::Description),
+        map(bandwidth_line, SessionLine::BandWidth),
+        map(uri_line, SessionLine::Uri),
+        map(timing_line, SessionLine::Timing),
+        map(phone_number_line, SessionLine::PhoneNumber),
+        map(email_address_line, SessionLine::EmailAddress),
+        map(origin_line, SessionLine::Origin),
+        map(connection_line, SessionLine::Connection),
+        map(media_line, SessionLine::Media),
+    ))(input)
+}
 
 pub mod connection;
 pub mod media;
@@ -24,7 +89,11 @@ pub mod version {
     use super::*;
 
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct Version(pub u32);
 
     /// "v=0"
@@ -46,7 +115,11 @@ pub mod session_name {
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct SessionName<'a>(pub Cow<'a, str>);
 
     /// "s=somename"
@@ -73,7 +146,11 @@ pub mod session_information {
 
     /// `i=<session description>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct SessionInformation<'a>(pub Cow<'a, str>);
 
     /// SessionInformation "i=description"
@@ -96,7 +173,11 @@ pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct Uri<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -120,7 +201,11 @@ pub mod email {
 
     /// Email `e=<email-address>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct EmailAddress<'a>(pub Cow<'a, str>);
 
     /// "e=email@example.com"
@@ -145,7 +230,11 @@ pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct PhoneNumber<'a>(pub Cow<'a, str>);
 
     /// "i=description"
@@ -169,7 +258,11 @@ pub mod timing {
 
     /// `t=0 0`
     #[derive(Clone, Debug, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     pub struct Timing {
         pub start: u32,
         pub stop: u32,
@@ -199,7 +292,11 @@ pub mod timing {
 pub mod bandwidth {
     use super::*;
     #[derive(Clone, Debug, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     #[non_exhaustive]
     pub enum BandWidthType {
         TIAS,
@@ -220,7 +317,11 @@ pub mod bandwidth {
     }
 
     #[derive(Clone, Debug, PartialEq)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(
+        feature = "serde",
+        derive(serde::Serialize, serde::Deserialize),
+        serde(rename_all = "camelCase")
+    )]
     /// "b=AS:1024"
     pub struct BandWidth {
         pub r#type: BandWidthType,

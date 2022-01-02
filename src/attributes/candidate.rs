@@ -16,14 +16,22 @@ use std::{borrow::Cow, net::IpAddr};
 use crate::parsers::{attribute, cowify, read_addr, read_number, read_string, wsf};
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub enum CandidateComponent {
     Rtp,
     Rtcp,
 }
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum CandidateProtocol {
     Tcp,
@@ -32,7 +40,11 @@ pub enum CandidateProtocol {
 }
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum CandidateType {
     Host,
@@ -51,7 +63,11 @@ pub enum CandidateType {
 /// candidate:3348148302 2 udp 2113937151 192.0.2.1 56501 typ host
 // "candidate:1853887674 2 udp 1518280447 47.61.61.61 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0"
 #[derive(Clone, Debug, IntoOwned)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct Candidate<'a> {
     pub foundation: u32,
     pub component: CandidateComponent,

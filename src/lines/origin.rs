@@ -13,7 +13,11 @@ use crate::{assert_line, assert_line_print};
 ///
 /// o=- 20518 0 IN IP4 203.0.113.1
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct Origin<'a> {
     pub user_name: Cow<'a, str>,
     pub session_id: u64,

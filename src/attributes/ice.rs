@@ -8,7 +8,11 @@ use crate::assert_line;
 use crate::parsers::*;
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum IceParameter<'a> {
     Ufrag(Cow<'a, str>),

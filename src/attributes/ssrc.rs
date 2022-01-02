@@ -15,7 +15,11 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct Ssrc<'a> {
     pub id: u64,
     pub attribute: Cow<'a, str>,
@@ -74,7 +78,11 @@ fn test_ssrc_line() {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum SsrcSemantic {
     FID,
@@ -82,7 +90,11 @@ pub enum SsrcSemantic {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct SsrcGroup {
     pub semantic: SsrcSemantic,
     pub ids: Vec<u32>,

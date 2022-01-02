@@ -16,7 +16,11 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum NetType {
     IN,
@@ -31,7 +35,11 @@ pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
 ///<https://tools.ietf.org/html/rfc3605>
 /// `a=rtcp:65179 IN IP4 10.23.34.567`
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct Rtcp {
     pub port: u32,
     pub net_type: NetType,
@@ -76,14 +84,22 @@ fn test_rtcp_attribute_line() {
 ///<https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1>
 /// eg `a=rtcp-fb:98 trr-int 100`
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct Fb<'a> {
     pub payload: u32,
     pub val: FbVal<'a>,
 }
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum FbVal<'a> {
     Ack(FbAckParam<'a>),
@@ -96,7 +112,11 @@ pub enum FbVal<'a> {
 }
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum FbParam<'a> {
     App(Cow<'a, str>),
@@ -116,7 +136,11 @@ fn read_param(input: &str) -> IResult<&str, FbParam> {
 }
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum FbAckParam<'a> {
     Rpsi,
@@ -154,7 +178,11 @@ fn test_rtcpfb_ack_param() {
 }
 
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 #[non_exhaustive]
 pub enum FbNackParam<'a> {
     Pli,

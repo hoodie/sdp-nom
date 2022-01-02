@@ -18,7 +18,11 @@ use crate::parsers::*;
 /// `a=extmap:<value>["/"<direction>] <URI> <extensionattributes>`
 ///<https://tools.ietf.org/html/rfc8285#section-8>
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct Extmap<'a> {
     pub value: u32,
     pub direction: Option<Direction>,

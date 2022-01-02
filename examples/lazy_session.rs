@@ -1,9 +1,9 @@
-use sdp_rs::Session;
+use sdp_rs::LazySession;
 
-fn read_from_args() -> Option<Session<'static>> {
+fn read_from_args() -> Option<LazySession<'static>> {
     if let Some(arg) = std::env::args().nth(1) {
         if let Ok(content) = std::fs::read_to_string(arg) {
-            Some(Session::read_str(&content).into_owned())
+            Some(LazySession::read_str(&content).into_owned())
         } else {
             None
         }
