@@ -35,10 +35,10 @@ pub mod attributes;
 pub mod lines;
 mod sdp_line;
 
-mod lazy_media_section;
-mod lazy_session;
-mod media_section;
-mod session;
+pub mod lazy_media_section;
+pub mod lazy_session;
+pub mod media_section;
+pub mod session;
 
 mod parsers;
 #[cfg(test)]
@@ -53,13 +53,11 @@ mod display;
 #[cfg(feature = "ufmt")]
 mod udisplay;
 
-pub use lazy_media_section::LazyMediaSection;
-pub use lazy_session::LazySession;
-
-pub use media_section::MediaSection;
-pub use session::Session;
-
-pub use sdp_line::{sdp_line, SdpLine};
+pub use crate::{
+    lazy_session::LazySession,
+    sdp_line::{sdp_line, SdpLine},
+    session::Session,
+};
 
 #[cfg(all(feature = "display", feature = "udisplay"))]
 compile_error!("The features \"display\" and \"udisplay\" can not be enabled together.");

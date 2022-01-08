@@ -22,6 +22,18 @@ pub enum IceParameter<'a> {
     Lite,
 }
 
+#[derive(Debug, Default, IntoOwned)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
+pub struct Ice<'a> {
+    pub ufrag: Option<Cow<'a, str>>,
+    pub pwd: Option<Cow<'a, str>>,
+    pub options: Option<Cow<'a, str>>,
+}
+
 pub fn ice_parameter_line(input: &str) -> IResult<&str, IceParameter> {
     alt((
         attribute("ice-ufrag", map(cowify(read_string), IceParameter::Ufrag)),

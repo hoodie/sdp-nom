@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use derive_into_owned::IntoOwned;
 
 use crate::{
@@ -9,7 +7,7 @@ use crate::{
         phone_number::PhoneNumber, session_information::SessionInformation,
         session_name::SessionName, timing::Timing, uri::Uri, version::Version, SessionLine,
     },
-    sdp_line, LazySession, MediaSection, SdpLine,
+    sdp_line, LazySession, media_section::MediaSection, SdpLine,
 };
 
 #[derive(Debug, Default, IntoOwned)]
@@ -50,18 +48,6 @@ pub struct Session<'a> {
 
     pub attributes: Vec<AttributeLine<'a>>,
     pub msections: Vec<MediaSection<'a>>,
-}
-
-#[derive(Debug, Default, IntoOwned)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
-pub struct Ice<'a> {
-    pub ufrag: Option<Cow<'a, str>>,
-    pub pwd: Option<Cow<'a, str>>,
-    pub options: Option<Cow<'a, str>>,
 }
 
 type ParseError<'a> = nom::Err<nom::error::Error<&'a str>>;

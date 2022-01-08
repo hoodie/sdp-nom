@@ -5,11 +5,10 @@ use derive_into_owned::IntoOwned;
 use crate::{
     attributes::{
         candidate, dtls, extmap, ice::IceParameter, msid, rtcp, rtpmap, AttributeLine, BundleGroup,
-        Control, Direction, Fingerprint, Fmtp, RtcpOption, Rtp, Ssrc, SsrcGroup,
+        Control, Direction, Fingerprint, Fmtp, RtcpOption, Rtp, Ssrc, SsrcGroup, Ice,
     },
     lines::{connection::Connection, media::Media, SessionLine},
-    session::Ice,
-    LazyMediaSection, SdpLine,
+    SdpLine, lazy_media_section::LazyMediaSection,
 };
 
 #[derive(Debug, Default, IntoOwned)]

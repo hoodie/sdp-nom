@@ -1,9 +1,9 @@
 use derive_into_owned::IntoOwned;
 
 use crate::{
+    lazy_media_section::LazyMediaSection,
     lines::SessionLine,
     sdp_line::{sdp_line, SdpLine},
-    LazyMediaSection,
 };
 
 #[derive(Debug, Default, IntoOwned)]
