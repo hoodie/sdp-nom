@@ -461,6 +461,8 @@ pub mod mid {
 }
 
 pub mod msid {
+    use nom::{character::complete::multispace1, combinator::opt};
+
     use super::*;
 
     /// TODO: type this more strictly, if possible without `Vec`
@@ -470,14 +472,20 @@ pub mod msid {
         derive(serde::Serialize, serde::Deserialize),
         serde(rename_all = "camelCase")
     )]
-    pub struct MsidSemantic<'a>(pub Vec<Cow<'a, str>>);
+    pub struct MsidSemantic<'a> {
+        pub semantic: Cow<'a, str>,
+        pub token: Option<Cow<'a, str>>,
+    }
 
     pub fn msid_semantic_line(input: &str) -> IResult<&str, MsidSemantic> {
         attribute("msid-semantic", msid_semantic)(input)
     }
 
     pub fn msid_semantic(input: &str) -> IResult<&str, MsidSemantic> {
-        wsf(map(space_separated_cow_strings, MsidSemantic))(input)
+        wsf(map(
+            tuple((cowify(read_string), multispace1, opt(cowify(read_string)))),
+            |(semantic, _, token)| MsidSemantic { semantic, token },
+        ))(input)
     }
 
     #[test]
@@ -485,10 +493,10 @@ pub mod msid {
         assert_line!(
             msid_semantic_line,
             "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS",
-            MsidSemantic(create_test_vec(&[
-                "WMS",
-                "lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
-            ]))
+            MsidSemantic {
+                semantic: Cow::Borrowed("WMS"),
+                token: Some(Cow::Borrowed("lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"))
+            }
         );
         assert_line_print!(
             msid_semantic_line,

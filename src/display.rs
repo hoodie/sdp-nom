@@ -151,12 +151,10 @@ impl fmt::Display for Mid<'_> {
 impl fmt::Display for MsidSemantic<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a=msid-semantic:")?;
-        for (i, x) in self.0.iter().enumerate() {
-            if i > 0 {
-                write!(f, " ")?;
-            }
-            write!(f, "{}", x)?;
-        }
+        write!(f, "{}", self.semantic)?;
+        if let Some(ref token) = self.token {
+            write!(f, "{}", token)?;
+        };
         Ok(())
     }
 }
