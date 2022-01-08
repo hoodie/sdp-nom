@@ -246,7 +246,7 @@ impl fmt::Display for Ssrc<'_> {
 }
 impl fmt::Display for RtpMap<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a=rtpmap:{} {}", self.payload_type, self.encoding_name)?;
+        write!(f, "a=rtpmap:{} {}", self.payload, self.encoding_name)?;
         if let Some(clock_rate) = self.clock_rate {
             write!(f, "/{}", clock_rate)?;
         }

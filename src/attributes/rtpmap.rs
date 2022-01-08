@@ -52,7 +52,7 @@ fn test_read_p_time() {
     serde(rename_all = "camelCase")
 )]
 pub struct RtpMap<'a> {
-    pub payload_type: u32,
+    pub payload: u32,
     pub encoding_name: Cow<'a, str>,
     pub clock_rate: Option<u32>,
     pub encoding: Option<u32>,
@@ -71,8 +71,8 @@ pub fn rtpmap_line(input: &str) -> IResult<&str, RtpMap> {
                     read_number, // encoding
                 )),
             )),
-            |(payload_type, encoding_name, clock_rate, encoding)| RtpMap {
-                payload_type,
+            |(payload, encoding_name, clock_rate, encoding)| RtpMap {
+                payload,
                 encoding_name,
                 clock_rate,
                 encoding,
@@ -87,7 +87,7 @@ fn test_rtpmap_line() {
         rtpmap_line,
         "a=rtpmap:96 VP8/90000",
         RtpMap {
-            payload_type: 96,
+            payload: 96,
             encoding_name: "VP8".into(),
             clock_rate: Some(90000),
             encoding: None,
@@ -98,7 +98,7 @@ fn test_rtpmap_line() {
         rtpmap_line,
         "a=rtpmap:97 rtx/90000",
         RtpMap {
-            payload_type: 97,
+            payload: 97,
             encoding_name: "rtx".into(),
             clock_rate: Some(90000),
             encoding: None,
@@ -109,7 +109,7 @@ fn test_rtpmap_line() {
         rtpmap_line,
         "a=rtpmap:111 opus/48000/2",
         RtpMap {
-            payload_type: 111,
+            payload: 111,
             encoding_name: "opus".into(),
             clock_rate: Some(48000),
             encoding: Some(2),
@@ -129,7 +129,7 @@ fn test_rtpmap_line() {
         rtpmap_line,
         "a=rtpmap:113 telephone-event/16000",
         RtpMap {
-            payload_type: 113,
+            payload: 113,
             encoding_name: "telephone-event".into(),
             clock_rate: Some(16000),
             encoding: None,

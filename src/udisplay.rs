@@ -376,7 +376,7 @@ impl ufmt::uDisplay for RtpMap<'_> {
         uwrite!(
             f,
             "a=rtpmap:{} {}",
-            self.payload_type,
+            self.payload,
             self.encoding_name.as_ref()
         )?;
         if let Some(clock_rate) = self.clock_rate {
