@@ -1,4 +1,4 @@
-use sdp_rs::LazySession;
+use sdp_nom::LazySession;
 use std::convert::TryFrom;
 
 fn main() {

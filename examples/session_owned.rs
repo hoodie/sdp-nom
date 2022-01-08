@@ -1,4 +1,4 @@
-use sdp_rs::LazySession;
+use sdp_nom::LazySession;
 
 fn get_session(content: &str) -> LazySession<'static> {
     LazySession::read_str(content).into_owned()

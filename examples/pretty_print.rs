@@ -1,4 +1,4 @@
-use sdp_rs::sdp_line;
+use sdp_nom::sdp_line;
 
 fn main() {
     let mut err_count = 0;

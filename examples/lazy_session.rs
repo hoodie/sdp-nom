@@ -1,4 +1,4 @@
-use sdp_rs::LazySession;
+use sdp_nom::LazySession;
 
 fn read_from_args() -> Option<LazySession<'static>> {
     if let Some(arg) = std::env::args().nth(1) {

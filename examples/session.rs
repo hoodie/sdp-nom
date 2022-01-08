@@ -1,4 +1,4 @@
-use sdp_rs::Session;
+use sdp_nom::Session;
 
 fn read_from_args() -> Option<Session<'static>> {
     if let Some(arg) = std::env::args().nth(1) {

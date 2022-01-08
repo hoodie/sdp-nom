@@ -1,8 +1,10 @@
 [package]
-name = "sdp-rs"
+name = "sdp-nom"
 version = "0.1.0"
 authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
 edition = "2018"
+description = "a statically typed sdp-parser based on nom"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 nom = "7"
