@@ -7,7 +7,8 @@ use crate::{
         phone_number::PhoneNumber, session_information::SessionInformation,
         session_name::SessionName, timing::Timing, uri::Uri, version::Version, SessionLine,
     },
-    sdp_line, LazySession, media_section::MediaSection, SdpLine,
+    media_section::MediaSection,
+    sdp_line, LazySession, SdpLine,
 };
 
 #[derive(Debug, Default, IntoOwned)]
@@ -47,7 +48,7 @@ pub struct Session<'a> {
     pub description: Option<SessionInformation<'a>>,
 
     pub attributes: Vec<AttributeLine<'a>>,
-    pub msections: Vec<MediaSection<'a>>,
+    pub media: Vec<MediaSection<'a>>,
 }
 
 type ParseError<'a> = nom::Err<nom::error::Error<&'a str>>;
@@ -116,7 +117,7 @@ impl<'a> Session<'a> {
                     Ok((_, parsed)) => {
                         if let SdpLine::Session(SessionLine::Media(mline)) = parsed {
                             if let Some(m) = state.current_msection.take() {
-                                state.session.msections.push(m);
+                                state.session.media.push(m);
                             }
                             let new_m_section = MediaSection::from(mline);
                             state.current_msection = Some(new_m_section);
@@ -140,7 +141,7 @@ impl<'a> Session<'a> {
             return Err(err);
         }
         if let Some(m) = state.current_msection.take() {
-            state.session.msections.push(m);
+            state.session.media.push(m);
         }
         Ok(state.session)
     }
@@ -157,8 +158,17 @@ impl<'a> From<LazySession<'a>> for Session<'a> {
         for line in lazy.lines {
             session.add_line(line);
         }
-        session.msections = lazy.media.into_iter().map(Into::into).collect();
+        session.media = lazy.media.into_iter().map(Into::into).collect();
 
         session
+    }
+}
+
+#[cfg(feature = "udisplay")]
+impl std::string::ToString for Session<'_> {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        ufmt::uwrite!(output, "{}", self).unwrap();
+        output
     }
 }

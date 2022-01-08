@@ -5,10 +5,11 @@ use derive_into_owned::IntoOwned;
 use crate::{
     attributes::{
         candidate, dtls, extmap, ice::IceParameter, msid, rtcp, rtpmap, AttributeLine, BundleGroup,
-        Control, Direction, Fingerprint, Fmtp, RtcpOption, Rtp, Ssrc, SsrcGroup, Ice,
+        Control, Direction, Fingerprint, Fmtp, Ice, RtcpOption, Rtp, Ssrc, SsrcGroup,
     },
+    lazy_media_section::LazyMediaSection,
     lines::{connection::Connection, media::Media, SessionLine},
-    SdpLine, lazy_media_section::LazyMediaSection,
+    SdpLine,
 };
 
 #[derive(Debug, Default, IntoOwned)]
@@ -51,6 +52,14 @@ pub struct MediaSection<'a> {
 }
 
 impl<'a> MediaSection<'a> {
+    pub fn media(&self) -> Media<'a> {
+        Media {
+            r#type: self.r#type.clone(),
+            port: self.port.clone(),
+            protocol: self.protocol.clone(),
+            payloads: self.payloads.clone(),
+        }
+    }
     pub(crate) fn add_line(&mut self, line: SdpLine<'a>) {
         use AttributeLine::*;
         use SessionLine::*;

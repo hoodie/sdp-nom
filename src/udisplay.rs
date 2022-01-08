@@ -26,8 +26,9 @@ use crate::{
         bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
         session_information::*, session_name::*, timing::*, uri::*, version::*, SessionLine,
     },
+    media_section::MediaSection,
     parsers::IpVer,
-    SdpLine,
+    SdpLine, Session,
 };
 
 impl ufmt::uDisplay for LazyMediaSection<'_> {
@@ -57,6 +58,111 @@ impl ufmt::uDisplay for LazySession<'_> {
     }
 }
 
+impl ufmt::uDisplay for Session<'_> {
+    fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
+    where
+        W: uWrite + ?Sized,
+    {
+        write_ln_option(f, &self.version)?;
+        write_ln_option(f, &self.origin)?;
+        write_ln_option(f, &self.name)?;
+        write_ln_option(f, &self.timing)?;
+        write_ln_option(f, &self.band_width)?;
+        write_ln_option(f, &self.uri)?;
+        write_ln_option(f, &self.phone_number)?;
+        write_ln_option(f, &self.email_address)?;
+        write_ln_option(f, &self.connection)?;
+        write_ln_option(f, &self.description)?;
+
+        for x in &self.attributes {
+            uwriteln!(f, "{}", x)?;
+        }
+
+        for x in &self.media {
+            uwriteln!(f, "{}", x)?;
+        }
+        Ok(())
+    }
+}
+
+fn write_ln_option<W>(
+    f: &mut Formatter<'_, W>,
+    content: &Option<impl ufmt::uDisplay>,
+) -> Result<(), W::Error>
+where
+    W: uWrite + ?Sized,
+{
+    if let Some(ref x) = content {
+        uwriteln!(f, "{}", x)?;
+    }
+    Ok(())
+}
+
+impl ufmt::uDisplay for MediaSection<'_> {
+    fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
+    where
+        W: uWrite + ?Sized,
+    {
+        uwriteln!(f, "{}", self.media())?;
+
+        write_ln_option(f, &self.connection)?;
+
+        write_ln_option(f, &self.candidate)?;
+
+        write_ln_option(f, &self.rtcp)?;
+        write_ln_option(f, &self.ice.ufrag.clone().map(IceParameter::Ufrag))?;
+
+        write_ln_option(f, &self.ice.pwd.clone().map(IceParameter::Pwd))?;
+
+        write_ln_option(f, &self.ice.options.clone().map(IceParameter::Options))?;
+
+        write_ln_option(f, &self.fingerprint)?;
+        write_ln_option(f, &self.setup_role)?;
+        uwriteln!(f, "{}", Mid(self.mid.clone()))?;
+
+        write_ln_option(f, &self.msid_semantic)?;
+        write_ln_option(f, &self.msid)?;
+        write_ln_option(f, &self.p_time)?;
+        for extmap in &self.extmap {
+            uwriteln!(f, "{}", extmap)?;
+        }
+
+        for ssrc in &self.ssrc {
+            uwriteln!(f, "{}", ssrc)?;
+        }
+
+        write_ln_option(f, &self.bundle_group)?;
+        if self.bundle_only {
+            uwriteln!(f, "a=bundle-only")?;
+        }
+        write_ln_option(f, &self.ssrc_group)?;
+        write_ln_option(f, &self.direction)?;
+        write_ln_option(f, &self.rtp)?;
+        for rtcp_option in &self.rtcp_option {
+            uwriteln!(f, "{}", rtcp_option)?;
+        }
+
+        for payload in self.payloads.iter().filter_map(|p| p.parse::<u32>().ok()) {
+            for rtp in self.rtp_map.iter().filter(|r| r.payload == payload) {
+                uwriteln!(f, "{}", rtp)?;
+            }
+            for rtcp_fb in self.rtcp_fb.iter().filter(|r| r.payload == payload) {
+                uwriteln!(f, "{}", rtcp_fb)?;
+            }
+            for fmtp in self.fmtp.iter().filter(|r| r.payload == payload) {
+                uwriteln!(f, "{}", fmtp)?;
+            }
+        }
+
+        write_ln_option(f, &self.control)?;
+
+        for x in &self.attributes {
+            uwriteln!(f, "{}", x)?;
+        }
+
+        Ok(())
+    }
+}
 impl ufmt::uDisplay for SdpLine<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
