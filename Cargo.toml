@@ -10,6 +10,7 @@ license = "MIT/Apache-2.0"
 nom = "7"
 wee_alloc = { version = "0.4", optional = true }
 enum-as-inner = "0.3"
+derive-into-owned = "0.2"
 
 [dependencies.ufmt]
 version = "0.1"
@@ -20,10 +21,6 @@ optional = true
 version = "1"
 features = ["derive"]
 optional = true
-
-[dependencies.derive-into-owned]
-git = "https://github.com/hoodie/derive-into-owned"
-branch = "feature/update-syn"
 
 [dev-dependencies]
 cfg-if = "1.0.0"
