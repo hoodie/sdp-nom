@@ -79,7 +79,7 @@ impl ufmt::uDisplay for Session<'_> {
         }
 
         for x in &self.media {
-            uwriteln!(f, "{}", x)?;
+            uwrite!(f, "{}", x)?;
         }
         Ok(())
     }
@@ -330,7 +330,7 @@ impl ufmt::uDisplay for MsidSemantic<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "a=msid-semantic:")?;
+        uwrite!(f, "a=msid-semantic: ")?;
         uwrite!(f, "{}", self.semantic.as_ref())?;
         if let Some(ref token) = self.token {
             uwrite!(f, " {}", token.as_ref())?;

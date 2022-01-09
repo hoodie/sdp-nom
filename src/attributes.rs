@@ -514,7 +514,7 @@ pub mod msid {
         );
         assert_line_print!(
             msid_semantic_line,
-            "a=msid-semantic:WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
+            "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
         );
     }
 

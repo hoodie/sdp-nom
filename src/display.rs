@@ -55,7 +55,7 @@ impl fmt::Display for Session<'_> {
         }
 
         for x in &self.media {
-            writeln!(f, "{}", x)?;
+            write!(f, "{}", x)?;
         }
         Ok(())
     }
@@ -247,7 +247,7 @@ impl fmt::Display for Mid<'_> {
 }
 impl fmt::Display for MsidSemantic<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a=msid-semantic:")?;
+        write!(f, "a=msid-semantic: ")?;
         write!(f, "{}", self.semantic)?;
         if let Some(ref token) = self.token {
             write!(f, " {}", token)?;
