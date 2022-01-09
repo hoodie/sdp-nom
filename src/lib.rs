@@ -35,7 +35,9 @@ pub mod attributes;
 pub mod lines;
 mod sdp_line;
 
+#[cfg(feature = "lazy")]
 pub mod lazy_media_section;
+#[cfg(feature = "lazy")]
 pub mod lazy_session;
 pub mod media_section;
 pub mod session;
@@ -53,8 +55,10 @@ mod display;
 #[cfg(feature = "ufmt")]
 mod udisplay;
 
+#[cfg(feature = "lazy")]
+pub use lazy_session::LazySession;
+
 pub use crate::{
-    lazy_session::LazySession,
     sdp_line::{sdp_line, SdpLine},
     session::Session,
 };

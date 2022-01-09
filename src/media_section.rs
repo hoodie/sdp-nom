@@ -7,10 +7,12 @@ use crate::{
         candidate, dtls, extmap, ice::IceParameter, msid, rtcp, rtpmap, AttributeLine, BundleGroup,
         Control, Direction, Fingerprint, Fmtp, Ice, RtcpOption, Rtp, Ssrc, SsrcGroup,
     },
-    lazy_media_section::LazyMediaSection,
     lines::{connection::Connection, media::Media, SessionLine},
     SdpLine,
 };
+
+#[cfg(feature = "lazy")]
+use crate::lazy_media_section::LazyMediaSection;
 
 #[derive(Debug, Default, IntoOwned)]
 #[cfg_attr(
@@ -137,6 +139,7 @@ impl<'a> From<Media<'a>> for MediaSection<'a> {
     }
 }
 
+#[cfg(feature = "lazy")]
 impl<'a> From<LazyMediaSection<'a>> for MediaSection<'a> {
     fn from(lazy: LazyMediaSection<'a>) -> Self {
         let mut section = MediaSection::from(lazy.mline);

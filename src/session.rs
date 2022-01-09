@@ -8,8 +8,11 @@ use crate::{
         session_name::SessionName, timing::Timing, uri::Uri, version::Version, SessionLine,
     },
     media_section::MediaSection,
-    sdp_line, LazySession, SdpLine,
+    sdp_line, SdpLine,
 };
+
+#[cfg(feature = "lazy")]
+use crate::lazy_session::LazySession;
 
 #[derive(Debug, Default, IntoOwned)]
 #[cfg_attr(
@@ -60,6 +63,7 @@ struct ParserState<'a> {
     failed: Option<nom::Err<nom::error::Error<&'a str>>>,
 }
 
+#[cfg(feature = "lazy")]
 impl<'a> std::convert::TryFrom<&'a str> for Session<'a> {
     type Error = ParseError<'a>;
 
@@ -151,6 +155,7 @@ impl<'a> Session<'a> {
     }
 }
 
+#[cfg(feature = "lazy")]
 impl<'a> From<LazySession<'a>> for Session<'a> {
     fn from(lazy: LazySession<'a>) -> Self {
         let mut session = Self::default();

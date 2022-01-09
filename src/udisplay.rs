@@ -20,8 +20,6 @@ use crate::{
         ssrc::{Ssrc, SsrcGroup, SsrcSemantic},
         AttributeLine,
     },
-    lazy_media_section::LazyMediaSection,
-    lazy_session::LazySession,
     lines::{
         bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
         session_information::*, session_name::*, timing::*, uri::*, version::*, SessionLine,
@@ -31,6 +29,10 @@ use crate::{
     SdpLine, Session,
 };
 
+#[cfg(feature = "lazy")]
+use crate::{lazy_media_section::LazyMediaSection, lazy_session::LazySession};
+
+#[cfg(feature = "lazy")]
 impl ufmt::uDisplay for LazyMediaSection<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
@@ -43,6 +45,7 @@ impl ufmt::uDisplay for LazyMediaSection<'_> {
     }
 }
 
+#[cfg(feature = "lazy")]
 impl ufmt::uDisplay for LazySession<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
