@@ -153,6 +153,14 @@ impl<'a> Session<'a> {
     pub fn read_str(sdp: &'a str) -> Session<'a> {
         Self::try_from(sdp, false).expect("unfallible should mean this never unwraps")
     }
+
+    pub fn modify_media<F>(mut self, f: F) -> Self
+    where
+        F: Fn(MediaSection) -> MediaSection,
+    {
+        self.media = self.media.into_iter().map(f).collect();
+        self
+    }
 }
 
 #[cfg(feature = "lazy")]
