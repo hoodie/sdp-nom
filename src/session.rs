@@ -172,12 +172,3 @@ impl std::string::ToString for Session<'_> {
         output
     }
 }
-
-#[cfg(feature = "display")]
-impl std::string::ToString for Session<'_> {
-    fn to_string(&self) -> String {
-        let mut output = String::new();
-        write!(output, "{}", self).unwrap();
-        output
-    }
-}

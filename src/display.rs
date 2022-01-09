@@ -24,10 +24,106 @@ use crate::{
         bandwidth::*, connection::*, email::*, media::*, origin::*, phone_number::*,
         session_information::*, session_name::*, timing::*, uri::*, version::*, SessionLine,
     },
+    media_section::MediaSection,
     parsers::IpVer,
     sdp_line::SdpLine,
+    Session,
 };
 
+fn write_ln_option(f: &mut fmt::Formatter<'_>, content: &Option<impl fmt::Display>) -> fmt::Result {
+    if let Some(ref x) = content {
+        writeln!(f, "{}", x)?;
+    }
+    Ok(())
+}
+
+impl fmt::Display for Session<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write_ln_option(f, &self.version)?;
+        write_ln_option(f, &self.origin)?;
+        write_ln_option(f, &self.name)?;
+        write_ln_option(f, &self.timing)?;
+        write_ln_option(f, &self.band_width)?;
+        write_ln_option(f, &self.uri)?;
+        write_ln_option(f, &self.phone_number)?;
+        write_ln_option(f, &self.email_address)?;
+        write_ln_option(f, &self.connection)?;
+        write_ln_option(f, &self.description)?;
+
+        for x in &self.attributes {
+            writeln!(f, "{}", x)?;
+        }
+
+        for x in &self.media {
+            writeln!(f, "{}", x)?;
+        }
+        Ok(())
+    }
+}
+impl fmt::Display for MediaSection<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", self.media())?;
+
+        write_ln_option(f, &self.connection)?;
+
+        write_ln_option(f, &self.rtcp)?;
+        for candidate in &self.candidates {
+            writeln!(f, "{}", candidate)?;
+        }
+
+        write_ln_option(f, &self.ice.ufrag.clone().map(IceParameter::Ufrag))?;
+
+        write_ln_option(f, &self.ice.pwd.clone().map(IceParameter::Pwd))?;
+
+        write_ln_option(f, &self.ice.options.clone().map(IceParameter::Options))?;
+
+        write_ln_option(f, &self.fingerprint)?;
+        write_ln_option(f, &self.setup_role)?;
+        writeln!(f, "{}", Mid(self.mid.clone()))?;
+
+        write_ln_option(f, &self.p_time)?;
+        for extmap in &self.extmap {
+            writeln!(f, "{}", extmap)?;
+        }
+
+        write_ln_option(f, &self.bundle_group)?;
+        if self.bundle_only {
+            writeln!(f, "a=bundle-only")?;
+        }
+        write_ln_option(f, &self.direction)?;
+        write_ln_option(f, &self.msid_semantic)?;
+        write_ln_option(f, &self.msid)?;
+        write_ln_option(f, &self.rtp)?;
+        for rtcp_option in &self.rtcp_option {
+            writeln!(f, "{}", rtcp_option)?;
+        }
+
+        for payload in self.payloads.iter().filter_map(|p| p.parse::<u32>().ok()) {
+            for rtp in self.rtp_map.iter().filter(|r| r.payload == payload) {
+                writeln!(f, "{}", rtp)?;
+            }
+            for rtcp_fb in self.rtcp_fb.iter().filter(|r| r.payload == payload) {
+                writeln!(f, "{}", rtcp_fb)?;
+            }
+            for fmtp in self.fmtp.iter().filter(|r| r.payload == payload) {
+                writeln!(f, "{}", fmtp)?;
+            }
+        }
+
+        write_ln_option(f, &self.ssrc_group)?;
+        for ssrc in &self.ssrc {
+            writeln!(f, "{}", ssrc)?;
+        }
+
+        write_ln_option(f, &self.control)?;
+
+        for x in &self.attributes {
+            writeln!(f, "{}", x)?;
+        }
+
+        Ok(())
+    }
+}
 impl fmt::Display for SdpLine<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

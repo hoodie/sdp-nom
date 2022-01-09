@@ -127,7 +127,7 @@ pub mod generic {
         ))(input)
     }
 
-    pub fn key_only_attribute_line(input: &str) -> IResult<&str,  Cow<'_, str>> {
+    pub fn key_only_attribute_line(input: &str) -> IResult<&str, Cow<'_, str>> {
         a_line(cowify(is_not("\n")))(input)
     }
 

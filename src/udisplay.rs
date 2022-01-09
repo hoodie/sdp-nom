@@ -772,7 +772,7 @@ impl ufmt::uDisplay for Candidate<'_> {
         if let Some(x) = self.generation {
             uwrite!(f, " generation {}", x)?;
         }
-        if let Some(x) = self.network_id{
+        if let Some(x) = self.network_id {
             uwrite!(f, " network-id {}", x)?;
         }
         Ok(())
