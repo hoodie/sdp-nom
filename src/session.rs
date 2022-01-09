@@ -151,7 +151,7 @@ impl<'a> Session<'a> {
     }
 }
 
-#[cfg(all(feature = "udisplay", not(feature = "display")))]
+#[cfg(feature = "udisplay")]
 impl std::string::ToString for Session<'_> {
     fn to_string(&self) -> String {
         let mut output = String::new();
@@ -160,7 +160,7 @@ impl std::string::ToString for Session<'_> {
     }
 }
 
-#[cfg(all(feature = "udisplay", not(feature = "display")))]
+#[cfg(feature = "udisplay")]
 pub fn ufmt_to_string<U: ufmt::uDisplay>(stuff: &U) -> String {
     let mut output = String::new();
     ufmt::uwrite!(output, "{}", stuff).unwrap();

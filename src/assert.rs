@@ -56,10 +56,7 @@ macro_rules! assert_line {
         pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
         assert!(rest.is_empty(), "not parsed completely");
 
-        #[cfg(all(feature = "display", not(feature = "udisplay")))]
-        let serialized = parsed.to_string();
-
-        #[cfg(all(feature = "udisplay", not(feature = "display")))]
+        #[cfg(feature = "udisplay")]
         let serialized = {
             let mut output = String::new();
             ufmt::uwrite!(output, "{}", parsed).unwrap();
@@ -78,10 +75,8 @@ macro_rules! assert_line_print {
             crate::assert::print_leftover($line, rest);
         }
         assert!(rest.is_empty(), "not parsed completely");
-        #[cfg(all(feature = "display", not(feature = "udisplay")))]
-        let serialized = parsed.to_string();
 
-        #[cfg(all(feature = "udisplay", not(feature = "display")))]
+        #[cfg(feature = "udisplay")]
         let serialized = {
             let mut output = String::new();
             ufmt::uwrite!(output, "{}", parsed).unwrap();

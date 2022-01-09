@@ -45,8 +45,6 @@ mod tests;
 #[cfg(test)]
 #[macro_use]
 mod assert;
-#[cfg(any(feature = "display"))]
-mod display;
 
 #[cfg(feature = "ufmt")]
 mod udisplay;
@@ -70,6 +68,3 @@ pub fn sdp_lines_all(sdp: &str) -> impl Iterator<Item = Result<(&str, SdpLine<'_
     sdp.lines()
         .map(|l| nom::Finish::finish(sdp_line(l)).map_err(|e| e.to_string()))
 }
-
-#[cfg(all(feature = "display", feature = "udisplay"))]
-compile_error!("The features \"display\" and \"udisplay\" can not be enabled together.");

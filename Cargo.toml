@@ -29,7 +29,6 @@ serde_json = "1"
 
 [features]
 default = ["udisplay"]
-display = []
 udisplay = ["ufmt"]
 wee = ["wee_alloc"]
 
