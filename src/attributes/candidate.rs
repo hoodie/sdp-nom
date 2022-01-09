@@ -80,6 +80,7 @@ pub struct Candidate<'a> {
     pub rport: Option<u32>,    // 44323
     pub tcptype: Option<Cow<'a, str>>,
     pub generation: Option<u32>,
+    pub network_id: Option<u32>,
 }
 
 pub fn candidate(input: &str) -> IResult<&str, Candidate> {
@@ -114,6 +115,7 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             opt(preceded(wsf(tag("rport")), read_number)), // rport
             opt(preceded(wsf(tag("tcptype")), cowify(read_string))), // tcptype
             opt(preceded(wsf(tag("generation")), read_number)), // generation
+            opt(preceded(wsf(tag("network-id")), read_number)), // generation
         )),
         |(
             foundation,
@@ -127,6 +129,7 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             rport,
             tcptype,
             generation,
+            network_id,
         )| Candidate {
             foundation,
             component,
@@ -139,6 +142,7 @@ pub fn candidate(input: &str) -> IResult<&str, Candidate> {
             rport,
             tcptype,
             generation,
+            network_id,
         },
     )(input)
 }
@@ -163,6 +167,7 @@ mod tests {
         assert_line!(candidate_line, "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay");
         assert_line!(candidate_line, "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx");
         // assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", candidate_line); // FIXME: is this one compliant?
+        assert_line_print!(candidate_line, "a=candidate:2791055836 1 udp 2122262783 2001:9e8:b0b:8400:c5e3:8776:82fc:7704 58605 typ host generation 0 network-id 2");
     }
 
     #[test]

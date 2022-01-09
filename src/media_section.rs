@@ -25,7 +25,7 @@ pub struct MediaSection<'a> {
     pub payloads: Vec<Cow<'a, str>>,
 
     pub connection: Option<Connection>,
-    pub candidate: Option<candidate::Candidate<'a>>,
+    pub candidates: Vec<candidate::Candidate<'a>>,
     // pub ice: Vec<ice::IceParameter<'a>>,
     pub ice: Ice<'a>,
     pub mid: Cow<'a, str>,
@@ -70,9 +70,7 @@ impl<'a> MediaSection<'a> {
             }
             SdpLine::Session(session) => println!("🔥 {:#?}", session),
 
-            SdpLine::Attribute(Candidate(candidate)) => {
-                debug_assert!(self.candidate.replace(candidate).is_none())
-            }
+            SdpLine::Attribute(Candidate(candidate)) => self.candidates.push(candidate),
             SdpLine::Attribute(Ice(IceParameter::Options(o))) => self.ice.options = Some(o),
             SdpLine::Attribute(Ice(IceParameter::Ufrag(o))) => self.ice.ufrag = Some(o),
             SdpLine::Attribute(Ice(IceParameter::Pwd(o))) => self.ice.pwd = Some(o),

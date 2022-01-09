@@ -153,7 +153,7 @@ impl fmt::Display for MsidSemantic<'_> {
         write!(f, "a=msid-semantic:")?;
         write!(f, "{}", self.semantic)?;
         if let Some(ref token) = self.token {
-            write!(f, "{}", token)?;
+            write!(f, " {}", token)?;
         };
         Ok(())
     }
@@ -455,10 +455,13 @@ impl fmt::Display for Candidate<'_> {
             write!(f, "{}", x)?;
         }
         if let Some(x) = self.tcptype.as_ref() {
-            write!(f, "{}", x)?;
+            write!(f, " tcptype {}", x)?;
         }
         if let Some(x) = self.generation {
-            write!(f, "{}", x)?;
+            write!(f, " generation {}", x)?;
+        }
+        if let Some(x) = self.network_id{
+            write!(f, " network-id {}", x)?;
         }
         Ok(())
     }

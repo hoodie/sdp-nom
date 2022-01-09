@@ -107,9 +107,11 @@ impl ufmt::uDisplay for MediaSection<'_> {
 
         write_ln_option(f, &self.connection)?;
 
-        write_ln_option(f, &self.candidate)?;
-
         write_ln_option(f, &self.rtcp)?;
+        for candidate in &self.candidates {
+            uwriteln!(f, "{}", candidate)?;
+        }
+
         write_ln_option(f, &self.ice.ufrag.clone().map(IceParameter::Ufrag))?;
 
         write_ln_option(f, &self.ice.pwd.clone().map(IceParameter::Pwd))?;
@@ -125,10 +127,6 @@ impl ufmt::uDisplay for MediaSection<'_> {
         write_ln_option(f, &self.p_time)?;
         for extmap in &self.extmap {
             uwriteln!(f, "{}", extmap)?;
-        }
-
-        for ssrc in &self.ssrc {
-            uwriteln!(f, "{}", ssrc)?;
         }
 
         write_ln_option(f, &self.bundle_group)?;
@@ -152,6 +150,10 @@ impl ufmt::uDisplay for MediaSection<'_> {
             for fmtp in self.fmtp.iter().filter(|r| r.payload == payload) {
                 uwriteln!(f, "{}", fmtp)?;
             }
+        }
+
+        for ssrc in &self.ssrc {
+            uwriteln!(f, "{}", ssrc)?;
         }
 
         write_ln_option(f, &self.control)?;
@@ -424,8 +426,8 @@ impl ufmt::uDisplay for IpAddress<'_> {
                 let [a, b, c, d] = addr.octets();
                 uwrite!(f, "{}.{}.{}.{}", a, b, c, d)
             }
-            std::net::IpAddr::V6(_) => {
-                uwrite!(f, "...TODO...")
+            std::net::IpAddr::V6(addr) => {
+                uwrite!(f, "{}", addr.to_string())
             }
         }
     }
@@ -764,10 +766,13 @@ impl ufmt::uDisplay for Candidate<'_> {
             uwrite!(f, "{}", x)?;
         }
         if let Some(x) = self.tcptype.as_ref() {
-            uwrite!(f, "{}", x.as_ref())?;
+            uwrite!(f, " tcptype {}", x.as_ref())?;
         }
         if let Some(x) = self.generation {
-            uwrite!(f, "{}", x)?;
+            uwrite!(f, " generation {}", x)?;
+        }
+        if let Some(x) = self.network_id{
+            uwrite!(f, " network-id {}", x)?;
         }
         Ok(())
     }
