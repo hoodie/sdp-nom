@@ -11,9 +11,6 @@ use crate::{
     SdpLine,
 };
 
-#[cfg(feature = "lazy")]
-use crate::lazy_media_section::LazyMediaSection;
-
 #[derive(Debug, Default, IntoOwned)]
 #[cfg_attr(
     feature = "serde",
@@ -136,17 +133,5 @@ impl<'a> From<Media<'a>> for MediaSection<'a> {
             payloads: mline.payloads,
             ..Default::default()
         }
-    }
-}
-
-#[cfg(feature = "lazy")]
-impl<'a> From<LazyMediaSection<'a>> for MediaSection<'a> {
-    fn from(lazy: LazyMediaSection<'a>) -> Self {
-        let mut section = MediaSection::from(lazy.mline);
-
-        for line in lazy.lines {
-            section.add_line(line);
-        }
-        section
     }
 }

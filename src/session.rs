@@ -11,9 +11,6 @@ use crate::{
     sdp_line, SdpLine,
 };
 
-#[cfg(feature = "lazy")]
-use crate::lazy_session::LazySession;
-
 #[derive(Debug, Default, IntoOwned)]
 #[cfg_attr(
     feature = "serde",
@@ -61,15 +58,6 @@ struct ParserState<'a> {
     session: Session<'a>,
     current_msection: Option<MediaSection<'a>>,
     failed: Option<nom::Err<nom::error::Error<&'a str>>>,
-}
-
-#[cfg(feature = "lazy")]
-impl<'a> std::convert::TryFrom<&'a str> for Session<'a> {
-    type Error = ParseError<'a>;
-
-    fn try_from(sdp: &'a str) -> Result<Session<'a>, Self::Error> {
-        Session::try_from(sdp, true)
-    }
 }
 
 impl<'a> Session<'a> {
@@ -160,20 +148,6 @@ impl<'a> Session<'a> {
     {
         self.media = self.media.into_iter().map(f).collect();
         self
-    }
-}
-
-#[cfg(feature = "lazy")]
-impl<'a> From<LazySession<'a>> for Session<'a> {
-    fn from(lazy: LazySession<'a>) -> Self {
-        let mut session = Self::default();
-
-        for line in lazy.lines {
-            session.add_line(line);
-        }
-        session.media = lazy.media.into_iter().map(Into::into).collect();
-
-        session
     }
 }
 

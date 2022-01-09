@@ -28,39 +28,6 @@ use crate::{
     parsers::IpVer,
     SdpLine, Session,
 };
-
-#[cfg(feature = "lazy")]
-use crate::{lazy_media_section::LazyMediaSection, lazy_session::LazySession};
-
-#[cfg(feature = "lazy")]
-impl ufmt::uDisplay for LazyMediaSection<'_> {
-    fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
-    where
-        W: uWrite + ?Sized,
-    {
-        for line in &self.lines {
-            uwriteln!(f, "{}", line)?;
-        }
-        Ok(())
-    }
-}
-
-#[cfg(feature = "lazy")]
-impl ufmt::uDisplay for LazySession<'_> {
-    fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
-    where
-        W: uWrite + ?Sized,
-    {
-        for line in &self.lines {
-            uwriteln!(f, "{}", line)?;
-        }
-        for msection in &self.media {
-            uwrite!(f, "{}", msection)?;
-        }
-        Ok(())
-    }
-}
-
 impl ufmt::uDisplay for Session<'_> {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
