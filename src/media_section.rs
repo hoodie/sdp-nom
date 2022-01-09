@@ -12,11 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, Default, IntoOwned)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
+
 pub struct MediaSection<'a> {
     pub r#type: Cow<'a, str>,
     pub port: u32,

@@ -6,8 +6,6 @@ use std::{borrow::Cow, net::IpAddr};
 use crate::parsers::{
     cowify, line, read_addr, read_big_number, read_ipver, read_number, read_string, wsf, IpVer,
 };
-#[cfg(test)]
-use crate::{assert_line, assert_line_print};
 
 /// Origin
 ///
@@ -50,22 +48,4 @@ pub fn origin(input: &str) -> IResult<&str, Origin> {
 
 pub fn origin_line(input: &str) -> IResult<&str, Origin> {
     line("o=", origin)(input)
-}
-
-#[test]
-fn parses_candidates() {
-    assert_line!(
-        origin_line,
-        "o=test 4962303333179871722 1 IN IP4 0.0.0.0",
-        Origin {
-            user_name: "test".into(),
-            session_id: 4962303333179871722,
-            session_version: 1,
-            net_type: "IN".into(),
-            ip_ver: IpVer::Ip4,
-            addr: "0.0.0.0".parse().unwrap(),
-        },
-        print
-    );
-    assert_line_print!(origin_line, "o=- 4962303333179871722 1 IN IP4 0.0.0.0");
 }

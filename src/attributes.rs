@@ -20,8 +20,6 @@ pub mod rtpmap;
 pub mod ssrc;
 
 use crate::parsers::*;
-#[cfg(test)]
-use crate::{assert_line, assert_line_print};
 
 pub use bundle::*;
 pub use candidate::*;
@@ -35,11 +33,6 @@ pub use rtp::*;
 pub use ssrc::*;
 
 #[derive(Clone, Debug, IntoOwned, EnumAsInner, PartialEq)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
 #[non_exhaustive]
 pub enum AttributeLine<'a> {
     /// `a=candidate:1853887674 2 udp 1518280447 0.0.0.0 36768 typ srflx raddr 192.168.0.196 rport 36768 generation 0`
@@ -106,13 +99,6 @@ pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
     ))(input)
 }
 
-#[test]
-fn test_attribute_line() {
-    assert_line_print!(attribute_line, "a=bundle-only");
-    assert_line_print!(attribute_line, "a=end-of-candidates");
-    assert_line_print!(attribute_line, "a=extmap-allowed-mixed");
-}
-
 pub mod generic {
     use super::*;
 
@@ -130,25 +116,6 @@ pub mod generic {
     pub fn key_only_attribute_line(input: &str) -> IResult<&str, Cow<'_, str>> {
         a_line(cowify(is_not("\n")))(input)
     }
-
-    #[test]
-    fn test_lazy_attribute_line() {
-        assert_line!(
-            key_val_attribute_line,
-            "a=foo:bar",
-            ("foo".into(), "bar".into())
-        );
-        assert_line!(
-            key_val_attribute_line,
-            "a=fmtp:111 minptime=10; useinbandfec=1",
-            ("fmtp".into(), "111 minptime=10; useinbandfec=1".into())
-        );
-        assert_line!(
-            key_val_attribute_line,
-            "a=setup:actpass",
-            ("setup".into(), "actpass".into())
-        );
-    }
 }
 
 pub mod bundle {
@@ -156,11 +123,6 @@ pub mod bundle {
 
     /// `a=group:BUNDLE 0 1`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     pub struct BundleGroup<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn bundle_group_line(input: &str) -> IResult<&str, BundleGroup> {
@@ -173,28 +135,6 @@ pub mod bundle {
             map(wsf(space_separated_cow_strings), BundleGroup),
         )(input)
     }
-
-    #[test]
-    fn test_bundle_group_line() {
-        assert_line!(
-            bundle_group_line,
-            "a=group:BUNDLE 0 1",
-            BundleGroup(create_test_vec(&["0", "1"])),
-            print
-        );
-        assert_line!(
-            bundle_group_line,
-            "a=group:BUNDLE video",
-            BundleGroup(create_test_vec(&["video"])),
-            print
-        );
-        assert_line!(
-            bundle_group_line,
-            "a=group:BUNDLE sdparta_0 sdparta_1 sdparta_2",
-            BundleGroup(create_test_vec(&["sdparta_0", "sdparta_1", "sdparta_2"])),
-            print
-        );
-    }
 }
 
 pub mod rtp {
@@ -202,11 +142,6 @@ pub mod rtp {
 
     // a=rtpmap:110 opus/48000/2
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     pub struct Rtp<'a> {
         pub payload: u32,
         pub codec: Cow<'a, str>,
@@ -234,11 +169,6 @@ pub mod rtp {
             },
         )(input)
     }
-
-    #[test]
-    fn test_rtp_attribute_line() {
-        assert_line!("a=rtpmap:110 opus/48000/2", rtp_attribute_line);
-    }
 }
 
 pub mod fmtp {
@@ -246,11 +176,6 @@ pub mod fmtp {
     ///<https://tools.ietf.org/html/rfc4588#section-8.1>
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     pub struct Fmtp<'a> {
         pub payload: u32,
         pub config: Cow<'a, str>,
@@ -269,34 +194,13 @@ pub mod fmtp {
             |(payload, config)| (Fmtp { payload, config }),
         )(input)
     }
-
-    #[test]
-    fn test_fmtp_attribute_line() {
-        assert_line!(
-            fmtp_attribute_line,
-            "a=fmtp:108 profile-level-id=24;object=23;bitrate=64000",
-            Fmtp {
-                payload: 108,
-                config: "profile-level-id=24;object=23;bitrate=64000".into(),
-            },
-            print
-        );
-        assert_line_print!(
-            fmtp_attribute_line,
-            "a=fmtp:111 minptime=10; useinbandfec=1"
-        );
-    }
 }
 pub mod control {
     use super::*;
 
     /// `a=control:streamid=0`
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
+
     pub struct Control<'a>(pub Cow<'a, str>);
 
     pub fn control_attribute_line(input: &str) -> IResult<&str, Control> {
@@ -305,11 +209,6 @@ pub mod control {
 
     fn control_attribute(input: &str) -> IResult<&str, Control> {
         map(cowify(read_string), Control)(input)
-    }
-
-    #[test]
-    fn test_control_attribute_line() {
-        assert_line_print!(control_attribute_line, "a=control:streamid=0");
     }
 }
 pub mod direction {
@@ -322,11 +221,6 @@ pub mod direction {
     /// `a=recvonly`
     /// `a=inactive`
     #[derive(Debug, PartialEq, Clone, Copy)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     #[non_exhaustive]
     pub enum Direction {
         SendOnly,
@@ -348,31 +242,11 @@ pub mod direction {
     pub fn direction_line(input: &str) -> IResult<&str, Direction> {
         a_line(wsf(read_direction))(input)
     }
-
-    #[test]
-    fn test_direction_line() {
-        assert_line!(read_direction, "sendrecv", Direction::SendRecv);
-        assert_line!(direction_line, "a=sendrecv", Direction::SendRecv);
-
-        assert_line!(read_direction, "sendonly", Direction::SendOnly);
-        assert_line!(direction_line, "a=sendonly", Direction::SendOnly);
-
-        assert_line!(read_direction, "recvonly", Direction::RecvOnly);
-        assert_line!(direction_line, "a=recvonly", Direction::RecvOnly);
-
-        assert_line!(read_direction, "inactive", Direction::Inactive);
-        assert_line!(direction_line, "a=inactive", Direction::Inactive);
-    }
 }
 pub mod rtcp_option {
     use super::*;
 
     #[derive(Clone, Debug, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     #[non_exhaustive]
     pub enum RtcpOption {
         RtcpMux,
@@ -390,33 +264,11 @@ pub mod rtcp_option {
     pub fn rtp_option_line(input: &str) -> IResult<&str, RtcpOption> {
         a_line(rtp_option)(input)
     }
-
-    #[test]
-    fn test_read_rtp_option() {
-        assert_line!(rtp_option_line, "a=rtcp-mux", RtcpOption::RtcpMux, print);
-        assert_line!(
-            rtp_option_line,
-            "a=rtcp-mux-only",
-            RtcpOption::RtcpMuxOnly,
-            print
-        );
-        assert_line!(
-            rtp_option_line,
-            "a=rtcp-rsize",
-            RtcpOption::RtcpRsize,
-            print
-        );
-    }
 }
 pub mod fingerprint {
     use super::*;
 
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     pub struct Fingerprint<'a> {
         pub r#type: Cow<'a, str>,
         pub hash: Cow<'a, str>,
@@ -437,24 +289,13 @@ pub mod fingerprint {
             |(r#type, hash)| Fingerprint { r#type, hash },
         )(input)
     }
-
-    #[test]
-    fn test_fingerprint_line() {
-        assert_line_print!(
-            fingerprint_line,
-            "a=fingerprint:sha-256 19:E2:1C:3B:4B:9F:81:E6:B8:5C:F4:A5:A8:D8:73:04:BB:05:2F:70:9F:04:A9:0E:05:E9:26:33:E8:70:88:A2");
-    }
 }
 
 pub mod mid {
     use super::*;
 
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
+
     pub struct Mid<'a>(pub Cow<'a, str>);
 
     pub fn mid_line(input: &str) -> IResult<&str, Mid> {
@@ -463,14 +304,6 @@ pub mod mid {
 
     pub fn mid(input: &str) -> IResult<&str, Mid> {
         map(cowify(read_string), Mid)(input)
-    }
-
-    #[test]
-    fn test_mid_line() {
-        assert_line_print!(mid_line, "a=mid:1");
-        assert_line_print!(mid_line, "a=mid:a1");
-        assert_line_print!(mid_line, "a=mid:0");
-        assert_line_print!(mid_line, "a=mid:audio")
     }
 }
 
@@ -481,11 +314,6 @@ pub mod msid {
 
     /// TODO: type this more strictly, if possible without `Vec`
     #[derive(Clone, Debug, derive_into_owned::IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     pub struct MsidSemantic<'a> {
         pub semantic: Cow<'a, str>,
         pub token: Option<Cow<'a, str>>,
@@ -502,28 +330,7 @@ pub mod msid {
         ))(input)
     }
 
-    #[test]
-    fn test_msid_semantic_line() {
-        assert_line!(
-            msid_semantic_line,
-            "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS",
-            MsidSemantic {
-                semantic: Cow::Borrowed("WMS"),
-                token: Some(Cow::Borrowed("lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"))
-            }
-        );
-        assert_line_print!(
-            msid_semantic_line,
-            "a=msid-semantic: WMS lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS"
-        );
-    }
-
     #[derive(Clone, Debug, IntoOwned, PartialEq)]
-    #[cfg_attr(
-        feature = "serde",
-        derive(serde::Serialize, serde::Deserialize),
-        serde(rename_all = "camelCase")
-    )]
     pub struct Msid<'a>(pub Vec<Cow<'a, str>>);
 
     pub fn msid_line(input: &str) -> IResult<&str, Msid> {
@@ -532,22 +339,5 @@ pub mod msid {
 
     pub fn msid(input: &str) -> IResult<&str, Msid> {
         wsf(map(space_separated_cow_strings, Msid))(input)
-    }
-
-    #[test]
-    fn test_msid_line() {
-        assert_line!(
-            msid_line,
-            "a=msid:47017fee-b6c1-4162-929c-a25110252400 f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9",
-            Msid(vec![
-                "47017fee-b6c1-4162-929c-a25110252400".into(),
-                "f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9".into()
-            ]),
-            print
-        );
-        assert_line_print!(
-            msid_line,
-            "a=msid:61317484-2ed4-49d7-9eb7-1414322a7aae f30bdb4a-5db8-49b5-bcdc-e0c9a23172e0"
-        );
     }
 }

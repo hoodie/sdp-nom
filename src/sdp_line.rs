@@ -11,11 +11,7 @@ use crate::{
 
 /// Sdp Line
 #[derive(Clone, Debug, IntoOwned, EnumAsInner)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
+
 pub enum SdpLine<'a> {
     Session(SessionLine<'a>),
     Attribute(AttributeLine<'a>),

@@ -15,11 +15,6 @@ use nom::{
 
 use std::{borrow::Cow, net::IpAddr};
 
-#[cfg(test)]
-pub fn create_test_vec(strs: &[&str]) -> Vec<Cow<'static, str>> {
-    strs.iter().map(|&s| Cow::from(s.to_owned())).collect()
-}
-
 pub fn is_not_space(c: char) -> bool {
     c != ' '
 }
@@ -139,11 +134,6 @@ pub fn read_addr(input: &str) -> IResult<&str, IpAddr> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
 #[non_exhaustive]
 pub enum IpVer {
     Ip4,

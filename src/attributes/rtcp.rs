@@ -12,8 +12,6 @@ use nom::{
 use std::{borrow::Cow, net::IpAddr};
 
 use crate::parsers::*;
-#[cfg(test)]
-use crate::{assert_line, assert_line_print};
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(
@@ -66,12 +64,6 @@ fn rtcp_attribute(input: &str) -> IResult<&str, Rtcp> {
             addr,
         },
     )(input)
-}
-
-#[test]
-fn test_rtcp_attribute_line() {
-    assert_line_print!(rtcp_attribute_line, "a=rtcp:65179 IN IP4 10.23.34.255");
-    assert_line_print!(rtcp_attribute_line, "a=rtcp:65179 IN IP4 ::1");
 }
 
 // ///////////////////////
@@ -167,16 +159,6 @@ fn read_ack_param(input: &str) -> IResult<&str, FbAckParam> {
     ))(input)
 }
 
-#[test]
-fn test_rtcpfb_ack_param() {
-    assert_line!(read_ack_param, "sli", FbAckParam::Sli(None));
-    assert_line!(
-        read_ack_param,
-        "sli 5432",
-        FbAckParam::Sli(Some("5432".into()))
-    );
-}
-
 #[derive(Clone, Debug, IntoOwned, PartialEq)]
 #[cfg_attr(
     feature = "serde",
@@ -218,19 +200,6 @@ fn read_val(input: &str) -> IResult<&str, FbVal> {
     ))(input)
 }
 
-#[test]
-#[rustfmt::skip]
-fn test_read_val() {
-    assert_line!(read_val, "trr-int 100", FbVal::TrrInt(100), print);
-    assert_line!(read_val, "ack sli", FbVal::Ack(FbAckParam::Sli(None)), print);
-    assert_line!(read_val, "ack sli 5432", FbVal::Ack(FbAckParam::Sli(Some("5432".into()))), print);
-    assert_line!(read_val, "nack rpsi", FbVal::Nack(FbNackParam::Rpsi), print);
-    assert_line!(read_val, "goog-remb", FbVal:: RtcpFbId{id: "goog-remb".into(), param: None}, print);
-    assert_line!(read_val, "ccm", FbVal:: RtcpFbId{id: "ccm".into(), param: None}, print);
-    assert_line!(read_val, "ccm fir", FbVal:: RtcpFbId{id: "ccm".into(), param: Some(FbParam::Single("fir".into()))}, print);
-    assert_line!(read_val, "fb foo bar", FbVal:: RtcpFbId{id: "fb".into(), param: Some(FbParam::Pair("foo".into(), "bar".into()))}, print);
-}
-
 pub fn rtcpfb_attribute_line(input: &str) -> IResult<&str, Fb> {
     attribute("rtcp-fb", rtcpfb_attribute)(input)
 }
@@ -243,27 +212,4 @@ fn rtcpfb_attribute(input: &str) -> IResult<&str, Fb> {
         )),
         |(payload, val)| Fb { payload, val },
     )(input)
-}
-
-#[test]
-#[rustfmt::skip]
-fn test_rtcpfb_line() {
-    assert_line_print!(rtcpfb_attribute_line, "a=rtcp-fb:98 trr-int 100");
-    assert_line_print!(rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli");
-    assert_line_print!(rtcpfb_attribute_line, "a=rtcp-fb:98 ack sli 5432");
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:98 nack rpsi", Fb {payload: 98, val: FbVal::Nack(FbNackParam::Rpsi)}, print);
-
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:96 goog-remb", Fb {payload: 96, val: FbVal::RtcpFbId{id: "goog-remb".into(), param: None}}, print);
-    assert_line!(rtcpfb_attribute_line, "a=rtcp-fb:96 transport-cc", Fb {payload: 96, val: FbVal::RtcpFbId{id: "transport-cc".into(), param: None}}, print);
-    assert_line!(
-        rtcpfb_attribute_line,
-        "a=rtcp-fb:96 ccm fir",
-        Fb {
-            payload: 96,
-            val: FbVal::RtcpFbId{
-                id: "ccm".into(),
-                param: Some(FbParam::Single("fir".into()))
-            }
-        }, print
-    );
 }

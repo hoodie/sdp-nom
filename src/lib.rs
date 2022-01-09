@@ -39,12 +39,6 @@ pub mod media_section;
 pub mod session;
 
 mod parsers;
-#[cfg(test)]
-mod tests;
-
-#[cfg(test)]
-#[macro_use]
-mod assert;
 
 #[cfg(feature = "ufmt")]
 mod udisplay;

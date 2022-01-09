@@ -12,11 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, Default, IntoOwned)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
+
 pub struct Session<'a> {
     /// `v=0`
     pub version: Option<Version>,
