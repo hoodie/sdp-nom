@@ -164,7 +164,7 @@ impl<'a> From<LazySession<'a>> for Session<'a> {
     }
 }
 
-#[cfg(feature = "udisplay")]
+#[cfg(all(feature = "udisplay", not(feature = "display")))]
 impl std::string::ToString for Session<'_> {
     fn to_string(&self) -> String {
         let mut output = String::new();
