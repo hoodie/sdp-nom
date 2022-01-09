@@ -16,7 +16,7 @@
 //! * [ ] [Encryption Keys](https://tools.ietf.org/html/rfc4566#section-5.12) (`"k="`)
 //! * [x] [Attributes](https://tools.ietf.org/html/rfc4566#section-5.13) (`"a="`)
 //! * [x] [Media Descriptions](https://tools.ietf.org/html/rfc4566#section-5.14) (`"m="`) [`Media`][`crate::lines::media::Media`]
-//! * [ ] [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
+//! * [x] [SDP Attributes](https://tools.ietf.org/html/rfc4566#section-6.0)
 
 #![deny(
     trivial_casts,
