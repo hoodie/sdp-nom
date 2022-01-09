@@ -23,7 +23,7 @@
     trivial_numeric_casts,
     unsafe_code,
     unused_import_braces,
-    // unused_qualifications
+    clippy::clone_on_copy,
 )]
 // #![warn(missing_docs)]
 

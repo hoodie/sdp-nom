@@ -34,7 +34,7 @@ pub use rtcp_option::*;
 pub use rtp::*;
 pub use ssrc::*;
 
-#[derive(Clone, Debug, IntoOwned, EnumAsInner)]
+#[derive(Clone, Debug, IntoOwned, EnumAsInner, PartialEq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -411,7 +411,7 @@ pub mod rtcp_option {
 pub mod fingerprint {
     use super::*;
 
-    #[derive(Clone, Debug, IntoOwned)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -449,7 +449,7 @@ pub mod fingerprint {
 pub mod mid {
     use super::*;
 
-    #[derive(Clone, Debug, IntoOwned)]
+    #[derive(Clone, Debug, IntoOwned, PartialEq)]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),

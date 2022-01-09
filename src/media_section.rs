@@ -55,7 +55,7 @@ impl<'a> MediaSection<'a> {
     pub fn media(&self) -> Media<'a> {
         Media {
             r#type: self.r#type.clone(),
-            port: self.port.clone(),
+            port: self.port,
             protocol: self.protocol.clone(),
             payloads: self.payloads.clone(),
         }
