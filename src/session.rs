@@ -177,3 +177,10 @@ impl std::string::ToString for Session<'_> {
         output
     }
 }
+
+#[cfg(all(feature = "udisplay", not(feature = "display")))]
+pub fn ufmt_to_string<U: ufmt::uDisplay>(stuff: &U) -> String {
+    let mut output = String::new();
+    ufmt::uwrite!(output, "{}", stuff).unwrap();
+    output
+}

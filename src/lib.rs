@@ -23,7 +23,7 @@
     trivial_numeric_casts,
     unsafe_code,
     unused_import_braces,
-    clippy::clone_on_copy,
+    clippy::clone_on_copy
 )]
 // #![warn(missing_docs)]
 
@@ -62,6 +62,21 @@ pub use crate::{
     sdp_line::{sdp_line, SdpLine},
     session::Session,
 };
+
+#[cfg(feature = "ufmt")]
+pub use crate::session::ufmt_to_string;
+
+pub fn sdp_lines(sdp: &str) -> impl Iterator<Item = SdpLine<'_>> {
+    sdp.lines().filter_map(|line| match sdp_line(line) {
+        Ok((_, parsed)) => Some(parsed),
+        Err(_) => None,
+    })
+}
+
+pub fn sdp_lines_all(sdp: &str) -> impl Iterator<Item = Result<(&str, SdpLine<'_>), String>> {
+    sdp.lines()
+        .map(|l| nom::Finish::finish(sdp_line(l)).map_err(|e| e.to_string()))
+}
 
 #[cfg(all(feature = "display", feature = "udisplay"))]
 compile_error!("The features \"display\" and \"udisplay\" can not be enabled together.");
