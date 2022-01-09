@@ -65,10 +65,11 @@ pub enum AttributeLine<'a> {
     Extmap(extmap::Extmap<'a>),
     BundleOnly,
     EoC,
-    Attribute {
+    KeyValue {
         key: Cow<'a, str>,
         val: Cow<'a, str>,
     },
+    KeyOnly(Cow<'a, str>),
 }
 pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
     alt((
@@ -95,19 +96,27 @@ pub fn attribute_line(input: &str) -> IResult<&str, AttributeLine> {
             map(control_attribute_line, AttributeLine::Control),
             map(rtcp::rtcpfb_attribute_line, AttributeLine::RtcpFb),
             map(rtp_option_line, AttributeLine::RtcpOption),
-            map(generic::lazy_attribute_line, |(key, val)| {
-                AttributeLine::Attribute { key, val }
+            map(generic::key_val_attribute_line, |(key, val)| {
+                AttributeLine::KeyValue { key, val }
             }),
             map(tag("a=bundle-only"), |_| AttributeLine::BundleOnly),
             map(tag("a=end-of-candidates"), |_| AttributeLine::EoC),
+            map(generic::key_only_attribute_line, AttributeLine::KeyOnly),
         )),
     ))(input)
+}
+
+#[test]
+fn test_attribute_line() {
+    assert_line_print!(attribute_line, "a=bundle-only");
+    assert_line_print!(attribute_line, "a=end-of-candidates");
+    assert_line_print!(attribute_line, "a=extmap-allowed-mixed");
 }
 
 pub mod generic {
     use super::*;
 
-    pub fn lazy_attribute_line(input: &str) -> IResult<&str, (Cow<'_, str>, Cow<'_, str>)> {
+    pub fn key_val_attribute_line(input: &str) -> IResult<&str, (Cow<'_, str>, Cow<'_, str>)> {
         a_line(map(
             separated_pair(
                 cowify(read_non_colon_string),
@@ -117,20 +126,25 @@ pub mod generic {
             |(key, val)| (key, val),
         ))(input)
     }
+
+    pub fn key_only_attribute_line(input: &str) -> IResult<&str,  Cow<'_, str>> {
+        a_line(cowify(is_not("\n")))(input)
+    }
+
     #[test]
     fn test_lazy_attribute_line() {
         assert_line!(
-            lazy_attribute_line,
+            key_val_attribute_line,
             "a=foo:bar",
             ("foo".into(), "bar".into())
         );
         assert_line!(
-            lazy_attribute_line,
+            key_val_attribute_line,
             "a=fmtp:111 minptime=10; useinbandfec=1",
             ("fmtp".into(), "111 minptime=10; useinbandfec=1".into())
         );
         assert_line!(
-            lazy_attribute_line,
+            key_val_attribute_line,
             "a=setup:actpass",
             ("setup".into(), "actpass".into())
         );

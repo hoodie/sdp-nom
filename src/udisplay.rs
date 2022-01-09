@@ -122,8 +122,6 @@ impl ufmt::uDisplay for MediaSection<'_> {
         write_ln_option(f, &self.setup_role)?;
         uwriteln!(f, "{}", Mid(self.mid.clone()))?;
 
-        write_ln_option(f, &self.msid_semantic)?;
-        write_ln_option(f, &self.msid)?;
         write_ln_option(f, &self.p_time)?;
         for extmap in &self.extmap {
             uwriteln!(f, "{}", extmap)?;
@@ -133,8 +131,9 @@ impl ufmt::uDisplay for MediaSection<'_> {
         if self.bundle_only {
             uwriteln!(f, "a=bundle-only")?;
         }
-        write_ln_option(f, &self.ssrc_group)?;
         write_ln_option(f, &self.direction)?;
+        write_ln_option(f, &self.msid_semantic)?;
+        write_ln_option(f, &self.msid)?;
         write_ln_option(f, &self.rtp)?;
         for rtcp_option in &self.rtcp_option {
             uwriteln!(f, "{}", rtcp_option)?;
@@ -152,6 +151,7 @@ impl ufmt::uDisplay for MediaSection<'_> {
             }
         }
 
+        write_ln_option(f, &self.ssrc_group)?;
         for ssrc in &self.ssrc {
             uwriteln!(f, "{}", ssrc)?;
         }
@@ -227,10 +227,11 @@ impl ufmt::uDisplay for AttributeLine<'_> {
             AttributeLine::Extmap(e)       => uwrite!(f, "{}", e),
             AttributeLine::BundleOnly      => uwrite!(f, "a=bundle-only"),
             AttributeLine::EoC             => uwrite!(f, "a=end-of-candidates"),
-            AttributeLine::Attribute {
+            AttributeLine::KeyValue {
                 key,
                 val
             }                              => uwrite!(f, "a={}:{}", key.as_ref(), val.as_ref()),
+            AttributeLine::KeyOnly(key)    => uwrite!(f, "a={}", key.as_ref()),
         }
     }
 }

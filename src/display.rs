@@ -83,10 +83,11 @@ impl fmt::Display for AttributeLine<'_> {
             AttributeLine::Extmap(e)       => write!(f, "{}", e),
             AttributeLine::BundleOnly      => write!(f, "a=bundle-only"),
             AttributeLine::EoC             => write!(f, "a=end-of-candidates"),
-            AttributeLine::Attribute {
+            AttributeLine::KeyValue {
                 key,
                 val
             }                              => write!(f, "a={}:{}", key, val),
+            AttributeLine::KeyOnly ( key)  => write!(f, "a={}", key),
         }
     }
 }
@@ -460,7 +461,7 @@ impl fmt::Display for Candidate<'_> {
         if let Some(x) = self.generation {
             write!(f, " generation {}", x)?;
         }
-        if let Some(x) = self.network_id{
+        if let Some(x) = self.network_id {
             write!(f, " network-id {}", x)?;
         }
         Ok(())
