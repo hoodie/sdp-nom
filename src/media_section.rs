@@ -11,7 +11,7 @@ use crate::{
     SdpLine,
 };
 
-#[derive(Debug, Default, IntoOwned)]
+#[derive(Debug, Default, IntoOwned, PartialEq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -64,9 +64,7 @@ impl<'a> MediaSection<'a> {
         use SessionLine::*;
         match line {
             SdpLine::Session(Media(_)) => unreachable!(),
-            SdpLine::Session(SessionLine::Connection(connection)) => {
-                assert!(self.connection.replace(connection).is_none())
-            }
+            SdpLine::Session(SessionLine::Connection(conn)) => self.connection = Some(conn),
             SdpLine::Session(session) => println!("🔥 {:#?}", session),
 
             SdpLine::Attribute(Candidate(candidate)) => self.candidates.push(candidate),
@@ -75,50 +73,26 @@ impl<'a> MediaSection<'a> {
             SdpLine::Attribute(Ice(IceParameter::Pwd(o))) => self.ice.pwd = Some(o),
             SdpLine::Attribute(attr @ Ice(_)) => self.attributes.push(attr),
             SdpLine::Attribute(Mid(mid)) => self.mid = mid.0,
-            SdpLine::Attribute(MsidSemantic(msid_semantic)) => {
-                debug_assert!(self.msid_semantic.replace(msid_semantic).is_none())
-            }
-            SdpLine::Attribute(Msid(msid)) => {
-                debug_assert!(self.msid.replace(msid).is_none())
-            }
+            SdpLine::Attribute(MsidSemantic(semantic)) => self.msid_semantic = Some(semantic),
+            SdpLine::Attribute(Msid(msid)) => self.msid = Some(msid),
             SdpLine::Attribute(RtpMap(rtp_map)) => self.rtp_map.push(rtp_map),
-            SdpLine::Attribute(PTime(p_time)) => {
-                debug_assert!(self.p_time.replace(p_time).is_none())
-            }
+            SdpLine::Attribute(PTime(p_time)) => self.p_time = Some(p_time),
             SdpLine::Attribute(Ssrc(ssrc)) => self.ssrc.push(ssrc),
-            SdpLine::Attribute(BundleGroup(bundle_group)) => {
-                debug_assert!(self.bundle_group.replace(bundle_group).is_none())
-            }
-            SdpLine::Attribute(SsrcGroup(ssrc_group)) => {
-                debug_assert!(self.ssrc_group.replace(ssrc_group).is_none())
-            }
-            SdpLine::Attribute(Fingerprint(fingerprint)) => {
-                debug_assert!(self.fingerprint.replace(fingerprint).is_none())
-            }
-            SdpLine::Attribute(Direction(direction)) => {
-                debug_assert!(self.direction.replace(direction).is_none())
-            }
-            SdpLine::Attribute(Rtp(rtp)) => debug_assert!(self.rtp.replace(rtp).is_none()),
-            SdpLine::Attribute(Rtcp(rtcp)) => {
-                debug_assert!(self.rtcp.replace(rtcp).is_none())
-            }
+            SdpLine::Attribute(BundleGroup(bundle_group)) => self.bundle_group = Some(bundle_group),
+            SdpLine::Attribute(SsrcGroup(ssrc_group)) => self.ssrc_group = Some(ssrc_group),
+            SdpLine::Attribute(Fingerprint(fingerprint)) => self.fingerprint = Some(fingerprint),
+            SdpLine::Attribute(Direction(direction)) => self.direction = Some(direction),
+
+            SdpLine::Attribute(Rtp(rtp)) => self.rtp = Some(rtp),
+            SdpLine::Attribute(Rtcp(rtcp)) => self.rtcp = Some(rtcp),
             SdpLine::Attribute(Fmtp(fmtp)) => self.fmtp.push(fmtp),
             SdpLine::Attribute(RtcpFb(rtcp_fb)) => self.rtcp_fb.push(rtcp_fb),
             SdpLine::Attribute(RtcpOption(rtcp_option)) => self.rtcp_option.push(rtcp_option),
-            SdpLine::Attribute(Control(control)) => {
-                debug_assert!(self.control.replace(control).is_none())
-            }
-            SdpLine::Attribute(SetupRole(setup_role)) => {
-                debug_assert!(self.setup_role.replace(setup_role).is_none())
-            }
+            SdpLine::Attribute(Control(control)) => self.control = Some(control),
+            SdpLine::Attribute(SetupRole(setup_role)) => self.setup_role = Some(setup_role),
             SdpLine::Attribute(Extmap(extmap)) => self.extmap.push(extmap),
             SdpLine::Attribute(AttributeLine::BundleOnly) => self.bundle_only = true,
             SdpLine::Attribute(attr) => self.attributes.push(attr),
-            // SdpLine::Attribute(AttributeLine::EoC        => todo!(),
-            // SdpLine::Attribute(AttributeLine::Attribute {
-            //     key: Cow<'a, str>,
-            //     val: Cow<'a, str>,
-            // } => todo!(),
             SdpLine::Comment(_) => {}
         }
     }

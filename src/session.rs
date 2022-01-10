@@ -11,7 +11,7 @@ use crate::{
     sdp_line, SdpLine,
 };
 
-#[derive(Debug, Default, IntoOwned)]
+#[derive(Debug, Default, IntoOwned, PartialEq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -65,34 +65,16 @@ impl<'a> Session<'a> {
         use SessionLine::*;
         match line {
             //crate::SdpLine::Session(Session)       => todo!(),
-            SdpLine::Session(Version(version)) => {
-                debug_assert!(self.version.replace(version).is_none())
-            }
-            SdpLine::Session(Name(session_name)) => {
-                debug_assert!(self.name.replace(session_name).is_none())
-            }
-            SdpLine::Session(Timing(timing)) => {
-                debug_assert!(self.timing.replace(timing).is_none())
-            }
-            SdpLine::Session(Origin(origin)) => {
-                debug_assert!(self.origin.replace(origin).is_none())
-            }
-            SdpLine::Session(BandWidth(bw)) => {
-                debug_assert!(self.band_width.replace(bw).is_none())
-            }
-            SdpLine::Session(Uri(uri)) => debug_assert!(self.uri.replace(uri).is_none()),
-            SdpLine::Session(PhoneNumber(phone)) => {
-                debug_assert!(self.phone_number.replace(phone).is_none())
-            }
-            SdpLine::Session(EmailAddress(email)) => {
-                debug_assert!(self.email_address.replace(email).is_none())
-            }
-            SdpLine::Session(Connection(connection)) => {
-                debug_assert!(self.connection.replace(connection).is_none())
-            }
-            SdpLine::Session(Description(info)) => {
-                debug_assert!(self.description.replace(info).is_none())
-            }
+            SdpLine::Session(Version(version)) => self.version = Some(version),
+            SdpLine::Session(Name(session_name)) => self.name = Some(session_name),
+            SdpLine::Session(Timing(timing)) => self.timing = Some(timing),
+            SdpLine::Session(Origin(origin)) => self.origin = Some(origin),
+            SdpLine::Session(BandWidth(bw)) => self.band_width = Some(bw),
+            SdpLine::Session(Uri(uri)) => self.uri = Some(uri),
+            SdpLine::Session(PhoneNumber(phone)) => self.phone_number = Some(phone),
+            SdpLine::Session(EmailAddress(email)) => self.email_address = Some(email),
+            SdpLine::Session(Connection(connection)) => self.connection = Some(connection),
+            SdpLine::Session(Description(info)) => self.description = Some(info),
             SdpLine::Session(Media(_)) => unreachable!(),
             SdpLine::Attribute(a) => self.attributes.push(a),
             SdpLine::Comment(_) => {}
@@ -151,7 +133,7 @@ impl<'a> Session<'a> {
     }
 }
 
-#[cfg(feature = "udisplay")]
+#[cfg(all(feature = "udisplay", not(feature = "display")))]
 impl std::string::ToString for Session<'_> {
     fn to_string(&self) -> String {
         let mut output = String::new();
@@ -160,7 +142,7 @@ impl std::string::ToString for Session<'_> {
     }
 }
 
-#[cfg(feature = "udisplay")]
+#[cfg(all(feature = "udisplay", not(feature = "display")))]
 pub fn ufmt_to_string<U: ufmt::uDisplay>(stuff: &U) -> String {
     let mut output = String::new();
     ufmt::uwrite!(output, "{}", stuff).unwrap();

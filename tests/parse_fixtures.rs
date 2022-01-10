@@ -35,7 +35,10 @@ fn parse_fixtures_root() {
     with_all_fixtures("", |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
         let session = Session::read_str(&fixture).into_owned();
+        eprintln!("parsed");
         let reserialized = session.to_string();
+        eprintln!("reserialized");
+        eprintln!("{}", reserialized);
         pretty_assertions::assert_eq!(fixture, reserialized)
     })
     .unwrap();

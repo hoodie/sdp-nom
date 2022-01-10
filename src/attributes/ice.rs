@@ -22,7 +22,7 @@ pub enum IceParameter<'a> {
     Lite,
 }
 
-#[derive(Debug, Default, IntoOwned)]
+#[derive(Debug, Default, IntoOwned, PartialEq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
