@@ -12,7 +12,7 @@ fn with_all_fixtures<F>(
     f: F,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
-    F: Fn(&dyn AsRef<Path>), // -> Result<(), Box<dyn std::error::Error>>,
+    F: Fn(&Path), // -> Result<(), Box<dyn std::error::Error>>,
 {
     let fixture_path = dbg!(PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
         .join("fixtures")
@@ -23,7 +23,6 @@ where
         .filter(|entry| entry.path().extension().and_then(OsStr::to_str) == Some("sdp"))
         .map(|entry| entry.path())
     {
-        eprintln!("fixture: {:?}", path.display());
         f(&path);
     }
 
@@ -34,12 +33,16 @@ where
 fn parse_fixtures_root() {
     with_all_fixtures("", |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
-        let session = Session::read_str(&fixture).into_owned();
-        eprintln!("parsed");
+        let session = Session::read_str(&fixture);
+        eprintln!("parsed\n{:#?}", session);
+
         let reserialized = session.to_string();
-        eprintln!("reserialized");
-        eprintln!("{}", reserialized);
-        pretty_assertions::assert_eq!(fixture, reserialized)
+        eprintln!("reserialized\n{}", reserialized);
+        let reparsed = Session::read_str(&reserialized);
+
+        eprintln!("fixture: {:?}", path.display());
+        pretty_assertions::assert_eq!(fixture, reserialized);
+        pretty_assertions::assert_eq!(session, reparsed);
     })
     .unwrap();
 }
