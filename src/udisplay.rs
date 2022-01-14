@@ -38,7 +38,7 @@ impl ufmt::uDisplay for Session<'_> {
         write_ln_option(f, &self.name)?;
         write_ln_option(f, &self.timing)?;
         write_ln_option(f, &self.band_width)?;
-        write_ln_option_with(f, &self.uri, Some("u"))?;
+        write_ln_option(f, &self.uri)?;
         write_ln_option(f, &self.phone_number)?;
         write_ln_option(f, &self.email_address)?;
         write_ln_option(f, &self.connection)?;
@@ -55,23 +55,6 @@ impl ufmt::uDisplay for Session<'_> {
     }
 }
 
-fn write_ln_option_with<W>(
-    f: &mut Formatter<'_, W>,
-    content: &Option<impl ufmt::uDisplay>,
-    prefix: Option<impl ufmt::uDisplay>,
-) -> Result<(), W::Error>
-where
-    W: uWrite + ?Sized,
-{
-    if let Some(ref x) = content {
-        if let Some(ref x) = prefix {
-            uwrite!(f, "{}=", x)?;
-        }
-        uwriteln!(f, "{}", x)?;
-    }
-    Ok(())
-}
-
 fn write_ln_option<W>(
     f: &mut Formatter<'_, W>,
     content: &Option<impl ufmt::uDisplay>,
@@ -79,7 +62,10 @@ fn write_ln_option<W>(
 where
     W: uWrite + ?Sized,
 {
-    write_ln_option_with(f, content, None::<&str>)
+    if let Some(ref x) = content {
+        uwriteln!(f, "{}", x)?;
+    }
+    Ok(())
 }
 
 impl ufmt::uDisplay for MediaSection<'_> {
@@ -156,10 +142,18 @@ impl ufmt::uDisplay for SdpLine<'_> {
         W: uWrite + ?Sized,
     {
         match self {
-            SdpLine::Session(session) => uwrite!(f, "{}", session),
-            SdpLine::Attribute(attribute) => uwrite!(f, "{}", attribute),
+            SdpLine::Session(session) => uwriteln!(f, "{}", session),
+            SdpLine::Attribute(attribute) => uwriteln!(f, "{}", attribute),
             SdpLine::Comment(_) => Ok(()),
         }
+    }
+}
+#[cfg(all(feature = "udisplay"))]
+impl std::string::ToString for SdpLine<'_> {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        ufmt::uwrite!(output, "{}", self).unwrap();
+        output
     }
 }
 
@@ -654,7 +648,7 @@ impl ufmt::uDisplay for Uri<'_> {
     where
         W: uWrite + ?Sized,
     {
-        uwrite!(f, "{}", self.0.as_ref())
+        uwrite!(f, "u={}", self.0.as_ref())
     }
 }
 impl ufmt::uDisplay for EmailAddress<'_> {
