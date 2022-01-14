@@ -1,4 +1,5 @@
 use derive_into_owned::IntoOwned;
+use derive_builder::Builder;
 
 use crate::{
     attributes::AttributeLine,
@@ -11,7 +12,12 @@ use crate::{
     sdp_line, SdpLine,
 };
 
-#[derive(Debug, Default, IntoOwned, PartialEq)]
+#[derive(Clone,Debug, Default, IntoOwned, PartialEq)]
+#[cfg_attr(
+    feature = "builder",
+    builder(default,setter(into)),
+    derive(Builder)
+)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

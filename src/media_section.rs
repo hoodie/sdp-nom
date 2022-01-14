@@ -11,7 +11,7 @@ use crate::{
     SdpLine,
 };
 
-#[derive(Debug, Default, IntoOwned, PartialEq)]
+#[derive(Clone, Debug, Default, IntoOwned, PartialEq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
