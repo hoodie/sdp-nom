@@ -90,7 +90,8 @@ impl ufmt::uDisplay for MediaSection<'_> {
 
         write_ln_option(f, &self.fingerprint)?;
         write_ln_option(f, &self.setup_role)?;
-        uwriteln!(f, "{}", Mid(self.mid.clone()))?;
+        // uwriteln!(f, "{}", Mid(self.mid.clone()))?;
+        write_ln_option(f, &self.mid.to_owned().map(Mid))?;
 
         write_ln_option(f, &self.p_time)?;
         for extmap in &self.extmap {
