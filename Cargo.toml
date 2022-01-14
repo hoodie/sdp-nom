@@ -46,5 +46,25 @@ panic = "abort"
 wasm-opt = false # in release builds wasm-opt crashes for some reason
 
 [[example]]
+name = "session"
+required-features = ["udisplay"]
+
+[[example]]
+name = "remove_direct_tcp_candidates"
+required-features = ["udisplay"]
+
+[[example]]
+name = "remove_direct_tcp_candidates_iter"
+required-features = ["udisplay"]
+
+[[example]]
+name = "reparse"
+required-features = ["udisplay"]
+
+[[example]]
+name = "iter"
+required-features = ["udisplay"]
+
+[[example]]
 name = "json_filtered"
-required-features = ["serde"]
+required-features = ["serde", "udisplay"]
