@@ -597,13 +597,16 @@ impl ufmt::uDisplay for Extmap<'_> {
         W: uWrite + ?Sized,
     {
         if let Some(direction) = self.direction {
-            uwrite!(
-                f,
-                "a=extmap:{}/{} {}",
-                self.value,
-                direction,
-                self.uri.as_ref()
-            )?;
+            uwrite!(f, "a=extmap:{}/", self.value,)?;
+
+            match direction {
+                Direction::SendOnly => uwrite!(f, "sendonly")?,
+                Direction::SendRecv => uwrite!(f, "sendrecv")?,
+                Direction::RecvOnly => uwrite!(f, "recvonly")?,
+                Direction::Inactive => uwrite!(f, "inactive")?,
+            }
+
+            uwrite!(f, " {}", self.uri.as_ref())?;
         } else {
             uwrite!(f, "a=extmap:{} {}", self.value, self.uri.as_ref())?;
         }
