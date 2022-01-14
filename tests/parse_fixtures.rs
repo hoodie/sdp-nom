@@ -46,3 +46,21 @@ fn parse_fixtures_root() {
     })
     .unwrap();
 }
+
+#[test]
+fn parse_fixtures_sdp_transform() {
+    with_all_fixtures("sdp_transform", |path| {
+        let fixture = std::fs::read_to_string(&path).unwrap();
+        let session = Session::read_str(&fixture);
+        eprintln!("parsed\n{:#?}", session);
+
+        let reserialized = session.to_string();
+        eprintln!("reserialized\n{}", reserialized);
+        let reparsed = Session::read_str(&reserialized);
+
+        eprintln!("fixture: {:?}", path.display());
+        // pretty_assertions::assert_eq!(fixture, reserialized); // cant guarantee order
+        pretty_assertions::assert_eq!(session, reparsed);
+    })
+    .unwrap();
+}
