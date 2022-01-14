@@ -30,6 +30,7 @@ where
 }
 
 #[test]
+#[cfg(feature = "udisplay")]
 fn parse_fixtures_root() {
     with_all_fixtures("", |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
@@ -48,6 +49,7 @@ fn parse_fixtures_root() {
 }
 
 #[test]
+#[cfg(feature = "udisplay")]
 fn parse_fixtures_sdp_transform() {
     with_all_fixtures("sdp_transform", |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
@@ -65,6 +67,7 @@ fn parse_fixtures_sdp_transform() {
 }
 
 #[test]
+#[cfg(feature = "udisplay")]
 fn parse_fixtures_sdp_transform_lazy() {
     with_all_fixtures("sdp_transform", |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();

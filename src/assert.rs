@@ -56,14 +56,17 @@ macro_rules! assert_line {
         pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
         assert!(rest.is_empty(), "not parsed completely");
 
-        #[cfg(feature = "udisplay")]
-        let serialized = {
-            let mut output = String::new();
-            ufmt::uwrite!(output, "{}", parsed).unwrap();
-            output
-        };
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "serde")] {
+                let serialized = {
+                    let mut output = String::new();
+                    ufmt::uwrite!(output, "{}", parsed).unwrap();
+                    output
+                };
 
-        pretty_assertions::assert_eq!($line, serialized);
+                pretty_assertions::assert_eq!($line, serialized);
+            }
+        }
     }};
 }
 
@@ -82,18 +85,21 @@ macro_rules! assert_line_dbg {
 #[macro_export]
 macro_rules! assert_line_print {
     ($parser:ident, $line:expr) => {{
-        let (rest, parsed) = $parser(&$line).unwrap();
+        let (rest, _parsed) = $parser(&$line).unwrap();
         if !rest.is_empty() {
             crate::assert::print_leftover($line, rest);
         }
         assert!(rest.is_empty(), "not parsed completely");
 
-        #[cfg(feature = "udisplay")]
-        let serialized = {
-            let mut output = String::new();
-            ufmt::uwrite!(output, "{}", parsed).unwrap();
-            output
-        };
-        assert_eq!($line, serialized);
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "serde")] {
+                let serialized = {
+                    let mut output = String::new();
+                    ufmt::uwrite!(output, "{}", _parsed).unwrap();
+                    output
+                };
+                assert_eq!($line, serialized);
+            }
+        }
     }};
 }
