@@ -155,6 +155,8 @@ pub fn candidate_line(input: &str) -> IResult<&str, Candidate> {
 #[cfg(test)]
 #[rustfmt::skip]
 mod tests {
+    use std::net::Ipv4Addr;
+
     use crate::{assert_line, assert_line_print};
 
     use super::*;
@@ -164,6 +166,14 @@ mod tests {
         assert_line_print!(candidate_line, "a=candidate:3348148302 1 udp 2113937151 192.0.2.1 56500 typ host");
         assert_line_print!(candidate_line, "a=candidate:3348148302 1 tcp 2113937151 192.0.2.1 56500 typ srflx");
         assert_line_print!(candidate_line, "a=candidate:3348148302 2 tcp 2113937151 192.0.2.1 56500 typ srflx");
+        assert_line!(candidate_line, "a=candidate:1 1 TCP 2128609279 10.0.1.1 9 typ host tcptype active", Candidate {
+            foundation: 1, component: CandidateComponent::Rtp, protocol: CandidateProtocol::Tcp, priority: 2128609279, addr: Ipv4Addr::new(10,0,1,1).into(), port: 9,
+            r#type: CandidateType::Host, raddr: None, rport: None, tcptype: Some( Cow::from("active"),), generation: None, network_id: None, });
+        assert_line_print!(candidate_line, "a=candidate:2 1 tcp 2124414975 10.0.1.1 8998 typ host tcptype passive");
+        assert_line_print!(candidate_line, "a=candidate:3 1 tcp 2120220671 10.0.1.1 8999 typ host tcptype so");
+        assert_line_print!(candidate_line, "a=candidate:4 1 tcp 1688207359 192.0.2.3 9 typ srflx raddr 10.0.1.1 rport 9 tcptype active");
+        assert_line_print!(candidate_line, "a=candidate:5 1 tcp 1684013055 192.0.2.3 45664 typ srflx raddr 10.0.1.1 rport 8998 tcptype passive generation 5");
+        assert_line_print!(candidate_line, "a=candidate:6 1 tcp 1692401663 192.0.2.3 45687 typ srflx raddr 10.0.1.1 rport 8999 tcptype so");
         assert_line!(candidate_line, "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ relay");
         assert_line!(candidate_line, "a=candidate:3348148302 1 UDP 2113937151 192.0.2.1 56500 typ srflx");
         // assert_line!("a=candidate:3348148302 2 tcp 2113937151 ::1 56500 typ srflx ::1 1337", candidate_line); // FIXME: is this one compliant?

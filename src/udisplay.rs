@@ -732,10 +732,10 @@ impl ufmt::uDisplay for Candidate<'_> {
             self.r#type,
         )?;
         if let Some(x) = self.raddr {
-            uwrite!(f, "{}", IpAddress(&x))?;
+            uwrite!(f, " raddr {}", IpAddress(&x))?;
         }
         if let Some(x) = self.rport {
-            uwrite!(f, "{}", x)?;
+            uwrite!(f, " rport {}", x)?;
         }
         if let Some(x) = self.tcptype.as_ref() {
             uwrite!(f, " tcptype {}", x.as_ref())?;

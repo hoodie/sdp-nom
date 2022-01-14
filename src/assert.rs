@@ -67,6 +67,18 @@ macro_rules! assert_line {
     }};
 }
 
+// just for debugging, prints and fails
+#[macro_export]
+macro_rules! assert_line_dbg {
+    ($parser:ident, $line:expr) => {{
+        let (rest, _parsed) = $parser(&$line).unwrap();
+        if !rest.is_empty() {
+            crate::assert::print_leftover($line, rest);
+        }
+        panic!("{:#?}", _parsed);
+    }};
+}
+
 #[macro_export]
 macro_rules! assert_line_print {
     ($parser:ident, $line:expr) => {{
