@@ -302,9 +302,9 @@ impl ufmt::uDisplay for MsidSemantic<'_> {
         W: uWrite + ?Sized,
     {
         uwrite!(f, "a=msid-semantic: ")?;
-        uwrite!(f, "{}", self.semantic.as_ref())?;
+        uwrite!(f, "{} ", self.semantic.as_ref())?;
         if let Some(ref token) = self.token {
-            uwrite!(f, " {}", token.as_ref())?;
+            uwrite!(f, "{}", token.as_ref())?;
         }
         Ok(())
     }
