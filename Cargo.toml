@@ -44,3 +44,7 @@ panic = "abort"
 
 [package.metadata]
 wasm-opt = false # in release builds wasm-opt crashes for some reason
+
+[[example]]
+name = "json_filtered"
+required-features = ["serde_json"]
