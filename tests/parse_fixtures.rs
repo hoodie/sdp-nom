@@ -31,8 +31,8 @@ where
 
 #[test]
 #[cfg(feature = "udisplay")]
-fn parse_fixtures_root() {
-    with_all_fixtures("", |path| {
+fn parse_fixtures_order_preserving() {
+    with_all_fixtures("order_preserving", |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
         let session = Session::read_str(&fixture);
         eprintln!("parsed\n{:#?}", session);
@@ -43,6 +43,31 @@ fn parse_fixtures_root() {
 
         eprintln!("fixture: {:?}", path.display());
         pretty_assertions::assert_eq!(fixture, reserialized);
+        pretty_assertions::assert_eq!(session, reparsed);
+    })
+    .unwrap();
+}
+
+fn sort_certain_lines(mut session: Session) -> Session {
+    session.media.iter_mut().for_each(|media| {
+        media.fmtp.sort_by_key(|a| a.payload);
+    });
+    session
+}
+
+#[test]
+#[cfg(feature = "udisplay")]
+fn parse_fixtures_reparsable() {
+    with_all_fixtures("reparsable", |path| {
+        let fixture = std::fs::read_to_string(&path).unwrap();
+        let session = sort_certain_lines(Session::read_str(&fixture));
+        eprintln!("parsed\n{:#?}", session);
+
+        let reserialized = session.to_string();
+        eprintln!("reserialized\n{}", reserialized);
+        let reparsed = sort_certain_lines(Session::read_str(&reserialized));
+
+        eprintln!("fixture: {:?}", path.display());
         pretty_assertions::assert_eq!(session, reparsed);
     })
     .unwrap();
