@@ -17,6 +17,12 @@ include = [
     "tests/**/*.rs",
 ]
 
+[workspace]
+members = [
+    ".",
+    "crates/sdp-wasm"
+]
+
 [dependencies]
 nom = "7"
 wee_alloc = { version = "0.4", optional = true }
@@ -44,6 +50,7 @@ serde_json = "1"
 
 [features]
 default = ["udisplay"]
+# wasm = ["wasm-bindgen"]
 udisplay = ["ufmt"]
 wee = ["wee_alloc"]
 msg_pack = ["rmp-serde", "serde"]

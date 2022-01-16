@@ -1,0 +1,41 @@
+[package]
+name = "sdp-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "a wasm wrapper around sdp-nom"
+license = "MIT/Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+js-sys = "0.3"
+enum-as-inner = "0.3"
+
+[dependencies.serde_json] 
+version = "1"
+optional = true
+
+
+[dependencies.sdp-nom] 
+path = "../.."
+features = ["serde" ]#, "wasm"]
+
+[dependencies.wasm-bindgen]
+version = "0.2"
+features = ["serde-serialize"]
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  'Document',
+  'Window',
+]
+
+[features]
+default = ["auto_init"]
+json = ["serde_json"]
+auto_init = []
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
