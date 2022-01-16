@@ -1,20 +1,16 @@
 use sdp_nom::Session;
 
-fn read_from_args() -> Option<Session<'static>> {
+fn read_from_args() -> Option<String> {
     if let Some(arg) = std::env::args().nth(1) {
-        if let Ok(content) = std::fs::read_to_string(arg) {
-            Some(Session::read_str(&content).into_owned())
-        } else {
-            None
-        }
+        std::fs::read_to_string(arg).ok()
     } else {
-        println!("no input! please pass a file path as first parameter");
         None
     }
 }
 
 fn main() {
-    let session = read_from_args().unwrap();
+    let content = read_from_args().unwrap();
+    let session = Session::read_str(&content);
 
     cfg_if::cfg_if! {
         if #[cfg(feature = "serde")] {
