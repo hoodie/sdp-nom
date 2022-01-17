@@ -28,6 +28,7 @@ This is still very much a "for fun" project, so don't mind me!
 | name     | what it does                                  | default |
 | -------- | --------------------------------------------- | ------- |
 | udisplay | use [ufmt][] to reserialize session and lines | **yes** |
+| debug    | provide `Debug` formatting for all types      | **yes** |
 | serde    | well serde support of course                  | no      |
 | wee      | use [wee][] allocator                         | no      |
 
