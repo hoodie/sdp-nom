@@ -7,6 +7,7 @@ description = "an sdp-parser"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/hoodie/sdp-nom"
 documentation = "https://docs.rs/sdp-nom"
+keywords = ["webrtc", "sdp"]
 
 include = [
     "README.md",
