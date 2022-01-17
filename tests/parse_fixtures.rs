@@ -8,22 +8,24 @@ use std::{
 use sdp_nom::{sdp_lines, sdp_lines_all, Session};
 
 fn with_all_fixtures<F>(
-    sub_folder: impl AsRef<Path>,
+    sub_folders: &[impl AsRef<Path>],
     f: F,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
     F: Fn(&Path), // -> Result<(), Box<dyn std::error::Error>>,
 {
-    let fixture_path = dbg!(PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("fixtures")
-        .join(sub_folder));
+    for sub_folder in sub_folders {
+        let fixture_path = dbg!(PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
+            .join("fixtures")
+            .join(sub_folder));
 
-    for path in fs::read_dir(fixture_path)?
-        .filter_map(|entry| entry.ok())
-        .filter(|entry| entry.path().extension().and_then(OsStr::to_str) == Some("sdp"))
-        .map(|entry| entry.path())
-    {
-        f(&path);
+        for path in fs::read_dir(fixture_path)?
+            .filter_map(|entry| entry.ok())
+            .filter(|entry| entry.path().extension().and_then(OsStr::to_str) == Some("sdp"))
+            .map(|entry| entry.path())
+        {
+            f(&path);
+        }
     }
 
     Ok(())
@@ -32,7 +34,7 @@ where
 #[test]
 #[cfg(feature = "udisplay")]
 fn parse_fixtures_order_preserving() {
-    with_all_fixtures("order_preserving", |path| {
+    with_all_fixtures(&["order_preserving"], |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
         let session = Session::read_str(&fixture);
         eprintln!("parsed\n{:#?}", session);
@@ -58,7 +60,7 @@ fn sort_certain_lines(mut session: Session) -> Session {
 #[test]
 #[cfg(feature = "udisplay")]
 fn parse_fixtures_reparsable() {
-    with_all_fixtures("reparsable", |path| {
+    with_all_fixtures(&["reparsable", "mozilla"], |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
         let session = sort_certain_lines(Session::read_str(&fixture));
         eprintln!("parsed\n{:#?}", session);
@@ -76,7 +78,7 @@ fn parse_fixtures_reparsable() {
 #[test]
 #[cfg(feature = "udisplay")]
 fn parse_fixtures_sdp_transform() {
-    with_all_fixtures("sdp_transform", |path| {
+    with_all_fixtures(&["sdp_transform"], |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
         let session = Session::read_str(&fixture);
         eprintln!("parsed\n{:#?}", session);
@@ -94,7 +96,7 @@ fn parse_fixtures_sdp_transform() {
 #[test]
 #[cfg(feature = "udisplay")]
 fn parse_fixtures_sdp_transform_lazy() {
-    with_all_fixtures("sdp_transform", |path| {
+    with_all_fixtures(&["sdp_transform"], |path| {
         let fixture = std::fs::read_to_string(&path).unwrap();
         let parsed_lines = sdp_lines_all(&fixture)
             .map(|res| {
