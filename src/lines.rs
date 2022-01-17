@@ -19,7 +19,8 @@ use self::{
 };
 
 /// Session Line
-#[derive(Clone, Debug, IntoOwned, EnumAsInner, PartialEq)]
+#[derive(Clone, IntoOwned, EnumAsInner, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -88,7 +89,8 @@ use crate::parsers::*;
 pub mod version {
     use super::*;
 
-    #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -114,7 +116,8 @@ pub mod session_name {
     /// `s=somename`
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
-    #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -145,7 +148,8 @@ pub mod session_information {
     use super::*;
 
     /// `i=<session description>`
-    #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -172,7 +176,8 @@ pub mod session_information {
 pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
-    #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -200,7 +205,8 @@ pub mod email {
     use super::*;
 
     /// Email `e=<email-address>`
-    #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -229,7 +235,8 @@ pub mod email {
 pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
-    #[derive(Clone, Debug, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -257,7 +264,8 @@ pub mod timing {
     use super::*;
 
     /// `t=0 0`
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -291,7 +299,8 @@ pub mod timing {
 
 pub mod bandwidth {
     use super::*;
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),
@@ -316,7 +325,8 @@ pub mod bandwidth {
         ))(input)
     }
 
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
         derive(serde::Serialize, serde::Deserialize),

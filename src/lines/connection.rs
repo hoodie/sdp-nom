@@ -15,7 +15,8 @@ use crate::assert_line;
 use crate::parsers::{line, read_addr, read_ipver, read_number, wsf, IpVer};
 
 /// Connection "c=IN IP4 10.23.42.137"
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

@@ -20,8 +20,8 @@ fn main() {
         if #[cfg(feature = "serde")] {
             println!("{}", serde_json::to_string_pretty(&session).unwrap());
         } else {
-            // println!("{:#?}", session);
-            print!("{}", session.to_string());
+            println!("{:#?}", session);
+            // print!("{}", session.to_string());
         }
     }
 }

@@ -17,6 +17,13 @@ include = [
     "tests/**/*.rs",
 ]
 
+[features]
+default = ["udisplay"]
+udisplay = ["ufmt"]
+debug = []
+wee = ["wee_alloc"]
+msg_pack = ["rmp-serde", "serde"]
+
 [dependencies]
 nom = "7"
 wee_alloc = { version = "0.4", optional = true }
@@ -41,12 +48,6 @@ optional = true
 cfg-if = "1"
 pretty_assertions = "1"
 serde_json = "1"
-
-[features]
-default = ["udisplay"]
-udisplay = ["ufmt"]
-wee = ["wee_alloc"]
-msg_pack = ["rmp-serde", "serde"]
 
 [profile.release]
 lto = true
