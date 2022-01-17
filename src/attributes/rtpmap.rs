@@ -127,14 +127,17 @@ fn test_rtpmap_line() {
     assert_line_print!(rtpmap_line, "a=rtpmap:127 red/90000");
     assert_line_print!(rtpmap_line, "a=rtpmap:123 rtx/90000");
     assert_line_print!(rtpmap_line, "a=rtpmap:125 ulpfec/90000");
-    assert_line!(rtpmap_line, "a=rtpmap:122 red/90000",
+    assert_line!(
+        rtpmap_line,
+        "a=rtpmap:122 red/90000",
         RtpMap {
             payload: 122,
             encoding_name: "red".into(),
             clock_rate: Some(90_000),
             encoding: None,
-        }
-,print);
+        },
+        print
+    );
     assert_line!(
         rtpmap_line,
         "a=rtpmap:113 telephone-event/16000",
