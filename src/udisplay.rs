@@ -110,14 +110,43 @@ impl ufmt::uDisplay for MediaSection<'_> {
             uwriteln!(f, "{}", rtcp_option)?;
         }
 
-        for payload in self.payloads.iter().filter_map(|p| p.parse::<u32>().ok()) {
-            for rtp in self.rtp_map.iter().filter(|r| r.payload == payload) {
+        let known_payloads = self
+            .payloads
+            .iter()
+            .filter_map(|p| p.parse::<u32>().ok())
+            .collect::<Vec<_>>();
+
+        for payload in &known_payloads {
+            for rtp in self.rtp_map.iter().filter(|r| r.payload == *payload) {
                 uwriteln!(f, "{}", rtp)?;
             }
-            for rtcp_fb in self.rtcp_fb.iter().filter(|r| r.payload == payload) {
+            for rtcp_fb in self.rtcp_fb.iter().filter(|r| r.payload == *payload) {
                 uwriteln!(f, "{}", rtcp_fb)?;
             }
-            for fmtp in self.fmtp.iter().filter(|r| r.payload == payload) {
+            for fmtp in self.fmtp.iter().filter(|r| r.payload == *payload) {
+                uwriteln!(f, "{}", fmtp)?;
+            }
+        } // one more round for those not listed in the fmt field
+        {
+            for rtp in self
+                .rtp_map
+                .iter()
+                .filter(|r| !known_payloads.contains(&r.payload))
+            {
+                uwriteln!(f, "{}", rtp)?;
+            }
+            for rtcp_fb in self
+                .rtcp_fb
+                .iter()
+                .filter(|r| !known_payloads.contains(&r.payload))
+            {
+                uwriteln!(f, "{}", rtcp_fb)?;
+            }
+            for fmtp in self
+                .fmtp
+                .iter()
+                .filter(|r| !known_payloads.contains(&r.payload))
+            {
                 uwriteln!(f, "{}", fmtp)?;
             }
         }

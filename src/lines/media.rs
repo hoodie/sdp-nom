@@ -9,6 +9,7 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
+/// [RFC4566#5.14](https://datatracker.ietf.org/doc/html/rfc4566#section-5.14)
 #[derive(Clone, IntoOwned, PartialEq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
@@ -31,7 +32,7 @@ pub fn media_line(input: &str) -> IResult<&str, Media> {
                 wsf(cowify(read_string)),         // type
                 wsf(read_number),                 // port
                 wsf(slash_separated_cow_strings), // protocol
-                wsf(read_as_cow_strings),         //payloads
+                wsf(read_as_cow_strings),         // payloads
             )),
             |(r#type, port, protocol, payloads)| Media {
                 r#type,
