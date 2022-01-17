@@ -19,7 +19,7 @@ include = [
 ]
 
 [features]
-default = ["udisplay"]
+default = ["udisplay", "debug"]
 udisplay = ["ufmt"]
 debug = []
 wee = ["wee_alloc"]
