@@ -3,7 +3,7 @@ name = "sdp-nom"
 version = "0.1.0"
 authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
 edition = "2021"
-description = "a statically typed sdp-parser based on nom"
+description = "an sdp-parser"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/hoodie/sdp-nom"
 documentation = "https://docs.rs/sdp-nom"
@@ -16,6 +16,13 @@ include = [
     "examples/**/*.rs",
     "tests/**/*.rs",
 ]
+
+[features]
+default = ["udisplay"]
+udisplay = ["ufmt"]
+debug = []
+wee = ["wee_alloc"]
+msg_pack = ["rmp-serde", "serde"]
 
 [dependencies]
 nom = "7"
@@ -41,12 +48,6 @@ optional = true
 cfg-if = "1"
 pretty_assertions = "1"
 serde_json = "1"
-
-[features]
-default = ["udisplay"]
-udisplay = ["ufmt"]
-wee = ["wee_alloc"]
-msg_pack = ["rmp-serde", "serde"]
 
 [profile.release]
 lto = true

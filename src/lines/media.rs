@@ -9,7 +9,8 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

@@ -40,18 +40,19 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --features debug 
 
       - name: test (no default features)
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features
+          args: --no-default-features --features debug 
 
       - name: test (with serde)
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde
+          args: --features serde,debug
 
       - name: clippy
         uses: actions-rs/cargo@v1

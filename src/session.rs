@@ -11,7 +11,8 @@ use crate::{
     sdp_line, SdpLine,
 };
 
-#[derive(Debug, Default, IntoOwned, PartialEq)]
+#[derive(Default, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -53,7 +54,8 @@ pub struct Session<'a> {
 
 type ParseError<'a> = nom::Err<nom::error::Error<&'a str>>;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 struct ParserState<'a> {
     session: Session<'a>,
     current_msection: Option<MediaSection<'a>>,

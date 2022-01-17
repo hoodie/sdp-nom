@@ -14,7 +14,8 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -45,7 +46,8 @@ fn test_read_p_time() {
 /// RtpMap
 /// `a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding` parameters>]
 ///<https://tools.ietf.org/html/rfc4566#section-6>
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

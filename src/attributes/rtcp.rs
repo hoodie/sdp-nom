@@ -15,7 +15,8 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -34,7 +35,8 @@ pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
 ///
 ///<https://tools.ietf.org/html/rfc3605>
 /// `a=rtcp:65179 IN IP4 10.23.34.567`
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -83,7 +85,8 @@ fn test_rtcp_attribute_line() {
 ///<https://tools.ietf.org/html/rfc4585#section-4.2>
 ///<https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1>
 /// eg `a=rtcp-fb:98 trr-int 100`
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -94,7 +97,8 @@ pub struct Fb<'a> {
     pub val: FbVal<'a>,
 }
 
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -111,7 +115,8 @@ pub enum FbVal<'a> {
     },
 }
 
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -135,7 +140,8 @@ fn read_param(input: &str) -> IResult<&str, FbParam> {
     ))(input)
 }
 
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -177,7 +183,8 @@ fn test_rtcpfb_ack_param() {
     );
 }
 
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

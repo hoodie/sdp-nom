@@ -11,7 +11,8 @@ use crate::{
     SdpLine,
 };
 
-#[derive(Debug, Default, IntoOwned, PartialEq)]
+#[derive(Default, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -65,7 +66,10 @@ impl<'a> MediaSection<'a> {
         match line {
             SdpLine::Session(Media(_)) => unreachable!(),
             SdpLine::Session(SessionLine::Connection(conn)) => self.connection = Some(conn),
-            SdpLine::Session(session) => println!("🔥 {:#?}", session),
+            #[cfg(feature = "debug")]
+            SdpLine::Session(session) => eprintln!("🔥 {:#?}", session),
+            #[cfg(not(feature = "debug"))]
+            SdpLine::Session(session) => eprintln!("🔥 {}", crate::ufmt_to_string(&session)),
 
             SdpLine::Attribute(Candidate(candidate)) => self.candidates.push(candidate),
             SdpLine::Attribute(Ice(IceParameter::Options(o))) => self.ice.options = Some(o),

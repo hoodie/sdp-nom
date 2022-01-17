@@ -17,7 +17,8 @@ use crate::parsers::*;
 
 /// `a=extmap:<value>["/"<direction>] <URI> <extensionattributes>`
 ///<https://tools.ietf.org/html/rfc8285#section-8>
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

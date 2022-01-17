@@ -7,7 +7,8 @@ use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 use crate::assert_line;
 use crate::parsers::*;
 
-#[derive(Clone, Debug, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -22,7 +23,8 @@ pub enum IceParameter<'a> {
     Lite,
 }
 
-#[derive(Debug, Default, IntoOwned, PartialEq)]
+#[derive(Default, IntoOwned, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
