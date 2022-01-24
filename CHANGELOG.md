@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased](https://github.com/hoodie/sdp-nom/compare/v0.1.1...HEAD) (2022-01-24)
+
+
+### Fixes
+
+* read session name till end
+ c0ffee4
+
+
 ### [v0.1.1](https://github.com/hoodie/sdp-nom/compare/v0.1.0...v0.1.1) (2022-01-18)
 
 
