@@ -99,7 +99,7 @@ pub fn read_big_number(input: &str) -> IResult<&str, u64> {
 }
 
 pub fn read_everything(input: &str) -> IResult<&str, &str> {
-    take_while(|c| c != '\n')(input)
+    map(take_while(|_| true), str::trim)(input)
 }
 
 pub fn read_string0(input: &str) -> IResult<&str, &str> {

@@ -127,7 +127,7 @@ pub mod session_name {
 
     /// "s=somename"
     pub fn name_line(input: &str) -> IResult<&str, SessionName> {
-        preceded(tag("s="), map(wsf(cowify(read_string0)), SessionName))(input)
+        line("s=", map(cowify(wsf(read_everything)), SessionName))(input)
     }
 
     #[test]
@@ -141,6 +141,7 @@ pub mod session_name {
         );
         assert_line!(name_line, "s= testname", SessionName("testname".into()));
         assert_line!(name_line, "s=testname ", SessionName("testname".into()));
+        assert_line!(name_line, "s=test name ", SessionName("test name".into()));
     }
 }
 
@@ -159,15 +160,15 @@ pub mod session_information {
 
     /// SessionInformation "i=description"
     pub fn description_line(input: &str) -> IResult<&str, SessionInformation> {
-        line("i=", map(cowify(read_string), SessionInformation))(input)
+        line("i=", map(cowify(wsf(read_everything)), SessionInformation))(input)
     }
 
     #[test]
     fn test_description_line() {
         assert_line!(
             description_line,
-            "i=testdescription",
-            SessionInformation("testdescription".into()),
+            "i=test description ",
+            SessionInformation("test description".into()),
             print
         );
     }
