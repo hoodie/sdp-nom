@@ -64,6 +64,21 @@ pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
 }
 ```
 
+## License
+
+icalendar-rs is licensed under either of
+
+* Apache License, Version 2.0, (LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0)
+* MIT license (LICENSE-MIT or http://opensource.org/licenses/MIT)
+
+at your option.
+
+## Contribution
+
+Any help in form of descriptive and friendly [issues](https://github.com/hoodie/sdp-nom/issues) or comprehensive pull requests are welcome! 
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in sdp-nom by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
 [nom]: https://docs.rs/nom
 [ufmt]: https://docs.rs/ufmt
 [wee]: https://docs.rs/wee_alloc
@@ -71,3 +86,4 @@ pub fn email_address_line(input: &str) -> IResult<&str, EmailAddress> {
 [webrtc_rs]: https://crates.io/crates/sdp
 [sdp-types]: https://crates.io/crates/sdp-types
 [`cow`]: https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html
+
