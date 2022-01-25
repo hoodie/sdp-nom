@@ -63,6 +63,10 @@ name = "session"
 required-features = ["udisplay"]
 
 [[example]]
+name = "session_static"
+required-features = ["udisplay"]
+
+[[example]]
 name = "remove_direct_tcp_candidates"
 required-features = ["udisplay"]
 
@@ -73,6 +77,10 @@ required-features = ["udisplay"]
 [[example]]
 name = "reparse"
 required-features = ["udisplay"]
+
+[[example]]
+name = "pretty_print"
+required-features = ["debug"]
 
 [[example]]
 name = "iter"

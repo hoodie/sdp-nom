@@ -68,8 +68,10 @@ impl<'a> MediaSection<'a> {
             SdpLine::Session(SessionLine::Connection(conn)) => self.connection = Some(conn),
             #[cfg(feature = "debug")]
             SdpLine::Session(session) => eprintln!("🔥 {:#?}", session),
-            #[cfg(not(feature = "debug"))]
+            #[cfg(all(feature = "udisplay", not(feature = "debug")))]
             SdpLine::Session(session) => eprintln!("🔥 {}", crate::ufmt_to_string(&session)),
+            #[cfg(not(all(feature = "udisplay", feature = "debug")))]
+            SdpLine::Session(_session) => {},
 
             SdpLine::Attribute(Candidate(candidate)) => self.candidates.push(candidate),
             SdpLine::Attribute(Ice(IceParameter::Options(o))) => self.ice.options = Some(o),

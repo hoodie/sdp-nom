@@ -11,11 +11,13 @@ a=rid 🤷
     let session = Session::read_str(content);
 
     cfg_if::cfg_if! {
-        if #[cfg(feature = "serde")] {
+        if #[cfg(feature = "display")] {
             println!("{}", serde_json::to_string_pretty(&session).unwrap());
-        } else {
+        } else if #[cfg(feature = "debug")] {
             println!("{:#?}", session);
             // print!("{}", session.to_string());
+        } else {
+            panic!("not enough features activated")
         }
     }
 }

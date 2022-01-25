@@ -167,9 +167,14 @@ pub mod session_information {
     fn test_description_line() {
         assert_line!(
             description_line,
-            "i=test description ",
+            "i=test description",
             SessionInformation("test description".into()),
             print
+        );
+        assert_line!(
+            description_line,
+            "i=test description ",
+            SessionInformation("test description".into())
         );
     }
 }

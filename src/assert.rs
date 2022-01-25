@@ -45,19 +45,34 @@ macro_rules! assert_line {
 
     ($parser:ident, $line:expr, $expectation:expr) => {{
         let (rest, parsed) = $parser(&$line).unwrap();
-        crate::assert::print_result($line, &rest, &parsed);
-        pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "debug")] {
+                crate::assert::print_result($line, &rest, &parsed);
+                pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
+            } else {
+                crate::assert::print_leftover($line, &rest);
+                assert!(parsed == $expectation);
+            }
+        }
         assert!(rest.is_empty(), "not parsed completely");
     }};
 
     ($parser:ident, $line:expr, $expectation:expr, print) => {{
         let (rest, parsed) = $parser(&$line).unwrap();
-        crate::assert::print_result($line, &rest, &parsed);
-        pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
+        
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "debug")] {
+                crate::assert::print_result($line, &rest, &parsed);
+                pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
+            } else {
+                crate::assert::print_leftover($line, &rest);
+                assert!(parsed == $expectation);
+            }
+        }
         assert!(rest.is_empty(), "not parsed completely");
 
         cfg_if::cfg_if! {
-            if #[cfg(feature = "serde")] {
+            if #[cfg(feature = "udisplay")] {
                 let serialized = {
                     let mut output = String::new();
                     ufmt::uwrite!(output, "{}", parsed).unwrap();
@@ -92,7 +107,7 @@ macro_rules! assert_line_print {
         assert!(rest.is_empty(), "not parsed completely");
 
         cfg_if::cfg_if! {
-            if #[cfg(feature = "serde")] {
+            if #[cfg(feature = "udisplay")] {
                 let serialized = {
                     let mut output = String::new();
                     ufmt::uwrite!(output, "{}", _parsed).unwrap();
