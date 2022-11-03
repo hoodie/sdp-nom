@@ -138,7 +138,7 @@ pub fn read_addr(input: &str) -> IResult<&str, IpAddr> {
     map_res(take_while1(|c| c != ' ' && c != '/'), str::parse)(input)
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",

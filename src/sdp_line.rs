@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Sdp Line
-#[derive(Clone, IntoOwned, EnumAsInner, PartialEq)]
+#[derive(Clone, IntoOwned, EnumAsInner, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",

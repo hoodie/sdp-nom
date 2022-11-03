@@ -12,7 +12,7 @@ use crate::{assert_line, assert_line_print};
 /// Origin
 ///
 /// o=- 20518 0 IN IP4 203.0.113.1
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",

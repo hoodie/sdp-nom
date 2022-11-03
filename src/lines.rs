@@ -19,7 +19,7 @@ use self::{
 };
 
 /// Session Line
-#[derive(Clone, IntoOwned, EnumAsInner, PartialEq)]
+#[derive(Clone, IntoOwned, EnumAsInner, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -89,7 +89,7 @@ use crate::parsers::*;
 pub mod version {
     use super::*;
 
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -116,7 +116,7 @@ pub mod session_name {
     /// `s=somename`
     ///
     /// <https://tools.ietf.org/html/rfc4566#section-5.3>
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -149,7 +149,7 @@ pub mod session_information {
     use super::*;
 
     /// `i=<session description>`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -182,7 +182,7 @@ pub mod session_information {
 pub mod uri {
     use super::*;
     /// Uri `u=<uri>`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -211,7 +211,7 @@ pub mod email {
     use super::*;
 
     /// Email `e=<email-address>`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -241,7 +241,7 @@ pub mod email {
 pub mod phone_number {
     use super::*;
     /// Email `p=<phone-number>`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -270,7 +270,7 @@ pub mod timing {
     use super::*;
 
     /// `t=0 0`
-    #[derive(Clone, PartialEq)]
+    #[derive(Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -305,7 +305,7 @@ pub mod timing {
 
 pub mod bandwidth {
     use super::*;
-    #[derive(Clone, PartialEq)]
+    #[derive(Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -331,7 +331,7 @@ pub mod bandwidth {
         ))(input)
     }
 
-    #[derive(Clone, PartialEq)]
+    #[derive(Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",

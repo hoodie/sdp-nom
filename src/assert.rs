@@ -24,9 +24,9 @@ impl<T: fmt::Display> AssertLinify for T {
 #[macro_export]
 macro_rules! assert_line {
     ($line:expr) => {{
-        let (rest, _parsed) = crate::sdp_line(&$line).unwrap();
+        let (rest, _parsed) = $crate::sdp_line(&$line).unwrap();
         if !rest.is_empty() {
-            crate::assert::print_leftover($line, rest);
+            $crate::assert::print_leftover($line, rest);
         }
         assert!(rest.is_empty(), "not parsed completely");
     }};
@@ -38,7 +38,7 @@ macro_rules! assert_line {
     ($line:expr, $parser:ident) => {{
         let (rest, _parsed) = $parser(&$line).unwrap();
         if !rest.is_empty() {
-            crate::assert::print_leftover($line, rest);
+            $crate::assert::print_leftover($line, rest);
         }
         assert!(rest.is_empty(), "not parsed completely");
     }};
@@ -47,10 +47,10 @@ macro_rules! assert_line {
         let (rest, parsed) = $parser(&$line).unwrap();
         cfg_if::cfg_if! {
             if #[cfg(feature = "debug")] {
-                crate::assert::print_result($line, &rest, &parsed);
+                $crate::assert::print_result($line, &rest, &parsed);
                 pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
             } else {
-                crate::assert::print_leftover($line, &rest);
+                $crate::assert::print_leftover($line, &rest);
                 assert!(parsed == $expectation);
             }
         }
@@ -62,10 +62,10 @@ macro_rules! assert_line {
         
         cfg_if::cfg_if! {
             if #[cfg(feature = "debug")] {
-                crate::assert::print_result($line, &rest, &parsed);
+                $crate::assert::print_result($line, &rest, &parsed);
                 pretty_assertions::assert_eq!(parsed, $expectation, "{:?} not parsed as expected", $line);
             } else {
-                crate::assert::print_leftover($line, &rest);
+                $crate::assert::print_leftover($line, &rest);
                 assert!(parsed == $expectation);
             }
         }
@@ -91,7 +91,7 @@ macro_rules! assert_line_dbg {
     ($parser:ident, $line:expr) => {{
         let (rest, _parsed) = $parser(&$line).unwrap();
         if !rest.is_empty() {
-            crate::assert::print_leftover($line, rest);
+            $crate::assert::print_leftover($line, rest);
         }
         panic!("{:#?}", _parsed);
     }};
@@ -102,7 +102,7 @@ macro_rules! assert_line_print {
     ($parser:ident, $line:expr) => {{
         let (rest, _parsed) = $parser(&$line).unwrap();
         if !rest.is_empty() {
-            crate::assert::print_leftover($line, rest);
+            $crate::assert::print_leftover($line, rest);
         }
         assert!(rest.is_empty(), "not parsed completely");
 

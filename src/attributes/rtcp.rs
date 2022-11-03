@@ -15,7 +15,7 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -35,7 +35,7 @@ pub fn read_net_type(input: &str) -> IResult<&str, NetType> {
 ///
 ///<https://tools.ietf.org/html/rfc3605>
 /// `a=rtcp:65179 IN IP4 10.23.34.567`
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -85,7 +85,7 @@ fn test_rtcp_attribute_line() {
 ///<https://tools.ietf.org/html/rfc4585#section-4.2>
 ///<https://datatracker.ietf.org/doc/draft-ietf-mmusic-sdp-mux-attributes/16/?include_text=1>
 /// eg `a=rtcp-fb:98 trr-int 100`
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -97,7 +97,7 @@ pub struct Fb<'a> {
     pub val: FbVal<'a>,
 }
 
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -115,7 +115,7 @@ pub enum FbVal<'a> {
     },
 }
 
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -140,7 +140,7 @@ fn read_param(input: &str) -> IResult<&str, FbParam> {
     ))(input)
 }
 
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -183,7 +183,7 @@ fn test_rtcpfb_ack_param() {
     );
 }
 
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",

@@ -14,7 +14,7 @@ use crate::parsers::*;
 #[cfg(test)]
 use crate::{assert_line, assert_line_print};
 
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -78,7 +78,7 @@ fn test_ssrc_line() {
     assert_line!(ssrc_line, "a=ssrc:632943048 msid:lgsCFqt9kN2fVKw5wg3NKqGdATQoltEwOdMS daed9400-d0dd-4db3-b949-422499e96e2d");
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -91,7 +91,7 @@ pub enum SsrcSemantic {
     FEC,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",

@@ -19,11 +19,7 @@ fn main() {
         .media
         .into_iter()
         .map(|mut media| {
-            media.candidates = media
-                .candidates
-                .into_iter()
-                .filter(|c| c.protocol == CandidateProtocol::Tcp)
-                .collect();
+            media.candidates.retain(|c| c.protocol == CandidateProtocol::Tcp);
             media
         })
         .collect();

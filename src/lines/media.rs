@@ -10,7 +10,7 @@ use crate::parsers::*;
 use crate::{assert_line, assert_line_print};
 
 /// [RFC4566#5.14](https://datatracker.ietf.org/doc/html/rfc4566#section-5.14)
-#[derive(Clone, IntoOwned, PartialEq)]
+#[derive(Clone, IntoOwned, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",

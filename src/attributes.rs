@@ -35,7 +35,7 @@ pub use rtcp_option::*;
 pub use rtp::*;
 pub use ssrc::*;
 
-#[derive(Clone, IntoOwned, EnumAsInner, PartialEq)]
+#[derive(Clone, IntoOwned, EnumAsInner, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
@@ -157,7 +157,7 @@ pub mod bundle {
     use super::*;
 
     /// `a=group:BUNDLE 0 1`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -204,7 +204,7 @@ pub mod rtp {
     use super::*;
 
     // a=rtpmap:110 opus/48000/2
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -249,7 +249,7 @@ pub mod fmtp {
     use super::*;
     ///<https://tools.ietf.org/html/rfc4588#section-8.1>
     /// `a=fmtp:108 profile-level-id=24;object=23;bitrate=64000`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -296,7 +296,7 @@ pub mod control {
     use super::*;
 
     /// `a=control:streamid=0`
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -327,7 +327,7 @@ pub mod direction {
     /// `a=sendonly`
     /// `a=recvonly`
     /// `a=inactive`
-    #[derive(PartialEq, Clone, Copy)]
+    #[derive(PartialEq, Eq, Clone, Copy)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -374,7 +374,7 @@ pub mod direction {
 pub mod rtcp_option {
     use super::*;
 
-    #[derive(Clone, PartialEq)]
+    #[derive(Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -419,7 +419,7 @@ pub mod rtcp_option {
 pub mod fingerprint {
     use super::*;
 
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -458,7 +458,7 @@ pub mod fingerprint {
 pub mod mid {
     use super::*;
 
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -490,7 +490,7 @@ pub mod msid {
     use super::*;
 
     /// TODO: type this more strictly, if possible without `Vec`
-    #[derive(Clone, derive_into_owned::IntoOwned, PartialEq)]
+    #[derive(Clone, derive_into_owned::IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",
@@ -529,7 +529,7 @@ pub mod msid {
         );
     }
 
-    #[derive(Clone, IntoOwned, PartialEq)]
+    #[derive(Clone, IntoOwned, PartialEq, Eq)]
     #[cfg_attr(feature = "debug", derive(Debug))]
     #[cfg_attr(
         feature = "serde",

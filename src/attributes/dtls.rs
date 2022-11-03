@@ -6,7 +6,7 @@ use nom::{branch::alt, bytes::complete::tag, combinator::map, IResult};
 use crate::assert_line;
 use crate::parsers::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[cfg_attr(
     feature = "serde",
