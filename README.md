@@ -2,7 +2,7 @@
 
 # sdp-nom
 
-[![build](https://img.shields.io/github/workflow/status/hoodie/sdp-nom/Continuous%20Integration)](https://github.com/hoodie/sdp-nom/actions?query=workflow%3A"Continuous+Integration")
+[![build](https://img.shields.io/github/actions/workflow/status/hoodie/sdp-nom/ci.yml?branch=main)](https://github.com/hoodie/notify-rust/actions?query=workflow%3A"Continuous+Integration")
 [![Crates.io](https://img.shields.io/crates/d/sdp-nom)](https://crates.io/crates/sdp-nom)
 [![contributors](https://img.shields.io/github/contributors/hoodie/sdp-nom)](https://github.com/hoodie/sdp-nom/graphs/contributors)
 ![maintenance](https://img.shields.io/maintenance/yes/2022)
